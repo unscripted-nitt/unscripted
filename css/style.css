@@ -230,7 +230,7 @@ em { font-style: italic; }
   filter: blur(1px) grayscale(1);
   pointer-events: none;
 }
-[data-theme="dark"] .hero-watermark, .dark-mode .hero-watermark { opacity: 0.03; }
+[data-theme="dark"] .hero-watermark, .dark-mode .hero-watermark { opacity: 0.1; }
 
 .hero-blob {
   position: absolute; border-radius: 50%;
