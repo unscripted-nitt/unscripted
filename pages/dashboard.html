@@ -42,6 +42,7 @@
       <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-bar"></i></span> Analysis</a>
       <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon"><i class="fa-solid fa-medal"></i></span> Achievements</a>
       <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon"><i class="fa-solid fa-trophy"></i></span> Leaderboard</a>
+      <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon"><i class="fa-solid fa-star"></i></span> Points Guide</a>
 
       <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
@@ -185,6 +186,34 @@
       </div>
     </div>
 
+<!-- SECTION: POINTS GUIDE (Req 6) -->
+<div class="dash-section" id="section-points">
+  <h2 class="section-title">Points Guide</h2>
+  <p class="section-sub">Points earned per role in every meeting</p>
+  <div class="card" style="max-width:600px;">
+    <table style="min-width:auto;">
+      <thead><tr>
+        <th style="text-align:left;">Role</th>
+        <th style="text-align:center;">Points</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;">HOM (Host of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">10</td></tr>
+        <tr><td style="font-weight:700;">Prepared Speech</td><td style="text-align:center;font-weight:800;color:var(--orange);">7</td></tr>
+        <tr><td style="font-weight:700;">TTM (Table Topics Master)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
+        <tr><td style="font-weight:700;">GE (General Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
+        <tr><td style="font-weight:700;">MOM (Minutes of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">4</td></tr>
+        <tr><td style="font-weight:700;">Speech Evaluator</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">TTE (Table Topics Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Timer</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Listener</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Grammarian</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Table Topic Speaker</td><td style="text-align:center;font-weight:800;color:var(--orange);">2</td></tr>
+        <tr><td style="font-weight:700;">Attendance</td><td style="text-align:center;font-weight:800;color:var(--orange);">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+    
     <!-- ──────────────────────────────────────────────────── -->
     <!-- SECTION: LEADERBOARD                                 -->
     <!-- ──────────────────────────────────────────────────── -->
@@ -679,21 +708,21 @@ async function loadAchievements() {
 
 // ── LEADERBOARD ───────────────────────────────────────────
 async function loadLeaderboard() {
-  const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Attendance','MOM','Points','Roles'];
-  const headerHtml = HEADERS.map((h,i) => `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`).join('');
-  document.getElementById('leaderboardTableHeader').innerHTML = headerHtml;
-
+  const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
+  document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
+    `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`
+  ).join('');
   try {
     const snap = await getDocs(collection(db,'users'));
-    const users = []; snap.forEach(d => users.push({id:d.id,...d.data()}));
-    const sorted = [...users].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-    let html = '';
-    sorted.forEach(u => {
-      let c = {hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,attendance:0,mom:0};
+    const users = [];
+    snap.forEach(d => { const u={id:d.id,...d.data()}; if(u.isActive!==false) users.push(u); });
+    const f = v => v===0?'':v;
+    const rows = users.map(u => {
+      let c={hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,listener:0,grammarian:0,attendance:0,mom:0};
       allEventsCache.forEach(e => {
-        const rm = e.roles||{};
+        const rm=e.roles||{};
         for (const [rk,uid] of Object.entries(rm)) {
-          if (uid !== u.id) continue;
+          if (uid!==u.id) continue;
           if (rk.startsWith('hom')) c.hom++;
           else if (rk.startsWith('speaker')) c.speaker++;
           else if (rk.startsWith('evaluator')) c.evaluator++;
@@ -703,22 +732,27 @@ async function loadLeaderboard() {
           else if (rk==='timer') c.timer++;
           else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
           else if (rk==='momTaker'||rk==='momPres') c.mom++;
+          else if (rk==='listener') c.listener++;
+          else if (rk==='grammarian') c.grammarian++;
         }
         if (e.attended?.includes(u.id)) c.attendance++;
       });
-      const totalRoles = c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.mom;
-      const totalPoints = c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.attendance*1+c.mom*4;
-      const f = v => v===0?'':v;
+      const totalRoles=c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.listener+c.grammarian+c.mom;
+      const totalPoints=c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.listener*3+c.grammarian*3+c.attendance*1+c.mom*4;
+      return {u, c, totalRoles, totalPoints};
+    });
+    rows.sort((a,b) => b.totalPoints - a.totalPoints);
+    let html = '';
+    rows.forEach(({u,c,totalRoles,totalPoints}) => {
       const isMe = u.id === currentUid;
-      html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}${isMe?'border:2px solid rgba(255,87,34,0.2);':''}">
+      html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}">
         <td style="position:sticky;left:0;background:${isMe?'rgba(255,87,34,0.08)':'var(--surface)'};z-index:5;padding:0.9rem;font-weight:${isMe?'800':'700'};">${u.name||''}${isMe?' (you)':''}</td>
-        ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
+        ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.listener),f(c.grammarian),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
       </tr>`;
     });
-    document.getElementById('leaderboardTableBody').innerHTML = html || '<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>';
+    document.getElementById('leaderboardTableBody').innerHTML = html || `<tr><td colspan="${HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>`;
   } catch(e) { console.warn('Leaderboard error',e); }
 }
-
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
