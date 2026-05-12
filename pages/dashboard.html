@@ -3,130 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Unscripted NITT</title>
+  <title>Dashboard — Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
-<!-- TOP NAV -->
+<!-- ── TOP NAV ──────────────────────────────────────────── -->
 <div class="dash-top-nav">
-  <div style="display:flex;align-items:center;gap:1.2rem;">
-    <button class="hamburger-dash" onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:1.5rem; display:none;"><span class="dash-nav-icon">☰</span></button>
-    <a href="../index.html" class="nav-logo" style="gap:0.5rem;">
-      <img src="../icons/logo.png" alt="Unscripted" style="height:120px;width:auto;z-index:101;" />
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <button class="hamburger-dash" onclick="toggleSidebar()" aria-label="Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
+      <img src="../icons/logo.png" alt="Unscripted" style="height:48px;width:auto;" />
     </a>
   </div>
   <div style="display:flex;align-items:center;gap:1rem;">
-    <span id="topNavName" style="color:rgba(255,255,255,0.6);font-size:0.88rem;"></span>
+    <!-- Notification bell -->
+    <button id="notifBell" onclick="showSection('notifications')" style="background:none;border:none;color:var(--text);font-size:1.2rem;position:relative;cursor:pointer;" title="Notifications">
+      <i class="fa-regular fa-bell"></i>
+      <span id="notifCount" class="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;"></span>
+    </button>
+    <span id="topNavName" style="color:var(--text-mid);font-size:0.88rem;"></span>
     <div id="topNavAvatar" class="dash-avatar"></div>
-    <button onclick="doLogout()" style="background:rgba(255,255,255,0.1);color:white;border:none;padding:0.45rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;font-family:var(--font-body);">Log Out</button>
+    <button onclick="doLogout()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.45rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">Log Out</button>
   </div>
 </div>
 
 <div class="dash-body">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
     <nav>
       <div class="sidebar-label">My Journey</div>
-      <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon">📊</span> My Progress</a>
-      <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon">📈</span> Analysis</a>
-      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon">🎖️</span> Achievements</a>
-      <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon">🏆</span> Leaderboard</a>
+      <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-line"></i></span> My Progress</a>
+      <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-bar"></i></span> Analysis</a>
+      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon"><i class="fa-solid fa-medal"></i></span> Achievements</a>
+      <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon"><i class="fa-solid fa-trophy"></i></span> Leaderboard</a>
+
       <div class="sidebar-label">Club</div>
-      <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon">🤝</span> Mentor / Mentee</a>
-      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon">📅</span> Attendance</a>
-      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon">📸</span> Gallery</a>
+      <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
+      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Attendance</a>
+      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon"><i class="fa-regular fa-images"></i></span> Gallery</a>
+      <a class="dash-nav-item" onclick="showSection('notifications')">
+        <span class="dash-nav-icon"><i class="fa-regular fa-bell"></i></span> Notifications
+        <span id="sidebarNotifBadge" style="display:none;margin-left:auto;" class="notif-badge"></span>
+      </a>
+      <a class="dash-nav-item" onclick="showSection('feedback')"><span class="dash-nav-icon"><i class="fa-solid fa-star-half-stroke"></i></span> Give Feedback</a>
+      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Give Vote</a>
+
       <div class="sidebar-label">Public</div>
-      <a class="dash-nav-item" href="../index.html#events"><span class="dash-nav-icon">🗓️</span> Events</a>
-      <a class="dash-nav-item" href="../index.html#contact"><span class="dash-nav-icon">✉️</span> Contact</a>
-      <a class="dash-nav-item" href="members.html"><span class="dash-nav-icon">👥</span> Members</a>
-      <a class="dash-nav-item" href="videos.html"><span class="dash-nav-icon">🎤</span> Speeches</a>
-      
+      <!-- req 11: open in same environment, no redirect away -->
+      <a class="dash-nav-item" href="../index.html#events" target="_self"><span class="dash-nav-icon"><i class="fa-solid fa-calendar"></i></span> Events</a>
+      <a class="dash-nav-item" href="../index.html#contact" target="_self"><span class="dash-nav-icon"><i class="fa-solid fa-envelope"></i></span> Contact</a>
+      <a class="dash-nav-item" href="members.html" target="_self"><span class="dash-nav-icon"><i class="fa-solid fa-users"></i></span> Members</a>
+      <a class="dash-nav-item" href="videos.html" target="_self"><span class="dash-nav-icon"><i class="fa-solid fa-video"></i></span> Speeches</a>
+
       <div class="sidebar-label">Account</div>
-      <a class="dash-nav-item" onclick="openSettingsModal()"><span class="dash-nav-icon">⚙️</span> Security & Settings</a>
-      
+      <a class="dash-nav-item" onclick="openSettingsModal()"><span class="dash-nav-icon"><i class="fa-solid fa-gear"></i></span> Security &amp; Settings</a>
+
       <div id="adminPortalLink" style="display:none;">
-        <div class="sidebar-label" style="margin-top:2rem;">Management</div>
-        <a class="dash-nav-item" href="admin-dashboard.html" style="color:var(--orange);"><span class="dash-nav-icon">🛡️</span> Admin Portal</a>
+        <div class="sidebar-label" style="margin-top:1rem;">Management</div>
+        <a class="dash-nav-item" href="admin-dashboard.html" style="color:var(--orange);"><span class="dash-nav-icon"><i class="fa-solid fa-shield-halved"></i></span> Admin Portal</a>
       </div>
     </nav>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- ── MAIN CONTENT ────────────────────────────────────── -->
   <main class="main-content">
 
-    <!-- ACTIVE MEET BANNER -->
-    <div id="activeMeetBanner" style="display:none; margin-bottom:2rem; animation: slideDown 0.5s ease;">
-      <div class="card" style="background:var(--dark); color:white; border-left:4px solid var(--orange); display:flex; align-items:center; justify-content:space-between; padding:1.5rem 2rem;">
-        <div style="display:flex; align-items:center; gap:1.5rem;">
+    <!-- Active Meet Banner -->
+    <div id="activeMeetBanner" style="display:none;margin-bottom:2rem;">
+      <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a);color:#fff;border-color:#333;border-left:4px solid var(--orange);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:0;">
+        <div style="display:flex;align-items:center;gap:1.5rem;">
           <div class="live-indicator">LIVE</div>
           <div>
-            <h3 style="margin:0; font-family:var(--font-display); font-size:1.4rem;" id="activeMeetTitle">Weekly Meet #24</h3>
-            <p style="margin:0; opacity:0.7; font-size:0.88rem;" id="activeMeetLocation">Starting now @ ESB 104</p>
+            <h3 id="activeMeetTitle" style="margin:0;font-size:1.2rem;color:#fff;">Weekly Meet</h3>
+            <p id="activeMeetLocation" style="margin:0;opacity:0.65;font-size:0.85rem;"></p>
           </div>
         </div>
-        <button class="btn-primary" style="padding:0.6rem 1.5rem; font-size:0.85rem;" onclick="showSection('attendance')">Mark Presence →</button>
+        <button class="btn-primary" style="padding:0.55rem 1.25rem;font-size:0.85rem;" onclick="showSection('attendance')">Mark Presence &rarr;</button>
       </div>
     </div>
 
-    <style>
-    @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
-    .live-indicator {
-      background: #ff3d00;
-      color: white;
-      padding: 0.25rem 0.6rem;
-      border-radius: 4px;
-      font-weight: 900;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      animation: blink 1.5s infinite;
-    }
-    @keyframes blink { 0% { opacity:1; } 50% { opacity:0.5; } 100% { opacity:1; } }
-    </style>
-
-    <!-- PROGRESS -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: MY PROGRESS                                 -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section active" id="section-progress">
-      <div class="card" id="upcomingRolesCard" style="display:none; border:1px solid rgba(255,87,34,0.1); background:linear-gradient(to bottom right, #ffffff, #fffdfb); margin-bottom:2.5rem;">
-        <h3 style="margin-top:0; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
-          Upcoming Meet Roles <span class="live-badge" style="font-size:0.6rem; animation:none; background:#eee; color:#666;">ROSTER</span>
+      <!-- Upcoming role card -->
+      <div class="card" id="upcomingRolesCard" style="display:none;border:1px solid rgba(255,87,34,0.15);background:var(--orange-light);margin-bottom:2rem;">
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;">
+          Upcoming Meet Roles <span class="live-badge">ROSTER</span>
         </h3>
-        <div id="upcomingRolesContainer">
-          <p style="color:var(--mid); font-size:0.9rem;">Loading roster...</p>
-        </div>
+        <div id="upcomingRolesContainer"><p style="color:var(--text-mid);font-size:0.9rem;">Loading roster...</p></div>
       </div>
+
       <h2 class="section-title">My Progress</h2>
-      <p class="section-sub">Your speech Guidance material journey at a glance</p>
+      <p class="section-sub">Your speech curriculum journey at a glance</p>
+
       <div class="stats-cards" id="progressStats">
-        <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Completed</div></div>
-        <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Last Project</div></div>
+        <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Done</div></div>
+        <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Current Project</div></div>
         <div class="stat-card"><div class="big-num" id="statAttPct">—</div><div class="stat-name">Attendance %</div></div>
       </div>
+
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
-          <h3 style="margin:0;" id="pathwayTitle">Guidance material Progress</h3>
-          <span id="pathwayBadge" style="background:var(--orange);color:white;padding:0.3rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:700;">Loading...</span>
+          <h3 style="margin:0;" id="pathwayTitle">Curriculum Progress</h3>
+          <span id="pathwayBadge" style="background:var(--orange);color:#fff;padding:0.3rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:700;">Loading...</span>
         </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar" id="pathwayBar" style="width:0%"></div>
-        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="pathwayBar" style="width:0%"></div></div>
         <div class="progress-labels">
           <span id="progressDone">0 speeches done</span>
           <span id="progressTotal">of ? total</span>
         </div>
         <div class="pathway-steps" id="pathwaySteps" style="margin-top:1.5rem;"></div>
       </div>
-
     </div>
 
-    <!-- ANALYSIS -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: ANALYSIS                                    -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-analysis">
       <h2 class="section-title">Speech Analysis</h2>
-      <p class="section-sub">Visual breakdown of your speaking skills and growth</p>
+      <p class="section-sub">Visual breakdown of your speaking skills and feedback scores</p>
       <div class="card">
         <h3>Skill Radar</h3>
-        <p style="color:var(--mid);font-size:0.88rem;margin-bottom:1rem;">Based on mentor evaluations across speech dimensions</p>
+        <p style="color:var(--text-mid);font-size:0.88rem;margin-bottom:1rem;">Based on feedback across speech dimensions</p>
         <canvas id="radarChart" width="400" height="400" style="max-width:400px;margin:0 auto;display:block;"></canvas>
       </div>
       <div class="card">
@@ -137,54 +142,74 @@
         <h3>Skill Breakdown</h3>
         <div id="skillBars"></div>
       </div>
+      <!-- Feedback received (req 13) -->
+      <div class="card" id="myFeedbackCard">
+        <h3>My Speech Feedback</h3>
+        <p class="section-sub" style="margin-bottom:1.5rem;">Accumulated feedback from all members across meetings</p>
+        <div id="myFeedbackList"><p style="color:var(--text-mid);">No feedback received yet.</p></div>
+      </div>
     </div>
 
-    <!-- ANALYSIS SECTION... (already existing) -->
-
-    <!-- ACHIEVEMENTS -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: ACHIEVEMENTS                                -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-achievements">
       <h2 class="section-title">Achievements</h2>
-      <p class="section-sub">Badges you've earned on your Unscripted journey</p>
-      
+      <p class="section-sub">Badges and recognitions earned on your Unscripted journey</p>
+
+      <!-- Win badges (req 15) -->
+      <div class="card" id="winBadgesCard" style="display:none;margin-bottom:1.5rem;border:2px solid rgba(255,200,0,0.4);">
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;">
+          <i class="fa-solid fa-crown" style="color:#ffa000;"></i> Meeting Awards Won
+        </h3>
+        <div class="badges-grid" id="winBadgesGrid"></div>
+      </div>
+
+      <!-- Journey milestones -->
       <div class="card" style="margin-bottom:1.5rem;">
         <h3 style="margin-top:0;">Journey Milestones</h3>
-        <div class="badges-grid" id="badgesGrid"><p style="color:var(--mid);">Loading achievements...</p></div>
+        <div class="badges-grid" id="badgesGrid"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
-      
-      <div class="card" id="myUpcomingRolesWrapper" style="display:none; margin-bottom:1.5rem; background:#fff3ef; border:1px solid rgba(255,87,34,0.1);">
-        <h3 style="margin-top:0; color:var(--orange);">My Upcoming Roles</h3>
+
+      <!-- My upcoming roles (visible only to this member - req 14) -->
+      <div class="card" id="myUpcomingRolesWrapper" style="display:none;margin-bottom:1.5rem;background:var(--orange-light);border:1px solid rgba(255,87,34,0.2);">
+        <h3 style="margin-top:0;color:var(--orange);">My Upcoming Roles</h3>
         <div class="badges-grid" id="myUpcomingRolesGrid"></div>
       </div>
-      
+
+      <!-- Past roles — only for this member (req 14) -->
       <div class="card">
-        <h3 style="margin-top:0;">Past Club Role Records</h3>
-        <div class="badges-grid" id="rolesGrid"><p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p></div>
+        <h3 style="margin-top:0;">My Role History</h3>
+        <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1rem;">Only visible to you.</p>
+        <div class="badges-grid" id="rolesGrid"><p style="color:var(--text-mid);">Play a role in upcoming meets to earn badges!</p></div>
       </div>
     </div>
 
-    <!-- LEADERBOARD -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: LEADERBOARD                                 -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-leaderboard">
       <h2 class="section-title">Club Leaderboard</h2>
       <p class="section-sub">Historical role involvement and aggregated activity points</p>
       <div class="card" style="padding:0;">
-        <div class="scroll-container" style="padding:1.5rem 1.5rem 2.5rem 1.5rem;">
-          <table style="width:100%; border-collapse:collapse; min-width: 1500px; white-space:nowrap; border:1px solid #eee; font-size: 0.85rem;" id="leaderboardTable">
-            <thead>
-              <tr style="background:#5c7aff; color:white; font-weight:800;" id="leaderboardTableHeader">
-              </tr>
-            </thead>
-            <tbody id="leaderboardTableBody">
-            </tbody>
+        <div class="scroll-container" style="padding:1.5rem;">
+          <table style="min-width:1400px;" id="leaderboardTable">
+            <thead><tr id="leaderboardTableHeader"></tr></thead>
+            <tbody id="leaderboardTableBody"></tbody>
           </table>
         </div>
       </div>
-    </div>    <!-- MENTORSHIP -->
+    </div>
+
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: MENTORSHIP                                  -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-mentorship">
       <h2 class="section-title">Mentor &amp; Mentee</h2>
       <p class="section-sub">Your personal support network</p>
       <div class="card">
         <h3>Your Mentor</h3>
-        <div id="mentorInfo"><p style="color:var(--mid);">Loading...</p></div>
+        <div id="mentorInfo"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
       <div class="card" id="menteesCard" style="display:none;">
         <h3>Your Mentees</h3>
@@ -192,7 +217,9 @@
       </div>
     </div>
 
-    <!-- ATTENDANCE -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: ATTENDANCE                                  -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-attendance">
       <h2 class="section-title">Attendance</h2>
       <p class="section-sub">Your meet attendance record</p>
@@ -202,36 +229,103 @@
           <div class="att-stat"><div class="num" id="attTotal">—</div><div class="lbl">Total Meets</div></div>
           <div class="att-stat"><div class="num" id="attPct">—</div><div class="lbl">Attendance %</div></div>
         </div>
-        <div class="att-calendar" id="attCalendar"><p style="color:var(--mid);">Loading...</p></div>
+        <div class="att-calendar" id="attCalendar"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
     </div>
 
-    <!-- GALLERY -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: GALLERY                                     -->
+    <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-gallery">
       <h2 class="section-title">Club Gallery</h2>
       <p class="section-sub">Moments worth remembering (includes member-only photos)</p>
-      
-      <!-- Admin Upload Card -->
-      <div id="adminGalleryUpload" class="card" style="display:none; border:2px dashed var(--orange); background:rgba(255,87,34,0.02);">
-        <h3 style="margin-bottom:1rem;">📤 Admin: Add Photo</h3>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
-          <div class="form-group"><label>Photo URL</label><input type="url" id="dg-url" placeholder="https://..." /></div>
-          <div class="form-group"><label>Caption</label><input type="text" id="dg-caption" placeholder="Eg. Monthly Meet - March" /></div>
-          <div class="form-group">
-            <label>Visibility</label>
-            <select id="dg-visibility" style="width:100%; padding:0.9rem 1.2rem; border:2px solid #e8e0d8; border-radius:var(--radius-sm); background:var(--cream); font-family:var(--font-body);">
-              <option value="members">Members Only 🔒</option>
-              <option value="public">Public (Everyone) 🌍</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn-primary" onclick="dashAddPhoto()" style="margin-top:1rem; border-radius:100px;">Post to Gallery →</button>
-        <div id="dg-msg" style="margin-top:0.5rem; font-size:0.85rem;"></div>
+      <div class="card">
+        <div id="dashGallery"><div class="gallery-placeholder">Loading moments...</div></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: NOTIFICATIONS (req 4)                       -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <div class="dash-section" id="section-notifications">
+      <h2 class="section-title">Notifications</h2>
+      <p class="section-sub">Club announcements and personal messages</p>
+
+      <div class="card" id="personalNotifsCard" style="display:none;border:1px solid rgba(255,87,34,0.2);">
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;color:var(--orange);">
+          <i class="fa-solid fa-user-tag"></i> Personal Messages
+        </h3>
+        <div id="personalNotifsList"></div>
       </div>
 
       <div class="card">
-        <div class="gallery-mosaic" id="dashGallery">
-          <div class="gallery-placeholder">📸 Loading moments...</div>
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;">
+          <i class="fa-solid fa-bullhorn"></i> Club Announcements
+        </h3>
+        <div id="commonNotifsList"><p style="color:var(--text-mid);">No announcements yet.</p></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: GIVE FEEDBACK (req 13)                      -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <div class="dash-section" id="section-feedback">
+      <h2 class="section-title">Give Feedback</h2>
+      <p class="section-sub">Rate and provide written feedback for a speaker from a recent meeting</p>
+
+      <div class="card">
+        <h3>Select Speaker</h3>
+        <div class="admin-grid-2" style="gap:1rem;margin-bottom:1.5rem;">
+          <div class="form-group">
+            <label>Meeting / Event</label>
+            <select id="fbEvent" onchange="loadFbSpeakers()">
+              <option value="">-- Select a meeting --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Speaker</label>
+            <select id="fbSpeaker" onchange="loadExistingFeedback()">
+              <option value="">-- Select speaker --</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="fbForm" style="display:none;">
+          <h3 style="margin-bottom:1.5rem;">Rate the Speech</h3>
+          <div class="feedback-categories" id="fbCategories"></div>
+
+          <div class="form-group" style="margin-top:1rem;">
+            <label>Written Feedback</label>
+            <textarea id="fbComment" placeholder="Share your thoughts on the speech — what worked well, what could improve..." style="min-height:120px;"></textarea>
+          </div>
+
+          <button class="btn-primary" onclick="submitFeedback()" style="margin-top:1rem;">
+            Submit Feedback &rarr;
+          </button>
+          <div id="fbMsg" class="success-msg"></div>
+          <div id="fbErr" class="error-msg"></div>
+        </div>
+      </div>
+
+      <!-- Existing feedback for selected speaker -->
+      <div class="card" id="fbExistingCard" style="display:none;">
+        <h3>Feedback Summary for <span id="fbSpeakerName" style="color:var(--orange);"></span></h3>
+        <div id="fbAverages"></div>
+        <div id="fbComments" style="margin-top:1.5rem;"></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: GIVE VOTE (req 15)                          -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <div class="dash-section" id="section-voting">
+      <h2 class="section-title">Give Vote</h2>
+      <p class="section-sub">Vote anonymously for the best performers of the meeting</p>
+
+      <div id="votingContainer">
+        <div class="card" style="text-align:center;padding:3rem;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--text-light);margin-bottom:1rem;"></i>
+          <p style="color:var(--text-mid);">Checking for active voting sessions...</p>
         </div>
       </div>
     </div>
@@ -239,909 +333,894 @@
   </main>
 </div>
 
-<!-- SPEECH DETAILS MODAL -->
-<div id="speechModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-  <div class="card" style="max-width:600px; width:90%; position:relative; animation: modalIn 0.3s ease-out;">
-    <button onclick="closeModal()" style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--mid);">&times;</button>
-    <div id="modalContent">
-      <h2 id="modalTitle" style="font-family:var(--font-display); color:var(--dark); margin-bottom:0.5rem;">Speech Title</h2>
-      <p id="modalLvl" style="color:var(--orange); font-weight:700; font-size:0.9rem; text-transform:uppercase; margin-bottom:1.5rem;">Level 1 Project 1</p>
-      <div id="modalDescriptionWrap" style="margin-bottom:1.5rem;">
-        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Context / Description</h4>
-        <p id="modalDescription" style="font-size:0.95rem; line-height:1.6; color:#444;">No description available.</p>
+<!-- ── PERSONAL NOTIFICATION MODAL (req 4: first screen on login) -->
+<div class="modal-overlay" id="personalNotifModal">
+  <div class="modal-card" style="border-top:4px solid var(--orange);max-width:500px;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+      <div style="width:44px;height:44px;background:var(--orange-light);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-bell" style="color:var(--orange);font-size:1.2rem;"></i>
       </div>
-
-      <div id="modalPurposeWrap" style="margin-bottom:1.5rem; display:none;">
-        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Purpose Statement</h4>
-        <p id="modalPurpose" style="font-size:0.95rem; line-height:1.6; color:#444; border-left:3px solid var(--orange); padding-left:1rem; font-style:italic;"></p>
-      </div>
-
-      <div id="modalObjectivesWrap" style="margin-bottom:1.5rem; display:none;">
-        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Objectives</h4>
-        <p id="modalObjectives" style="font-size:0.95rem; line-height:1.6; color:#444;"></p>
-      </div>
-
-      <div id="modalFilesWrap" style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border);">
-        <h4 style="margin-bottom:1rem; color:var(--dark);">Resources & Guides</h4>
-        <div id="modalFiles" style="display:flex; flex-wrap:wrap; gap:0.75rem;"></div>
+      <div>
+        <h3 style="margin:0;font-size:1.2rem;" id="pnModalTitle">Personal Message</h3>
+        <p style="margin:0;font-size:0.8rem;color:var(--text-light);" id="pnModalTime"></p>
       </div>
     </div>
+    <p id="pnModalBody" style="font-size:1rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;"></p>
+    <button class="btn-primary" style="width:100%;" onclick="dismissPersonalNotif()">Got it, continue to dashboard</button>
   </div>
+</div>
+
+<!-- ── SPEECH MODAL ──────────────────────────────────────── -->
+<div id="speechModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:600px;">
+    <button onclick="closeModal()" class="modal-close">&times;</button>
+    <h2 id="modalTitle" style="font-size:1.5rem;margin-bottom:0.5rem;"></h2>
+    <p id="modalLvl" style="color:var(--orange);font-weight:700;font-size:0.9rem;text-transform:uppercase;margin-bottom:1.5rem;"></p>
+    <div id="modalDescriptionWrap" style="margin-bottom:1.5rem;">
+      <h4 style="margin-bottom:0.5rem;">Context / Description</h4>
+      <p id="modalDescription" style="font-size:0.95rem;line-height:1.6;color:var(--text-mid);"></p>
+    </div>
+    <div id="modalPurposeWrap" style="margin-bottom:1.5rem;display:none;">
+      <h4 style="margin-bottom:0.5rem;">Purpose Statement</h4>
+      <p id="modalPurpose" style="font-size:0.95rem;border-left:3px solid var(--orange);padding-left:1rem;font-style:italic;color:var(--text-mid);"></p>
+    </div>
+    <div id="modalObjectivesWrap" style="margin-bottom:1.5rem;display:none;">
+      <h4 style="margin-bottom:0.5rem;">Objectives</h4>
+      <p id="modalObjectives" style="font-size:0.95rem;color:var(--text-mid);"></p>
+    </div>
+    <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+      <h4 style="margin-bottom:1rem;">Resources &amp; Guide</h4>
+      <!-- Guide button — large (req 9) -->
+      <a id="modalGuideBtn" href="#" target="_blank" rel="noopener" class="guide-btn" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Open Speech Guide / Manual
+      </a>
+      <div id="modalFiles" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:0.75rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS MODAL ────────────────────────────────────── -->
+<div id="settingsModal" style="display:none;" class="modal-overlay">
+  <div class="modal-card" style="max-width:500px;">
+    <button onclick="closeSettingsModal()" class="modal-close">&times;</button>
+    <h2 class="section-title" style="margin-top:0;">Security &amp; Settings</h2>
+    <p class="section-sub">Manage your account credentials</p>
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="newPass" placeholder="Minimum 6 characters" />
+    </div>
+    <div class="form-group">
+      <label>Confirm New Password</label>
+      <input type="password" id="confirmPass" placeholder="Re-enter password" />
+    </div>
+    <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">Update Password &rarr;</button>
+    <div id="settingsFeedback" style="display:none;padding:0.85rem;border-radius:var(--radius-sm);margin-top:1rem;font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-dash-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;justify-content:space-around;padding:0.4rem 0 0.6rem;">
+  <div class="mob-nav-item" onclick="showSection('progress')"><i class="fa-solid fa-chart-line" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Progress</span></div>
+  <div class="mob-nav-item" onclick="showSection('achievements')"><i class="fa-solid fa-medal" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Badges</span></div>
+  <div class="mob-nav-item" onclick="showSection('leaderboard')"><i class="fa-solid fa-trophy" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Leaders</span></div>
+  <div class="mob-nav-item" onclick="showSection('notifications')"><i class="fa-regular fa-bell" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Notifs</span></div>
+  <div class="mob-nav-item" onclick="showSection('gallery')"><i class="fa-regular fa-images" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Gallery</span></div>
 </div>
 
 <style>
-@keyframes modalIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.modal-overlay {
-  display: none; /* Changed from flex !important to none */
-}
-.file-badge {
-  background: rgba(255,87,34,0.1);
-  color: var(--orange);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-}
-.file-badge:hover {
-  background: var(--orange);
-  color: white;
-}
-.mobile-dash-nav {
-  grid-template-columns: repeat(6, 1fr) !important;
-}
-@media (max-width: 1024px) {
-  .hamburger-dash { display: block !important; }
-  .sidebar { 
-    transform: translateX(-100%); 
-    transition: transform 0.3s ease; 
-    display: block !important; 
-    box-shadow: 10px 0 30px rgba(0,0,0,0.2);
-  }
-  .sidebar.open { transform: translateX(0); }
-  .main-content { margin-left: 0 !important; width: 100%; transition: margin-left 0.3s ease; }
-}
-@media (max-width: 600px) {
-  .mobile-dash-nav { display: grid !important; }
-}
+.mob-nav-item { display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-mid);cursor:pointer;padding:0.4rem 0.5rem; }
+.mob-nav-item.active { color:var(--orange); }
+@media (max-width:600px) { .mobile-dash-nav { display:flex !important; } .main-content { padding-bottom:5rem; } }
+@keyframes slideDown { from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);} }
+.file-badge { background:var(--orange-light);color:var(--orange);padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;transition:all 0.2s; }
+.file-badge:hover { background:var(--orange);color:#fff; }
 </style>
-
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-  <div class="card" style="max-width:500px; width:90%; position:relative; animation: modalIn 0.3s ease-out;">
-    <button onclick="closeSettingsModal()" style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--mid);">&times;</button>
-    <h2 class="section-title" style="margin-top:0;">Security & Settings</h2>
-    <p class="section-sub">Manage your account credentials and personal preferences</p>
-    
-    <div style="background:rgba(0,0,0,0.02); border:1px solid rgba(0,0,0,0.05); border-radius:12px; padding:1.5rem;">
-      <h3 style="margin-top:0;">Update Password</h3>
-      <p style="font-size:0.85rem; color:var(--mid-gray); margin-bottom:1.5rem; color:#888;">To change your password, enter a new one below. You may be asked to re-authenticate if your session has expired.</p>
-      
-      <div style="display:flex; flex-direction:column; gap:1.2rem;">
-        <div style="display:flex; flex-direction:column; gap:0.5rem;">
-          <label style="font-weight:700; font-size:0.8rem; color:#aaa;">New Password</label>
-          <input type="password" id="newPass" placeholder="Min 6 characters" style="background:var(--cream); border:1px solid var(--border); color:var(--dark); padding:0.8rem 1rem; border-radius:12px; width:100%;" />
-        </div>
-        <div style="display:flex; flex-direction:column; gap:0.5rem;">
-          <label style="font-weight:700; font-size:0.8rem; color:#aaa;">Confirm Password</label>
-          <input type="password" id="confirmPass" placeholder="Repeat new password" style="background:var(--cream); border:1px solid var(--border); color:var(--dark); padding:0.8rem 1rem; border-radius:12px; width:100%;" />
-        </div>
-        
-        <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="margin-top:0.5rem; padding:1rem; border-radius:100px;">Update Password →</button>
-        <div id="settingsFeedback" style="display:none; padding:1rem; border-radius:10px; font-size:0.85rem; text-align:center;"></div>
-      </div>
-    </div>
-  </div>
-</div>
-  </main>
-</div>
-
-<!-- MOBILE BOTTOM NAV -->
-<div class="mobile-dash-nav" id="mobileNav">
-  <div class="mob-nav-item active" onclick="showSection('progress')"><span class="mob-nav-icon">📊</span>Progress</div>
-  <div class="mob-nav-item" onclick="showSection('leaderboard')"><span class="mob-nav-icon">🏆</span>Leaderbd</div>
-  <div class="mob-nav-item" onclick="showSection('attendance')"><span class="mob-nav-icon">📅</span>Attend</div>
-  <div class="mob-nav-item" onclick="showSection('gallery')"><span class="mob-nav-icon">📸</span>Gallery</div>
-  <div class="mob-nav-item" onclick="showSection('mentorship')"><span class="mob-nav-icon">🤝</span>Mentor</div>
-  <div class="mob-nav-item" onclick="openSettingsModal()"><span class="mob-nav-icon">⚙️</span>Security</div>
-</div>
 
 <script type="module">
 import { auth, db } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, getDocs, query, orderBy, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  doc, getDoc, getDocs, collection, query, orderBy, where,
+  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentUser = null;
+// Session timeout
+import '../js/session.js';
+
 let userData = null;
+let currentUid = null;
 let chartsRendered = false;
+let allEventsCache = [];
+let allUsersCache = [];
 
-window.toggleSidebar = () => {
-  document.querySelector('.sidebar').classList.toggle('open');
-};
-
-onAuthStateChanged(auth, async (user) => {
+// ── AUTH ────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
   if (!user) { window.location.href = 'login.html'; return; }
-  currentUser = user;
-  try {
-    const snap = await getDoc(doc(db, 'users', user.uid));
-    if (!snap.exists()) { 
-      await signOut(auth); // Prevent infinite loop
-      window.location.href = 'login.html'; 
-      return; 
-    }
-    userData = snap.data();
-    if (['admin', 'core'].includes(userData.role)) {
-      document.getElementById('adminGalleryUpload').style.display = 'block';
-      document.getElementById('adminPortalLink').style.display = 'block';
-    }
-    renderDashboard(userData);
-  } catch(e) {
-    console.error('Core data load failed:', e);
-  }
+  currentUid = user.uid;
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  if (!snap.exists()) { await signOut(auth); window.location.href = 'login.html'; return; }
+  userData = { id: user.uid, ...snap.data() };
+
+  // Top nav
+  const initials = (userData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('topNavName').textContent = userData.name || '';
+  const avatarEl = document.getElementById('topNavAvatar');
+  if (userData.photoUrl) { avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="${userData.name||''}"/>`; }
+  else { avatarEl.textContent = initials; }
+
+  // Admin portal link
+  if (['admin','core'].includes(userData.role)) document.getElementById('adminPortalLink').style.display = 'block';
+
+  // Load everything
+  await loadAllEvents();
+  await loadAllUsers();
+  renderProgress();
+  loadAttendance();
+  loadMentorship();
+  loadGallery();
+  loadLeaderboard();
+  loadAchievements();
+  loadNotifications();
+  loadFeedbackSectionEvents();
+  loadVoting();
+  checkActiveMeet();
+
+  // req 4: Personal notification modal on login
+  await checkPersonalNotification();
 });
 
-window.doLogout = async () => { 
-  await signOut(auth); 
-  window.location.href = 'login.html'; // Go back to login, not root
+window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
+
+window.toggleSidebar = () => {
+  document.getElementById('sidebar').classList.toggle('open');
 };
 
-function renderDashboard(data) {
-  const initials = (data.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  document.getElementById('topNavName').textContent = data.name || '';
-  document.getElementById('topNavAvatar').textContent = initials;
-
-  // Calculations moved to renderPathway for accuracy across all levels
-  const meets = (data.attendance||[]);
-  const present = meets.filter(m=>m.present).length;
-  const pct = meets.length ? Math.round(present/meets.length*100) : 0;
-
-  document.getElementById('statAttPct').textContent = pct+'%';
-
-  renderPathway(data);
-  renderAttendance(data.attendance||[]);
-  renderAchievements(data);
-  loadMentorship(data);
-  loadActiveMeet();
-  loadGallery();
-  loadUpcomingRoles(data);
-  loadLeaderboard();
-}
-
-async function loadUpcomingRoles(userData) {
-  const container = document.getElementById('upcomingRolesContainer');
-  const card = document.getElementById('upcomingRolesCard');
-  if (!container || !card) return;
-
-  try {
-    const q = query(collection(db, 'events'), orderBy('date', 'desc'));
-    const snap = await getDocs(q);
-    const events = [];
-    snap.forEach(d => events.push({ id: d.id, ...d.data() }));
-
-    let upcoming = events.find(e => e.isActive === true);
-    if (!upcoming) {
-      upcoming = events
-        .filter(e => e.type === 'upcoming')
-        .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
-    }
-
-    if (upcoming && userData) {
-      // 1. DERIVE MY UPCOMING ROLES FROM THE ACTUAL EVENT ROSTER (NOT HISTORY)
-      // This ensures it matches the "Upcoming Meet Roles" card exactly.
-      const myUid = userData.id;
-      const eventRoles = upcoming.roles || {};
-      const myAssignedRoles = [];
-
-      // Loop through the roster map to see which keys belong to the current user
-      for (const [roleKey, assignedUid] of Object.entries(eventRoles)) {
-        if (assignedUid === myUid) {
-          // Find the pretty name from rolesDisplay or common knowledge
-          const displayObj = upcoming.rolesDisplay?.find(rd => {
-            // Match role key to display string logic
-            return rd.role.toLowerCase().includes(roleKey.replace(/[0-9]/g, '').toLowerCase());
-          });
-          myAssignedRoles.push({
-            role: displayObj ? displayObj.role : roleKey.toUpperCase(),
-            meet: upcoming.title
-          });
-        }
-      }
-
-      // Render My Upcoming Roles
-      const myUpcomingRolesGrid = document.getElementById('myUpcomingRolesGrid');
-      const myUpcomingRolesWrapper = document.getElementById('myUpcomingRolesWrapper');
-      if (myUpcomingRolesGrid && myUpcomingRolesWrapper) {
-        if (myAssignedRoles.length > 0) {
-          myUpcomingRolesWrapper.style.display = 'block';
-          myUpcomingRolesGrid.innerHTML = myAssignedRoles.map(r => `
-            <div class="badge-item earned" style="border-color: #FF5722; background: linear-gradient(135deg, #fff3ef, white);">
-              <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
-              <div class="badge-name">${r.role}</div>
-              <div class="badge-desc" style="color:#d84315; font-weight:700;">Meet ${r.meet}</div>
-            </div>
-          `).join('');
-        } else {
-          myUpcomingRolesWrapper.style.display = 'none';
-        }
-      }
-
-      // 2. RENDER PAST ROLES (Exclude the upcoming meet's badges from here)
-      const rolesGrid = document.getElementById('rolesGrid');
-      if (rolesGrid) {
-        const allHistory = userData.roleBadges || [];
-        const pastRoles = allHistory.filter(r => !r.endsWith(' M-' + upcoming.title));
-        
-        if (pastRoles.length === 0) {
-          rolesGrid.innerHTML = '<p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p>';
-        } else {
-          const reversedRoles = [...pastRoles].reverse();
-          rolesGrid.innerHTML = reversedRoles.map(r => {
-            let parts = r.split(' M-');
-            return `
-            <div class="badge-item earned" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9, white);">
-              <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
-              <div class="badge-name">${parts[0]}</div>
-              <div class="badge-desc" style="color:#2E7D32; font-weight:700;">${parts[1] ? 'Meet '+parts[1] : ''}</div>
-            </div>`;
-          }).join('');
-        }
-      }
-    }
-
-    if (upcoming && upcoming.rolesDisplay && upcoming.rolesDisplay.length > 0) {
-
-      card.style.display = 'block';
-      const dateStr = upcoming.date?.toDate ? upcoming.date.toDate().toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : new Date(upcoming.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
-      
-      let html = `
-        <div style="margin-bottom:1.5rem; padding: 1.25rem; background: #fff3ef; border-radius: 15px; border: 1px solid rgba(255,87,34,0.1); display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h4 style="margin:0; color:var(--orange); font-size:1.1rem; font-family:var(--font-display);">${upcoming.title}</h4>
-            <p style="margin:0.25rem 0 0; font-size:0.8rem; color:#888; font-weight:700; text-transform:uppercase;">${dateStr} • UPCOMING ROSTER</p>
-          </div>
-          <div style="font-size:1.5rem; opacity:0.3;">🎤</div>
-        </div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-      `;
-      upcoming.rolesDisplay.forEach(rd => {
-        html += `
-          <div style="padding:1.1rem; background:#fff; border-radius:16px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
-            <span style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase; letter-spacing:0.05em;">${rd.role}</span>
-            <span style="font-weight:700; color:#333; font-size:0.95rem;">${rd.name}</span>
-          </div>
-        `;
-      });
-      html += `</div>`;
-      container.innerHTML = html;
-    } else {
-      card.style.display = 'none';
-    }
-  } catch (e) {
-    console.warn("Failed to load upcoming roles:", e);
-  }
-}
-
-async function loadLeaderboard() {
-  try {
-    const qUsers = query(collection(db, 'users'));
-    const snapUsers = await getDocs(qUsers);
-    const allUsers = [];
-    snapUsers.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
-
-    const qEvents = query(collection(db, 'events'));
-    const snapEvents = await getDocs(qEvents);
-    const allEventsCache = [];
-    snapEvents.forEach(d => allEventsCache.push({ id: d.id, ...d.data() }));
-
-    const ROLE_HEADERS = ['Member Name', '# HOM', 'Speaker', 'Evaluator', '# TTM', '# TTE', '# GE', 'Timer', 'Table Topic', 'Attendance', 'MOM Taker', 'Total Activity Points', 'Total No of Roles'];
-    
-    const headerHtml = ROLE_HEADERS.map(h => `<th style="padding:1rem; border:1px solid rgba(255,255,255,0.2); white-space:nowrap; color:#ffffff !important; font-weight:800; ${h === 'Member Name' ? 'text-align:left;' : 'writing-mode: vertical-lr; text-orientation: mixed; transform: rotate(180deg); height:140px;'}">${h}</th>`).join('');
-    document.getElementById('leaderboardTableHeader').innerHTML = headerHtml;
-
-    const tbody = document.getElementById('leaderboardTableBody');
-    if (allUsers.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="${ROLE_HEADERS.length}" style="text-align:center; padding:3rem; color:#999;">No members available.</td></tr>`;
-      return;
-    }
-
-    const sortedUsers = [...allUsers].sort((a,b) => (a.name || '').localeCompare(b.name || ''));
-
-    let html = '';
-    sortedUsers.forEach(u => {
-        let counts = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, attendance:0, mom:0 };
-        
-        allEventsCache.forEach(e => {
-           const rolesMap = e.roles || {};
-           for(const [rKey, uidVal] of Object.entries(rolesMap)) {
-              if (uidVal === u.id) {
-                 if(rKey.startsWith('hom')) counts.hom++;
-                 else if(rKey.startsWith('speaker')) counts.speaker++;
-                 else if(rKey.startsWith('evaluator')) counts.evaluator++;
-                 else if(rKey === 'ttm') counts.ttm++;
-                 else if(rKey === 'tte') counts.tte++;
-                 else if(rKey === 'ge') counts.ge++;
-                 else if(rKey === 'timer') counts.timer++;
-                 else if(rKey.startsWith('tt') && rKey !== 'ttm' && rKey !== 'tte') counts.tt++;
-                 else if(rKey === 'momTaker' || rKey === 'momPres') counts.mom++; 
-              }
-           }
-           if (e.attended && e.attended.includes(u.id)) {
-              counts.attendance++;
-           }
-        });
-        
-        const totalRoles = counts.hom + counts.speaker + counts.evaluator + counts.ttm + counts.tte + counts.ge + counts.timer + counts.tt + counts.mom;
-        const totalPoints = (counts.hom * 10) + (counts.speaker * 7) + (counts.ttm * 5) + (counts.evaluator * 3) + (counts.tte * 3) + (counts.ge * 5) + (counts.timer * 3) + (counts.tt * 2) + (counts.attendance * 1) + (counts.mom * 4);
-        
-        const f = (val) => val === 0 ? '' : val;
-
-        html += `
-          <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:1rem; font-weight:800; position:sticky; left:0; background:white; z-index:10; border-right:1px solid #eee;">${u.name}</td>
-            <td style="text-align:center;">${f(counts.hom)}</td>
-            <td style="text-align:center;">${f(counts.speaker)}</td>
-            <td style="text-align:center;">${f(counts.evaluator)}</td>
-            <td style="text-align:center;">${f(counts.ttm)}</td>
-            <td style="text-align:center;">${f(counts.tte)}</td>
-            <td style="text-align:center;">${f(counts.ge)}</td>
-            <td style="text-align:center;">${f(counts.timer)}</td>
-            <td style="text-align:center; background:#fffdf1;">${f(counts.tt)}</td>
-            <td style="text-align:center; background:#fbf5ff; font-weight:700;">${f(counts.attendance)}</td>
-            <td style="text-align:center;">${f(counts.mom)}</td>
-            <td style="text-align:center; background:#fff6ee; font-weight:900; color:#e65100;">${f(totalPoints)}</td>
-            <td style="text-align:center; background:#f0f8ff; font-weight:800; color:#0d47a1;">${f(totalRoles)}</td>
-          </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-  } catch(e) {
-    console.warn("Failed to load leaderboard:", e);
-  }
-}
-
-async function loadGallery() {
-  const container = document.getElementById('dashGallery');
-  if (!container) return;
-  try {
-    const q = query(collection(db, 'gallery'), orderBy('date', 'desc'));
-    const snap = await getDocs(q);
-    container.innerHTML = '';
-    if (snap.empty) {
-      container.innerHTML = '<div class="gallery-placeholder">📸 No photos yet. Members like you can help fill it!</div>';
-      return;
-    }
-    snap.forEach(doc => {
-      const p = doc.data();
-      const div = document.createElement('div');
-      div.style.position = 'relative';
-      const img = document.createElement('img');
-      img.src = p.url;
-      img.alt = p.caption || 'Unscripted moment';
-      img.loading = 'lazy';
-      img.style.width = '100%';
-      img.style.height = '200px';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = '12px';
-      img.style.cursor = 'pointer';
-      img.onclick = () => window.open(p.url, '_blank');
-      
-      if (p.visibility === 'members') {
-        const badge = document.createElement('span');
-        badge.innerHTML = '🔒 Members Only';
-        badge.style.position = 'absolute';
-        badge.style.top = '10px';
-        badge.style.right = '10px';
-        badge.style.background = 'rgba(0,0,0,0.6)';
-        badge.style.color = 'white';
-        badge.style.padding = '0.2rem 0.5rem';
-        badge.style.borderRadius = '4px';
-        badge.style.fontSize = '0.7rem';
-        div.appendChild(badge);
-      }
-      
-      div.appendChild(img);
-      container.appendChild(div);
-    });
-  } catch(e) {
-    console.warn('Gallery load error:', e);
-    container.innerHTML = '<div class="gallery-placeholder">📸 Gallery temporarily unavailable.</div>';
-  }
-}
-
-window.dashAddPhoto = async function() {
-  const url = document.getElementById('dg-url').value.trim();
-  const caption = document.getElementById('dg-caption').value.trim();
-  const visibility = document.getElementById('dg-visibility').value;
-  const msg = document.getElementById('dg-msg');
-  if (!url) { msg.style.color='red'; msg.textContent='URL is required.'; return; }
-  msg.style.color='var(--mid)'; msg.textContent='Uploading...';
-  try {
-    await addDoc(collection(db, 'gallery'), { 
-      url, 
-      caption, 
-      visibility, 
-      date: serverTimestamp(), 
-      uploadedBy: currentUser.uid 
-    });
-    msg.style.color='green'; msg.textContent='✓ Photo added to gallery!';
-    document.getElementById('dg-url').value = '';
-    document.getElementById('dg-caption').value = '';
-    loadGallery();
-  } catch(e) { msg.style.color='red'; msg.textContent='Error: ' + e.message; }
-};
-
-async function loadActiveMeet() {
-  const banner = document.getElementById('activeMeetBanner');
-  if (!banner) return;
-  try {
-    const q = query(collection(db, 'meets'), where('isActive', '==', true), limit(1));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      const meet = snap.docs[0].data();
-      document.getElementById('activeMeetTitle').textContent = meet.theme || 'Ongoing Meet';
-      document.getElementById('activeMeetLocation').textContent = (meet.location || 'Happening Now') + (meet.description ? ` : ${meet.description}` : '');
-      banner.style.display = 'block';
-    } else {
-      banner.style.display = 'none';
-    }
-  } catch(e) { console.warn('Active meet check failed:', e); }
-}
-
-let PATHWAY_DATA = {};
-
-async function fetchPathways() {
-  try {
-    const snap = await getDocs(collection(db, 'pathways'));
-    if (snap.empty) {
-      console.warn("Pathways collection is empty!");
-      return;
-    }
-    snap.forEach(d => {
-      PATHWAY_DATA[d.id] = d.data();
-    });
-  } catch(e) {
-    console.error('Failed to fetch pathway data from Firestore:', e);
-    document.getElementById('pathwayBadge').textContent = 'Error Loading Data';
-    document.getElementById('pathwayBadge').style.background = '#f44336';
-  }
-}
-
-async function setL3Choice(choice) {
-  const newPathway = `L3${choice}P1`;
-  try {
-    const userRef = doc(db, 'users', currentUser.uid);
-    await setDoc(userRef, { pathway: newPathway }, { merge: true });
-    userData.pathway = newPathway; // Update local data
-    renderPathway(userData);
-  } catch(e) {
-    alert('Failed to save choice: ' + e.message);
-  }
-}
-
-async function renderPathway(data) {
-  if (Object.keys(PATHWAY_DATA).length === 0) await fetchPathways();
-
-  const pathwayStr = data.pathway || 'L1P1';
-  let currentLevelNum = 1;
-  let currentProjectNum = 1;
-  let currentSubType = ''; 
-  
-  const match = pathwayStr.match(/L(\d+)([K|H])?P(\d+)/i);
-  if (match) {
-    currentLevelNum = parseInt(match[1]);
-    currentSubType = (match[2] || '').toUpperCase();
-    currentProjectNum = parseInt(match[3]);
-  }
-
-  const container = document.getElementById('pathwaySteps');
-  container.innerHTML = '';
-  
-  let globalDoneCount = 0;
-  let globalTotalCount = 0;
-
-  // 1. Show L1 and L2 always
-  const baseLevels = ['L1', 'L2'];
-  baseLevels.forEach(lvlKey => {
-    renderLevel(lvlKey);
-  });
-
-  // 2. Add Guidance Note after L2
-  const note = document.createElement('div');
-  note.className = 'card';
-  note.style.margin = '2rem 0';
-  note.style.padding = '1rem';
-  note.style.background = 'rgba(255,87,34,0.05)';
-  note.style.border = '1px solid var(--orange)';
-  note.innerHTML = `
-    <h4 style="margin:0; color:var(--orange);">💡 Level 3 Specialization</h4>
-    <p style="font-size:0.85rem; margin-top:0.5rem; color:var(--dark);">You must choose <b>either</b> Keynote or Humorous for your official progress. However, all project resources remain available for you to learn from both paths!</p>
-  `;
-  container.appendChild(note);
-
-  // 3. Choice Logic & Rendering L3s
-  const l2Total = (PATHWAY_DATA['L2']?.speeches || []).length;
-  const l2Complete = currentLevelNum > 2 || (currentLevelNum === 2 && currentProjectNum >= l2Total);
-
-  if (l2Complete && !currentSubType) {
-    // Show branching choice UI
-    const choiceBox = document.createElement('div');
-    choiceBox.className = 'card';
-    choiceBox.style.marginBottom = '2rem';
-    choiceBox.style.border = '2px solid var(--orange)';
-    choiceBox.style.textAlign = 'center';
-    choiceBox.innerHTML = `
-      <h3 style="color:var(--orange)">Unlock Level 3 🎓</h3>
-      <p style="margin-bottom:1rem;">Select your official specialization to track progress:</p>
-      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-        <button onclick="setL3Choice('K')" class="dash-btn" style="flex:1; min-width:160px; padding:0.8rem; border-radius:8px; border:none; background:var(--orange); color:white; font-weight:bold; cursor:pointer;">🎙️ 3a · Keynote</button>
-        <button onclick="setL3Choice('H')" class="dash-btn" style="flex:1; min-width:160px; padding:0.8rem; border-radius:8px; border:none; background:#333; color:white; font-weight:bold; cursor:pointer;">😂 3b · Humorous</button>
-      </div>
-    `;
-    container.appendChild(choiceBox);
-  }
-
-  // 4. Render BOTH L3s
-  const l3Keys = ['L3K', 'L3H'];
-  l3Keys.forEach(lvlKey => {
-    const isChosen = currentSubType && lvlKey.endsWith(currentSubType);
-    const isLocked = currentSubType && !isChosen;
-    renderLevel(lvlKey, isLocked);
-  });
-
-  function renderLevel(lvlKey, isLocked = false) {
-    const def = PATHWAY_DATA[lvlKey];
-    if (!def) return;
-
-    const lvlMatch = lvlKey.match(/L(\d+)([K|H])?/);
-    const lvlNum = parseInt(lvlMatch[1]);
-    const lvlSubType = (lvlMatch[2] || '').toUpperCase();
-
-    const lvlDiv = document.createElement('div');
-    if (isLocked) lvlDiv.style.opacity = '0.4';
-    
-    const header = document.createElement('div');
-    header.className = 'level-header-row';
-    header.style.margin = '2.5rem 0 1rem';
-    header.style.padding = '0.5rem 0';
-    header.style.borderBottom = '2px solid var(--border)';
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
-    header.innerHTML = `
-      <h3 style="margin:0; font-family:var(--font-display); color:var(--dark);">${def.name} ${isLocked ? '(Notion Only)' : ''}</h3>
-      <a href="${def.link}" target="_blank" style="font-size:0.75rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:0.05em;">🔗 Guide</a>
-    `;
-    lvlDiv.appendChild(header);
-
-    const speeches = def.speeches || [];
-    speeches.forEach((speechObj, i) => {
-      const speechName = (typeof speechObj === 'string') ? speechObj : speechObj.name;
-      const speechDesc = speechObj.description || speechObj.purpose || '';
-      const speechObjs = speechObj.objectives || '';
-      
-      // Only count for progress if it's the chosen one (or L1/L2)
-      const countsForProgress = !isLocked;
-      if (countsForProgress) globalTotalCount++;
-
-      const stepNum = i + 1;
-      let isDone = false;
-      let isActive = false;
-
-      if (!isLocked) {
-        if (lvlNum < currentLevelNum) {
-          isDone = true;
-        } else if (lvlNum === currentLevelNum) {
-          if (stepNum <= currentProjectNum) isDone = true;
-          else if (stepNum === currentProjectNum + 1) isActive = true;
-        }
-      }
-
-      let status = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
-      let feedback = isDone ? 'Completed' : (isActive ? 'Your next speech!' : (isLocked ? 'Reference Only' : 'Upcoming'));
-
-      if (isDone) globalDoneCount++;
-
-      const el = document.createElement('div');
-      el.className = 'step-item ' + (status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : ''));
-      el.style.marginBottom = '0.75rem';
-      el.style.cursor = 'pointer';
-      el.onclick = () => showSpeechDetails(speechObj, lvlKey, stepNum);
-      
-      el.innerHTML = `<div class="step-num ${status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : 'pending')}">${status === 'done' ? '✓' : stepNum}</div>
-        <div class="step-info">
-          <h4>${lvlKey}P${stepNum}: ${speechName}</h4>
-          <p style="font-size:0.8rem;">${feedback}</p>
-        </div>`;
-      lvlDiv.appendChild(el);
-    });
-    container.appendChild(lvlDiv);
-  }
-
-  // Final stats update
-  document.getElementById('statSpeeches').textContent = globalDoneCount + '/' + globalTotalCount;
-  document.getElementById('statLevel').textContent = pathwayStr;
-  const pct = globalTotalCount ? Math.min(100, Math.round((globalDoneCount / globalTotalCount) * 100)) : 0;
-  setTimeout(() => { 
-    const bar = document.getElementById('pathwayBar');
-    if (bar) bar.style.width = pct + '%'; 
-  }, 300);
-  document.getElementById('progressDone').textContent = globalDoneCount + ' projects completed';
-  document.getElementById('progressTotal').textContent = 'of ' + globalTotalCount + ' total projects';
-  const badge = document.getElementById('pathwayBadge');
-  if (badge) {
-    badge.textContent = currentLevelNum === 3 ? (currentSubType==='K'?'3a':'3b') : 'Level '+currentLevelNum;
-    badge.style.background = 'var(--orange)';
-  }
-}
-
-function renderAttendance(attendance) {
-  const present = attendance.filter(a=>a.present).length;
-  const total = attendance.length;
-  const pct = total ? Math.round(present/total*100) : 0;
-  document.getElementById('attPresent').textContent = present;
-  document.getElementById('attTotal').textContent = total;
-  document.getElementById('attPct').textContent = pct+'%';
-  const cal = document.getElementById('attCalendar');
-  cal.innerHTML = '';
-  attendance.forEach(a => {
-    const cell = document.createElement('div');
-    cell.className = 'att-cell '+(a.present?'att-present':'att-absent');
-    const d = a.date ? new Date(a.date) : null;
-    cell.innerHTML = `<span class="day-num">${d?d.getDate():'?'}</span><span>${d?d.toLocaleString('default',{month:'short'}):''}</span>`;
-    cell.title = (a.present?'✓ Present':'✗ Absent')+(d?' : '+d.toLocaleDateString():'');
-    cal.appendChild(cell);
-  });
-  if (!attendance.length) cal.innerHTML = '<p style="color:var(--mid);grid-column:1/-1;">No attendance records yet.</p>';
-}
-
-function renderAchievements(data) {
-  const done = (data.speeches||[]).filter(s=>s.status==='done').length;
-  const pct = data.attendance?.length ? Math.round(data.attendance.filter(a=>a.present).length/data.attendance.length*100) : 0;
-  const badges = [
-    {icon:'🎤',name:'First Words',desc:'Complete your first speech',earned:done>=1},
-    {icon:'🌟',name:'Rising Star',desc:'Complete 3 speeches',earned:done>=3},
-    {icon:'🏅',name:'Level Up!',desc:'Complete a full level',earned:done>=6},
-    {icon:'📅',name:'Show Up',desc:'80%+ attendance',earned:pct>=80},
-    {icon:'💯',name:'Perfect Month',desc:'100% attendance in a month',earned:false},
-    {icon:'🤝',name:'Mentor',desc:'Guide a fellow member',earned:!!(data.mentees?.length)},
-    {icon:'⭐',name:'Point Hunter',desc:'Earn 50+ points',earned:(data.points||0)>=50},
-    {icon:'🎙️',name:'Keynote Ready',desc:'Reach Level 3a',earned:data.pathway==='L3K'},
-    {icon:'😂',name:'Comedy King',desc:'Reach Level 3b',earned:data.pathway==='L3H'},
-  ];
-  const grid = document.getElementById('badgesGrid');
-  grid.innerHTML = badges.map(b=>`
-    <div class="badge-item ${b.earned?'earned':'locked'}">
-      <div class="badge-icon">${b.icon}</div>
-      <div class="badge-name">${b.name}</div>
-      <div class="badge-desc">${b.desc}</div>
-    </div>`).join('');
-    
-  const rolesGrid = document.getElementById('rolesGrid');
-  if (rolesGrid) {
-    const roles = data.roleBadges || [];
-    if (roles.length === 0) {
-      rolesGrid.innerHTML = '<p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p>';
-    } else {
-      // Reversing to show latest roles first, assuming they are appended sequentially
-      const reversedRoles = [...roles].reverse();
-      rolesGrid.innerHTML = reversedRoles.map(r => {
-        let parts = r.split(' M-');
-        let roleName = parts[0];
-        let meetNo = parts[1] ? ('Meet ' + parts[1]) : '';
-        return `
-        <div class="badge-item earned" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9, white);">
-          <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
-          <div class="badge-name">${roleName}</div>
-          <div class="badge-desc" style="color:#2E7D32; font-weight:700;">${meetNo}</div>
-        </div>
-      `}).join('');
-    }
-  }
-}
-
-
-
-async function loadMentorship(data) {
-  const mentorDiv = document.getElementById('mentorInfo');
-  if (data.mentor) {
-    try {
-      const snap = await getDoc(doc(db,'users',data.mentor));
-      if(snap.exists()) {
-        const m = snap.data();
-        const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-        mentorDiv.innerHTML = `<div class="mentor-card"><div class="mentor-avatar">${initials}</div><div class="mentor-info"><h3>${m.name}</h3><p>${m.dept||''} · ${m.email||''}</p><p style="color:var(--orange);font-size:0.82rem;font-weight:700;margin-top:0.25rem;">Your Mentor</p></div></div>`;
-      }
-    } catch(e) { mentorDiv.innerHTML = '<p style="color:var(--mid);">Mentor info unavailable.</p>'; }
-  } else {
-    mentorDiv.innerHTML = '<p style="color:var(--mid);">No mentor assigned yet. Contact a core member to get paired.</p>';
-  }
-  if(data.mentees?.length > 0) {
-    document.getElementById('menteesCard').style.display = 'block';
-    const list = document.getElementById('menteesList');
-    list.innerHTML = '';
-    for(const uid of data.mentees) {
-      try {
-        const snap = await getDoc(doc(db,'users',uid));
-        if(snap.exists()) {
-          const m = snap.data();
-          const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-          list.innerHTML += `<div class="mentee-item"><div class="member-avatar">${initials}</div><div><div style="font-weight:700">${m.name}</div><div style="font-size:0.85rem;color:var(--mid)">${m.dept||''} · ${m.pathway||'L1'}</div></div></div>`;
-        }
-      } catch(e){}
-    }
-  }
-}
-
-// Section switching + chart init on analysis reveal
+// ── SECTION SWITCH ───────────────────────────────────────
 window.showSection = function(id) {
-  document.querySelectorAll('.dash-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
   document.getElementById('section-'+id).classList.add('active');
-  document.querySelectorAll('.dash-nav-item').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.mob-nav-item').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll(`[onclick="showSection('${id}')"]`).forEach(el=>el.classList.add('active'));
-  if(id === 'analysis' && !chartsRendered && userData) { renderCharts(userData); chartsRendered = true; }
-  
-  // Close sidebar on mobile
-  if (window.innerWidth <= 1024) {
-    document.querySelector('.sidebar').classList.remove('open');
+  document.querySelectorAll('.dash-nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll(`[onclick="showSection('${id}')"]`).forEach(el => el.classList.add('active'));
+  if (id === 'analysis' && !chartsRendered && userData) { renderCharts(userData); chartsRendered = true; }
+  if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
+};
+
+// ── LOAD EVENTS CACHE ────────────────────────────────────
+async function loadAllEvents() {
+  try {
+    const snap = await getDocs(query(collection(db,'events'), orderBy('date','desc')));
+    allEventsCache = [];
+    snap.forEach(d => allEventsCache.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('Events load error',e); }
+}
+
+async function loadAllUsers() {
+  try {
+    const snap = await getDocs(collection(db,'users'));
+    allUsersCache = [];
+    snap.forEach(d => allUsersCache.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('Users load error',e); }
+}
+
+// ── ACTIVE MEET BANNER ───────────────────────────────────
+function checkActiveMeet() {
+  const active = allEventsCache.find(e => e.isActive === true);
+  if (active) {
+    document.getElementById('activeMeetBanner').style.display = 'block';
+    document.getElementById('activeMeetTitle').textContent = active.title || 'Active Meet';
+    document.getElementById('activeMeetLocation').textContent = active.description || '';
+  }
+}
+
+// ── PROGRESS ─────────────────────────────────────────────
+async function renderProgress() {
+  try {
+    // Load pathway data
+    const pathwaySnap = await getDocs(collection(db,'pathways'));
+    const pathways = {};
+    pathwaySnap.forEach(d => pathways[d.id] = d.data());
+
+    const currentPathwayKey = userData.pathwayKey || 'L1';
+    const pathway = pathways[currentPathwayKey] || {};
+    const speeches = userData.speeches || [];
+    const done = speeches.filter(s => s.status === 'done').length;
+    const total = (pathway.projects || []).length || 7;
+
+    document.getElementById('statSpeeches').textContent = done;
+    document.getElementById('statLevel').textContent = userData.pathway || 'L1P1';
+    const attData = allEventsCache.filter(e => e.attended?.includes(currentUid));
+    const totalMeets = allEventsCache.length;
+    const pct = totalMeets ? Math.round(attData.length / totalMeets * 100) : 0;
+    document.getElementById('statAttPct').textContent = pct + '%';
+
+    const pathwayNames = { L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency', L3K:'Level 3 — Keynote', L3H:'Level 3 — Humorous' };
+    document.getElementById('pathwayTitle').textContent = pathwayNames[currentPathwayKey] || 'Curriculum Progress';
+    document.getElementById('pathwayBadge').textContent = userData.pathway || currentPathwayKey;
+    document.getElementById('pathwayBar').style.width = Math.round(done/total*100) + '%';
+    document.getElementById('progressDone').textContent = done + ' speeches done';
+    document.getElementById('progressTotal').textContent = 'of ' + total + ' total';
+
+    // Render steps
+    const stepsContainer = document.getElementById('pathwaySteps');
+    const projects = pathway.projects || [];
+    if (projects.length === 0) {
+      stepsContainer.innerHTML = '<p style="color:var(--text-mid);padding:1rem 0;">No projects loaded for this pathway.</p>';
+    } else {
+      stepsContainer.innerHTML = projects.map((proj, i) => {
+        const speechObj = speeches[i] || {};
+        const isDone = speechObj.status === 'done';
+        const isCurrent = !isDone && speeches.filter(s=>s.status==='done').length === i;
+        const statusClass = isDone ? 'done' : (isCurrent ? 'active-step' : 'pending');
+        const icon = isDone ? '<i class="fa-solid fa-check"></i>' : (isCurrent ? (i+1) : (i+1));
+        const projName = typeof proj === 'string' ? proj : (proj.name || `Project ${i+1}`);
+        const projDesc = typeof proj === 'object' ? (proj.description || proj.purpose || '') : '';
+        // Guide link — connected to project (req 9)
+        const guideLink = (typeof proj === 'object' && proj.guideLink) ? proj.guideLink : (pathway.guideLink || '');
+        return `<div class="step-item ${statusClass}" onclick='showSpeechDetails(${JSON.stringify(proj)}, "${currentPathwayKey}", ${i+1}, "${guideLink}")'>
+          <div class="step-num ${statusClass}">${icon}</div>
+          <div class="step-info">
+            <h4>${projName}</h4>
+            ${projDesc ? `<p>${projDesc.substring(0,80)}${projDesc.length>80?'...':''}</p>` : ''}
+            ${speechObj.date ? `<div class="step-date">Completed ${speechObj.date}</div>` : ''}
+          </div>
+          ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
+        </div>`;
+      }).join('');
+    }
+
+    // Upcoming roles card
+    const upcoming = allEventsCache.find(e => e.isActive === true) || allEventsCache.find(e => e.type === 'upcoming');
+    if (upcoming && upcoming.rolesDisplay?.length) {
+      document.getElementById('upcomingRolesCard').style.display = 'block';
+      renderUpcomingRolesCard(upcoming);
+      renderMyUpcomingRoles(upcoming);
+    }
+  } catch(e) {
+    console.warn('Progress render error', e);
+  }
+}
+
+function renderUpcomingRolesCard(upcoming) {
+  const container = document.getElementById('upcomingRolesContainer');
+  container.innerHTML = `
+    <div style="margin-bottom:1rem;padding:1rem;background:var(--surface);border-radius:var(--radius-sm);">
+      <strong style="color:var(--orange);">${upcoming.title}</strong>
+      <span style="font-size:0.75rem;color:var(--text-light);margin-left:0.75rem;">Upcoming roster</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.75rem;">
+      ${upcoming.rolesDisplay.map(rd => `
+        <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.7rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${rd.role}</span>
+          <span style="font-weight:700;color:var(--text);">${rd.name}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderMyUpcomingRoles(upcoming) {
+  const rolesMap = upcoming.roles || {};
+  const myRoles = [];
+  for (const [rKey, uid] of Object.entries(rolesMap)) {
+    if (uid === currentUid) {
+      const displayObj = upcoming.rolesDisplay?.find(rd => rd.role.toLowerCase().includes(rKey.replace(/[0-9]/g,'').toLowerCase()));
+      myRoles.push({ role: displayObj?.role || rKey.toUpperCase(), meet: upcoming.title });
+    }
+  }
+  const wrapper = document.getElementById('myUpcomingRolesWrapper');
+  const grid = document.getElementById('myUpcomingRolesGrid');
+  if (myRoles.length && wrapper && grid) {
+    wrapper.style.display = 'block';
+    grid.innerHTML = myRoles.map(r => `
+      <div class="badge-item earned">
+        <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:var(--orange);"></i></div>
+        <div class="badge-name">${r.role}</div>
+        <div class="badge-desc" style="color:var(--orange);font-weight:700;">${r.meet}</div>
+      </div>`).join('');
+  }
+}
+
+// ── ACHIEVEMENTS ──────────────────────────────────────────
+async function loadAchievements() {
+  const badgesGrid = document.getElementById('badgesGrid');
+  const rolesGrid  = document.getElementById('rolesGrid');
+  const winGrid    = document.getElementById('winBadgesGrid');
+  const winCard    = document.getElementById('winBadgesCard');
+  try {
+    const allBadges = [
+      { id:'first_speech', name:'First Speech', desc:'Delivered your first speech', icon:'fa-microphone', cond: (u) => (u.speeches||[]).filter(s=>s.status==='done').length >= 1 },
+      { id:'five_speeches',name:'Orator',       desc:'5 speeches completed', icon:'fa-star', cond: (u) => (u.speeches||[]).filter(s=>s.status==='done').length >= 5 },
+      { id:'attendance_5',name:'Consistent',    desc:'Attended 5 meetings', icon:'fa-calendar-check', cond: (u) => (u.attendance||[]).filter(a=>a.present).length >= 5 },
+      { id:'lvl2',        name:'Level 2',       desc:'Started Level 2 pathway', icon:'fa-layer-group', cond: (u) => ['L2','L3K','L3H'].includes(u.pathwayKey||'') },
+      { id:'mentor',      name:'Mentor',        desc:'Serving as a mentor', icon:'fa-hands-helping', cond: (u) => u.role === 'mentor' || u.role === 'core' },
+    ];
+    badgesGrid.innerHTML = allBadges.map(b => {
+      const earned = b.cond(userData);
+      return `<div class="badge-item ${earned?'earned':'locked'}">
+        <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.8rem;color:${earned?'var(--orange)':'var(--text-light)'};"></i></div>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>`;
+    }).join('');
+
+    // Past roles (req 14: only this member's)
+    const allHistory = userData.roleBadges || [];
+    const upcoming = allEventsCache.find(e => e.isActive === true) || allEventsCache.find(e => e.type === 'upcoming');
+    const upcomingTitle = upcoming?.title;
+    const pastRoles = allHistory.filter(r => !upcomingTitle || !r.endsWith(' M-'+upcomingTitle));
+    if (!pastRoles.length) {
+      rolesGrid.innerHTML = '<p style="color:var(--text-mid);">Play a role in upcoming meets to earn badges!</p>';
+    } else {
+      rolesGrid.innerHTML = [...pastRoles].reverse().map(r => {
+        const parts = r.split(' M-');
+        return `<div class="badge-item earned" style="border-color:#4CAF50;">
+          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:#4CAF50;"></i></div>
+          <div class="badge-name">${parts[0]}</div>
+          <div class="badge-desc" style="color:#2e7d32;font-weight:700;">${parts[1]?'Meet '+parts[1]:''}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Win badges (req 15)
+    const winBadges = userData.winBadges || [];
+    if (winBadges.length) {
+      winCard.style.display = 'block';
+      winGrid.innerHTML = winBadges.map(wb => `
+        <div class="badge-item won">
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.8rem;color:#ffa000;"></i></div>
+          <div class="badge-name">${wb.category}</div>
+          <div class="badge-desc" style="color:#e65100;font-weight:700;">Meet ${wb.meet}</div>
+          <div class="winner-badge" style="margin-top:0.75rem;font-size:0.65rem;">Winner</div>
+        </div>`).join('');
+    }
+  } catch(e) { console.warn('Achievements error',e); }
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────
+async function loadLeaderboard() {
+  const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Attendance','MOM','Points','Roles'];
+  const headerHtml = HEADERS.map((h,i) => `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`).join('');
+  document.getElementById('leaderboardTableHeader').innerHTML = headerHtml;
+
+  try {
+    const snap = await getDocs(collection(db,'users'));
+    const users = []; snap.forEach(d => users.push({id:d.id,...d.data()}));
+    const sorted = [...users].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    let html = '';
+    sorted.forEach(u => {
+      let c = {hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,attendance:0,mom:0};
+      allEventsCache.forEach(e => {
+        const rm = e.roles||{};
+        for (const [rk,uid] of Object.entries(rm)) {
+          if (uid !== u.id) continue;
+          if (rk.startsWith('hom')) c.hom++;
+          else if (rk.startsWith('speaker')) c.speaker++;
+          else if (rk.startsWith('evaluator')) c.evaluator++;
+          else if (rk==='ttm') c.ttm++;
+          else if (rk==='tte') c.tte++;
+          else if (rk==='ge') c.ge++;
+          else if (rk==='timer') c.timer++;
+          else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
+          else if (rk==='momTaker'||rk==='momPres') c.mom++;
+        }
+        if (e.attended?.includes(u.id)) c.attendance++;
+      });
+      const totalRoles = c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.mom;
+      const totalPoints = c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.attendance*1+c.mom*4;
+      const f = v => v===0?'':v;
+      const isMe = u.id === currentUid;
+      html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}${isMe?'border:2px solid rgba(255,87,34,0.2);':''}">
+        <td style="position:sticky;left:0;background:${isMe?'rgba(255,87,34,0.08)':'var(--surface)'};z-index:5;padding:0.9rem;font-weight:${isMe?'800':'700'};">${u.name||''}${isMe?' (you)':''}</td>
+        ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
+      </tr>`;
+    });
+    document.getElementById('leaderboardTableBody').innerHTML = html || '<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>';
+  } catch(e) { console.warn('Leaderboard error',e); }
+}
+
+// ── ATTENDANCE ────────────────────────────────────────────
+function loadAttendance() {
+  try {
+    let present = 0;
+    const cells = allEventsCache.filter(e => e.type === 'past' || !e.isActive).slice(0,30);
+    const totalMeets = cells.length;
+    cells.forEach(e => { if (e.attended?.includes(currentUid)) present++; });
+    const pct = totalMeets ? Math.round(present/totalMeets*100) : 0;
+    document.getElementById('attPresent').textContent = present;
+    document.getElementById('attTotal').textContent = totalMeets;
+    document.getElementById('attPct').textContent = pct + '%';
+    const cal = document.getElementById('attCalendar');
+    if (!cells.length) { cal.innerHTML = '<p style="color:var(--text-mid);">No meetings recorded yet.</p>'; return; }
+    cal.innerHTML = cells.map(e => {
+      const isPresent = e.attended?.includes(currentUid);
+      let dateStr = '?';
+      if (e.date) {
+        try {
+          const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
+          dateStr = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+        } catch(_){}
+      }
+      return `<div class="att-cell ${isPresent?'att-present':'att-absent'}" title="${e.title||''}">
+        <div class="day-num">${isPresent?'P':'A'}</div>
+        <div style="font-size:0.6rem;">${dateStr}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.warn('Attendance error',e); }
+}
+
+// ── MENTORSHIP ────────────────────────────────────────────
+async function loadMentorship() {
+  try {
+    const mentorInfo = document.getElementById('mentorInfo');
+    if (userData.mentor) {
+      const mSnap = await getDoc(doc(db,'users',userData.mentor));
+      if (mSnap.exists()) {
+        const m = mSnap.data();
+        const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        mentorInfo.innerHTML = `<div class="mentor-card">
+          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
+          <div class="mentor-info"><h3>${m.name}</h3><p>${m.email||''}</p></div>
+        </div>`;
+      } else {
+        mentorInfo.innerHTML = '<p style="color:var(--text-mid);">Mentor not found.</p>';
+      }
+    } else {
+      mentorInfo.innerHTML = '<p style="color:var(--text-mid);">No mentor assigned yet.</p>';
+    }
+
+    // Mentees
+    const menteeSnap = await getDocs(query(collection(db,'users'), where('mentor','==',currentUid)));
+    const mentees = [];
+    menteeSnap.forEach(d => mentees.push({id:d.id,...d.data()}));
+    const menteesCard = document.getElementById('menteesCard');
+    if (mentees.length) {
+      menteesCard.style.display = 'block';
+      document.getElementById('menteesList').innerHTML = mentees.map(m => {
+        const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        return `<div class="mentee-item">
+          <div class="member-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
+          <div><div style="font-weight:700;">${m.name}</div><div style="font-size:0.8rem;color:var(--text-mid);">${m.pathway||'L1P1'}</div></div>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) { console.warn('Mentorship error',e); }
+}
+
+// ── GALLERY ───────────────────────────────────────────────
+async function loadGallery() {
+  const g = document.getElementById('dashGallery');
+  try {
+    const snap = await getDocs(query(collection(db,'gallery'), orderBy('date','desc')));
+    g.innerHTML = '';
+    if (snap.empty) { g.innerHTML = '<div class="gallery-placeholder">No photos yet.</div>'; return; }
+    snap.forEach(d => {
+      const p = d.data();
+      const img = document.createElement('img');
+      img.src = p.url; img.alt = p.caption||''; img.loading = 'lazy';
+      img.onclick = () => {
+        const lb = document.createElement('div');
+        lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);z-index:3000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+        lb.innerHTML = `<img src="${p.url}" style="max-width:90vw;max-height:90vh;border-radius:12px;"/>`;
+        lb.onclick = () => lb.remove();
+        document.body.appendChild(lb);
+      };
+      g.appendChild(img);
+    });
+  } catch(e) { g.innerHTML = '<div class="gallery-placeholder">Could not load gallery.</div>'; }
+}
+
+// ── NOTIFICATIONS (req 4) ─────────────────────────────────
+async function loadNotifications() {
+  try {
+    // Personal notifications
+    const pSnap = await getDocs(query(collection(db,'notifications'),
+      where('type','==','personal'), where('targetUid','==',currentUid),
+      orderBy('createdAt','desc')));
+    const personalNotifs = [];
+    pSnap.forEach(d => personalNotifs.push({id:d.id,...d.data()}));
+
+    const pList = document.getElementById('personalNotifsList');
+    const pCard = document.getElementById('personalNotifsCard');
+    if (personalNotifs.length) {
+      pCard.style.display = 'block';
+      pList.innerHTML = personalNotifs.map(n => `
+        <div class="notif-item ${n.read?'':'unread'}">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-body">${n.body}</div>
+          <div class="notif-time">${formatTime(n.createdAt)}</div>
+        </div>`).join('');
+    }
+
+    // Common notifications
+    const cSnap = await getDocs(query(collection(db,'notifications'),
+      where('type','==','common'), orderBy('createdAt','desc')));
+    const commonNotifs = [];
+    cSnap.forEach(d => commonNotifs.push({id:d.id,...d.data()}));
+    const cList = document.getElementById('commonNotifsList');
+    if (commonNotifs.length) {
+      cList.innerHTML = commonNotifs.map(n => `
+        <div class="notif-item">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-body">${n.body}</div>
+          <div class="notif-time">${formatTime(n.createdAt)}</div>
+        </div>`).join('');
+    } else {
+      cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
+    }
+
+    // Update badges
+    const unread = personalNotifs.filter(n=>!n.read).length;
+    const notifCount = document.getElementById('notifCount');
+    const sidebarBadge = document.getElementById('sidebarNotifBadge');
+    if (unread > 0) {
+      notifCount.textContent = unread; notifCount.style.display = 'inline-block';
+      sidebarBadge.textContent = unread; sidebarBadge.style.display = 'inline-block';
+    }
+  } catch(e) { console.warn('Notifications error',e); }
+}
+
+// req 4: Personal notification as FIRST SCREEN on login
+async function checkPersonalNotification() {
+  try {
+    const snap = await getDocs(query(collection(db,'notifications'),
+      where('type','==','personal'), where('targetUid','==',currentUid),
+      where('read','==',false), orderBy('createdAt','desc'), limit(1)));
+    if (snap.empty) return;
+    const n = snap.docs[0].data();
+    const nId = snap.docs[0].id;
+    document.getElementById('pnModalTitle').textContent = n.title;
+    document.getElementById('pnModalBody').textContent = n.body;
+    document.getElementById('pnModalTime').textContent = formatTime(n.createdAt);
+    document.getElementById('personalNotifModal').classList.add('open');
+
+    // Mark as read
+    await updateDoc(doc(db,'notifications',nId), {read:true});
+  } catch(e) { console.warn('Personal notif check error',e); }
+}
+
+window.dismissPersonalNotif = () => {
+  document.getElementById('personalNotifModal').classList.remove('open');
+};
+
+// ── SPEECH FEEDBACK (req 13) ──────────────────────────────
+const FB_CATEGORIES = ['Content','Clarity of Speech','Fluency','Expression & Gestures','Pace & Pauses','Creativity','Organization','X-Factor'];
+
+async function loadFeedbackSectionEvents() {
+  const select = document.getElementById('fbEvent');
+  select.innerHTML = '<option value="">-- Select a meeting --</option>';
+  allEventsCache.filter(e=>e.type==='past'||!e.isActive).slice(0,20).forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id; opt.textContent = e.title || e.id;
+    select.appendChild(opt);
+  });
+}
+
+window.loadFbSpeakers = async function() {
+  const eventId = document.getElementById('fbEvent').value;
+  const spkSelect = document.getElementById('fbSpeaker');
+  spkSelect.innerHTML = '<option value="">-- Select speaker --</option>';
+  document.getElementById('fbForm').style.display = 'none';
+  document.getElementById('fbExistingCard').style.display = 'none';
+  if (!eventId) return;
+  const event = allEventsCache.find(e=>e.id===eventId);
+  if (!event?.roles) return;
+  const speakers = [];
+  for (const [rk,uid] of Object.entries(event.roles)) {
+    if (rk.startsWith('speaker')) {
+      const u = allUsersCache.find(u=>u.id===uid);
+      if (u) speakers.push({id:uid,name:u.name});
+    }
+  }
+  if (!speakers.length) {
+    spkSelect.innerHTML = '<option value="">No speakers in this event</option>'; return;
+  }
+  speakers.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.name;
+    spkSelect.appendChild(opt);
+  });
+};
+
+window.loadExistingFeedback = async function() {
+  const speakerUid = document.getElementById('fbSpeaker').value;
+  const eventId = document.getElementById('fbEvent').value;
+  const fbForm = document.getElementById('fbForm');
+  const existingCard = document.getElementById('fbExistingCard');
+  if (!speakerUid || !eventId) { fbForm.style.display='none'; existingCard.style.display='none'; return; }
+
+  // Show form — render star categories
+  fbForm.style.display = 'block';
+  const catContainer = document.getElementById('fbCategories');
+  catContainer.innerHTML = FB_CATEGORIES.map((cat,i) => `
+    <div class="rating-row">
+      <div class="rating-label">${cat}</div>
+      <div class="star-row" id="starRow_${i}">
+        ${[1,2,3,4,5].map(n=>`<button class="star-btn" data-cat="${i}" data-val="${n}" onclick="setRating(${i},${n})">&#9733;</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  // Load existing feedback for this speaker/event
+  try {
+    const snap = await getDocs(query(collection(db,'feedback'),
+      where('eventId','==',eventId), where('speakerUid','==',speakerUid)));
+    const feedbacks = []; snap.forEach(d => feedbacks.push({id:d.id,...d.data()}));
+    if (!feedbacks.length) { existingCard.style.display='none'; return; }
+
+    existingCard.style.display = 'block';
+    const speakerName = document.getElementById('fbSpeaker').options[document.getElementById('fbSpeaker').selectedIndex].text;
+    document.getElementById('fbSpeakerName').textContent = speakerName;
+
+    // Averages per category
+    const avgs = FB_CATEGORIES.map((_,i) => {
+      const vals = feedbacks.map(f=>f.ratings?.[i]||0).filter(v=>v>0);
+      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+    });
+    const overallAvg = feedbacks.map(f=>{
+      const vals = Object.values(f.ratings||{}).filter(v=>v>0);
+      return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    }).filter(v=>v>0);
+    const overall = overallAvg.length ? (overallAvg.reduce((a,b)=>a+b,0)/overallAvg.length).toFixed(1) : '—';
+
+    document.getElementById('fbAverages').innerHTML = `
+      <div class="feedback-avg-card" style="margin-bottom:1.5rem;">
+        <div class="feedback-big-score">${overall}</div>
+        <div><div style="font-weight:700;">Overall Average</div><div style="font-size:0.82rem;color:var(--text-mid);">${feedbacks.length} response${feedbacks.length!==1?'s':''}</div></div>
+      </div>
+      <div class="feedback-categories">
+        ${FB_CATEGORIES.map((cat,i)=>`<div class="rating-row"><div class="rating-label">${cat}</div><div style="font-weight:800;color:var(--orange);font-size:1.1rem;">${avgs[i]}/5</div></div>`).join('')}
+      </div>`;
+
+    const comments = feedbacks.filter(f=>f.comment).map(f=>`
+      <div style="padding:1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.75rem;font-size:0.9rem;color:var(--text);">
+        ${f.comment}
+      </div>`).join('');
+    document.getElementById('fbComments').innerHTML = comments ? `<h4 style="margin-bottom:1rem;">Written Feedback</h4>${comments}` : '';
+  } catch(e) { console.warn('Load feedback error',e); }
+};
+
+const ratings = {};
+window.setRating = function(catIdx, val) {
+  ratings[catIdx] = val;
+  const row = document.getElementById('starRow_'+catIdx);
+  row.querySelectorAll('.star-btn').forEach(btn => {
+    btn.classList.toggle('active', +btn.dataset.val <= val);
+  });
+};
+
+window.submitFeedback = async function() {
+  const eventId = document.getElementById('fbEvent').value;
+  const speakerUid = document.getElementById('fbSpeaker').value;
+  const comment = document.getElementById('fbComment').value.trim();
+  const fbMsg = document.getElementById('fbMsg');
+  const fbErr = document.getElementById('fbErr');
+  fbMsg.style.display='none'; fbErr.style.display='none';
+  if (!eventId||!speakerUid) { fbErr.textContent='Select an event and speaker.'; fbErr.style.display='block'; return; }
+
+  // Check at least some ratings
+  if (Object.keys(ratings).length < 3) {
+    fbErr.textContent = 'Please rate at least 3 categories.'; fbErr.style.display='block'; return;
+  }
+
+  try {
+    await addDoc(collection(db,'feedback'), {
+      eventId, speakerUid, giverUid: currentUid,
+      ratings: {...ratings}, comment,
+      createdAt: serverTimestamp()
+    });
+    fbMsg.textContent = 'Feedback submitted! Thank you.'; fbMsg.style.display='block';
+    document.getElementById('fbComment').value = '';
+    Object.keys(ratings).forEach(k=>delete ratings[k]);
+    document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('active'));
+    loadExistingFeedback();
+  } catch(e) {
+    fbErr.textContent = 'Failed to submit. Try again.'; fbErr.style.display='block';
   }
 };
 
+// ── VOTING (req 15) ───────────────────────────────────────
+async function loadVoting() {
+  const container = document.getElementById('votingContainer');
+  try {
+    // Find active voting session
+    const snap = await getDocs(query(collection(db,'votingSessions'), where('active','==',true)));
+    if (snap.empty) {
+      container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <h3 style="font-family:var(--font-body);">No Active Voting Session</h3>
+        <p style="color:var(--text-mid);">When the admin opens a voting session after a meeting, it will appear here.</p>
+      </div>`; return;
+    }
+
+    const session = snap.docs[0];
+    const sessionData = session.data();
+    const sessionId = session.id;
+
+    // Check if already voted
+    const myVoteSnap = await getDocs(query(collection(db,'votes'),
+      where('sessionId','==',sessionId), where('voterUid','==',currentUid)));
+    if (!myVoteSnap.empty) {
+      container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+        <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
+        <h3 style="font-family:var(--font-body);color:#2e7d32;">You Have Already Voted</h3>
+        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${sessionData.meetTitle||'this meeting'}</strong> has been recorded.</p>
+      </div>`; return;
+    }
+
+    // Show voting form
+    const categories = [
+      { key:'bestSpeaker', label:'Best Speaker', candidates: sessionData.speakers||[] },
+      { key:'bestEvaluator', label:'Best Evaluator', candidates: sessionData.evaluators||[] },
+      { key:'bestTableTopic', label:'Best Table Topic Speaker', candidates: sessionData.tableTopicSpeakers||[] },
+      { key:'bestRolePlayer', label:'Best Role Player', candidates: sessionData.rolePlayers||[] },
+    ].filter(c => c.candidates.length > 0);
+
+    const voteSelections = {};
+    container.innerHTML = `
+      <div class="card" style="margin-bottom:1.5rem;border:1px solid rgba(255,87,34,0.2);background:var(--orange-light);">
+        <h3 style="margin:0;display:flex;align-items:center;gap:0.6rem;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);"></i> ${sessionData.meetTitle||'Meeting'} — Voting Open</h3>
+        <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--text-mid);">Your vote is anonymous and non-traceable.</p>
+      </div>
+      <form id="voteForm">
+        ${categories.map(cat => `
+          <div class="vote-category">
+            <h4>${cat.label}</h4>
+            <div class="vote-options">
+              ${cat.candidates.map(c => `
+                <label class="vote-option" onclick="this.classList.add('selected');this.closest('.vote-options').querySelectorAll('.vote-option:not(label:has(input:checked))').forEach(el=>el.classList.remove('selected'));">
+                  <input type="radio" name="${cat.key}" value="${c.uid||c.name}" style="pointer-events:none;" />
+                  <span>${c.name}</span>
+                </label>`).join('')}
+            </div>
+          </div>`).join('')}
+        <button type="button" class="btn-primary" onclick="submitVote('${sessionId}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote &rarr;</button>
+        <p style="text-align:center;font-size:0.8rem;color:var(--text-light);margin-top:0.75rem;">Your identity will not be stored with your vote.</p>
+      </form>`;
+  } catch(e) { console.warn('Voting error',e); container.innerHTML = '<div class="card"><p style="color:var(--text-mid);">Could not load voting session.</p></div>'; }
+}
+
+window.submitVote = async function(sessionId) {
+  const form = document.getElementById('voteForm');
+  const radios = form.querySelectorAll('input[type="radio"]:checked');
+  if (!radios.length) { alert('Please select at least one option before submitting.'); return; }
+
+  const choices = {};
+  radios.forEach(r => { choices[r.name] = r.value; });
+
+  try {
+    // Store vote — anonymous: only sessionId, no voterUid in vote doc
+    await addDoc(collection(db,'votes'), { sessionId, choices, createdAt: serverTimestamp() });
+    // Record that this user voted (separate doc, so vote is unlinkable)
+    await setDoc(doc(db,'voteRecords',currentUid+'_'+sessionId), { sessionId, voterUid: currentUid, createdAt: serverTimestamp() });
+    loadVoting();
+  } catch(e) {
+    alert('Failed to submit vote. Please try again.');
+  }
+};
+
+// ── ANALYSIS CHARTS ───────────────────────────────────────
 function renderCharts(data) {
   const skills = data.skills || {};
-  new Chart(document.getElementById('radarChart'), {
-    type:'radar',
-    data:{
-      labels:['Delivery','Structure','Vocal Variety','Eye Contact','Confidence','Persuasion'],
-      datasets:[{label:'My Skills',data:[skills.delivery||3,skills.structure||4,skills.vocal||3,skills.eyeContact||5,skills.confidence||2,skills.persuasion||4],fill:true,backgroundColor:'rgba(255,87,34,0.15)',borderColor:'#FF5722',pointBackgroundColor:'#FF5722',pointBorderColor:'white',pointBorderWidth:2}]
-    },
-    options:{scales:{r:{min:0,max:5,ticks:{stepSize:1},grid:{color:'rgba(0,0,0,0.06)'}}},plugins:{legend:{display:false}}}
-  });
-
-  const speechesDone = (data.speeches||[]).filter(s=>s.status==='done');
-  new Chart(document.getElementById('progressChart'), {
-    type:'line',
-    data:{
-      labels:speechesDone.map((_,i)=>`Speech ${i+1}`),
-      datasets:[{label:'Speeches Completed',data:speechesDone.map((_,i)=>i+1),borderColor:'#FF5722',backgroundColor:'rgba(255,87,34,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#FF5722',pointBorderColor:'white',pointBorderWidth:2}]
-    },
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
-  });
+  try {
+    new Chart(document.getElementById('radarChart'), {
+      type:'radar',
+      data:{
+        labels:['Content','Clarity','Fluency','Expression','Pace','Creativity','Organization','X-Factor'],
+        datasets:[{label:'Avg Score',data:FB_CATEGORIES.map((_,i)=>skills['fb_'+i]||3),fill:true,
+          backgroundColor:'rgba(255,87,34,0.12)',borderColor:'var(--orange)',
+          pointBackgroundColor:'var(--orange)',pointBorderColor:'#fff',pointBorderWidth:2}]
+      },
+      options:{scales:{r:{min:0,max:5,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.12)'}}},plugins:{legend:{display:false}}}
+    });
+    const done = (data.speeches||[]).filter(s=>s.status==='done');
+    new Chart(document.getElementById('progressChart'), {
+      type:'line',
+      data:{
+        labels: done.map((_,i)=>`Speech ${i+1}`),
+        datasets:[{label:'Speeches Done',data:done.map((_,i)=>i+1),borderColor:'var(--orange)',
+          backgroundColor:'rgba(255,87,34,0.07)',fill:true,tension:0.4,
+          pointRadius:5,pointBackgroundColor:'var(--orange)',pointBorderColor:'#fff',pointBorderWidth:2}]
+      },
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.08)'}},x:{grid:{color:'rgba(128,128,128,0.08)'}}}}
+    });
+  } catch(e) { console.warn('Chart error',e); }
 
   const sb = document.getElementById('skillBars');
-  const skillData = [
-    {label:'Delivery',value:skills.delivery||3},
-    {label:'Structure',value:skills.structure||4},
-    {label:'Vocal Variety',value:skills.vocal||3},
-    {label:'Eye Contact',value:skills.eyeContact||5},
-    {label:'Confidence',value:skills.confidence||2},
-    {label:'Persuasion',value:skills.persuasion||4},
-  ];
-  sb.innerHTML = skillData.map(s=>`
+  const skillData = FB_CATEGORIES.map((cat,i) => ({label:cat,value:parseFloat(skills['fb_'+i]||3)}));
+  sb.innerHTML = skillData.map(s => `
     <div class="chart-bar-wrap">
-      <div class="chart-label"><span>${s.label}</span><span>${s.value}/5</span></div>
+      <div class="chart-label"><span>${s.label}</span><span>${s.value.toFixed(1)}/5</span></div>
       <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${s.value/5*100}%"></div></div>
     </div>`).join('');
 }
 
-window.showSpeechDetails = function(speech, lvlKey, stepNum) {
+// ── SPEECH MODAL (req 9: guide link per project) ──────────
+window.showSpeechDetails = function(speech, lvlKey, stepNum, guideLink) {
   if (!speech) return;
   const modal = document.getElementById('speechModal');
-  const name = (typeof speech === 'string') ? speech : (speech.name || `Project ${stepNum}`);
-  
+  const name = typeof speech==='string' ? speech : (speech.name||`Project ${stepNum}`);
   document.getElementById('modalTitle').textContent = name;
-  document.getElementById('modalLvl').textContent = `${lvlKey} : Project ${stepNum}`;
-  
-  // Description
-  const desc = (typeof speech === 'object' && speech.description) ? speech.description : (speech.purpose || 'No detailed description available for this project yet.');
+  document.getElementById('modalLvl').textContent = `${lvlKey} — Project ${stepNum}`;
+  const desc = typeof speech==='object' ? (speech.description||speech.purpose||'No description available.') : 'No description available.';
   document.getElementById('modalDescription').textContent = desc;
 
-  // Purpose
   const purpWrap = document.getElementById('modalPurposeWrap');
-  if (typeof speech === 'object' && speech.purpose && speech.purpose !== speech.description) {
-    purpWrap.style.display = 'block';
+  if (typeof speech==='object'&&speech.purpose&&speech.purpose!==speech.description) {
+    purpWrap.style.display='block';
     document.getElementById('modalPurpose').textContent = speech.purpose;
-  } else {
-    purpWrap.style.display = 'none';
-  }
+  } else { purpWrap.style.display='none'; }
 
-  // Objectives
   const objWrap = document.getElementById('modalObjectivesWrap');
-  if (typeof speech === 'object' && speech.objectives) {
-    objWrap.style.display = 'block';
+  if (typeof speech==='object'&&speech.objectives) {
+    objWrap.style.display='block';
     document.getElementById('modalObjectives').textContent = speech.objectives;
-  } else {
-    objWrap.style.display = 'none';
-  }
+  } else { objWrap.style.display='none'; }
 
-  // Files
+  // Guide button — large (req 9)
+  const guideBtn = document.getElementById('modalGuideBtn');
+  const effectiveLink = (typeof speech==='object'&&speech.guideLink) ? speech.guideLink : guideLink;
+  if (effectiveLink) {
+    guideBtn.href = effectiveLink; guideBtn.style.display='inline-flex';
+  } else { guideBtn.style.display='none'; }
+
   const filesWrap = document.getElementById('modalFiles');
   filesWrap.innerHTML = '';
-  if (typeof speech === 'object' && speech.files && speech.files.length > 0) {
+  if (typeof speech==='object'&&speech.files?.length) {
     speech.files.forEach(f => {
-      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault(); alert('Resource: ${f}')">📄 ${f}</a>`;
+      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault()"><i class="fa-solid fa-file-pdf"></i> ${f}</a>`;
     });
-  } else {
-    filesWrap.innerHTML = '<p style="color:var(--mid); font-size:0.85rem;">No resource PDFs attached yet.</p>';
   }
-
   modal.style.display = 'flex';
 };
 
-window.closeModal = function() {
-  document.getElementById('speechModal').style.display = 'none';
-};
+window.closeModal = () => { document.getElementById('speechModal').style.display='none'; };
 
-// Close modal on background click
-window.onclick = function(event) {
-  const modal = document.getElementById('speechModal');
-  const setModal = document.getElementById('settingsModal');
-  if (event.target == modal) closeModal();
-  if (event.target == setModal) closeSettingsModal();
-};
+// ── SETTINGS ──────────────────────────────────────────────
+window.openSettingsModal = () => { document.getElementById('settingsModal').style.display='flex'; };
+window.closeSettingsModal = () => { document.getElementById('settingsModal').style.display='none'; };
 
-window.openSettingsModal = function() {
-  document.getElementById('settingsModal').style.display = 'flex';
-  if (window.innerWidth <= 1024) {
-    document.querySelector('.sidebar').classList.remove('open'); // Ensure sidebar closes on mobile when opening modal
-  }
-};
-window.closeSettingsModal = function() {
-  document.getElementById('settingsModal').style.display = 'none';
-};
-// --- SETTINGS LOGIC ---
 window.updateUserPassword = async () => {
   const newPass = document.getElementById('newPass').value;
   const confirmPass = document.getElementById('confirmPass').value;
   const btn = document.getElementById('updatePassBtn');
   const feedback = document.getElementById('settingsFeedback');
-  
-  if (!newPass || newPass.length < 6) {
-    showSettingsFeedback('Password must be at least 6 characters.', 'error');
-    return;
-  }
-  if (newPass !== confirmPass) {
-    showSettingsFeedback('Passwords do not match.', 'error');
-    return;
-  }
-  
-  btn.disabled = true;
-  btn.textContent = 'Updating...';
-  
+  if (!newPass||newPass.length<6) { showSettingsFeedback('Password must be at least 6 characters.','error'); return; }
+  if (newPass!==confirmPass) { showSettingsFeedback('Passwords do not match.','error'); return; }
+  btn.disabled=true; btn.textContent='Updating...';
   try {
     await updatePassword(auth.currentUser, newPass);
-    showSettingsFeedback('Password updated successfully!', 'success');
-    document.getElementById('newPass').value = '';
-    document.getElementById('confirmPass').value = '';
-  } catch (error) {
-    console.error('Password update failed:', error);
-    if (error.code === 'auth/requires-recent-login') {
-      showSettingsFeedback('Security Check: Please log out and log back in to verify your identity before changing your password.', 'error');
-    } else {
-      showSettingsFeedback(error.message, 'error');
-    }
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Update Password →';
-  }
+    showSettingsFeedback('Password updated successfully!','success');
+    document.getElementById('newPass').value='';
+    document.getElementById('confirmPass').value='';
+  } catch(e) {
+    if (e.code==='auth/requires-recent-login') showSettingsFeedback('Please log out and back in before changing your password.','error');
+    else showSettingsFeedback(e.message,'error');
+  } finally { btn.disabled=false; btn.textContent='Update Password \u2192'; }
 };
 
-function showSettingsFeedback(msg, type) {
-  const feedback = document.getElementById('settingsFeedback');
-  feedback.textContent = msg;
-  feedback.style.display = 'block';
-  feedback.style.marginTop = '1rem';
-  feedback.style.background = type === 'success' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
-  feedback.style.color = type === 'success' ? '#4CAF50' : '#F44336';
-  feedback.style.border = type === 'success' ? '1px solid #4CAF50' : '1px solid #F44336';
+function showSettingsFeedback(msg,type) {
+  const f = document.getElementById('settingsFeedback');
+  f.textContent = msg; f.style.display='block';
+  f.style.background = type==='success'?'rgba(76,175,80,0.08)':'rgba(244,67,54,0.08)';
+  f.style.color = type==='success'?'#2e7d32':'#d32f2f';
+  f.style.border = type==='success'?'1px solid rgba(76,175,80,0.25)':'1px solid rgba(244,67,54,0.25)';
+  f.style.borderRadius = 'var(--radius-sm)';
 }
+
+// ── UTILITIES ─────────────────────────────────────────────
+function formatTime(ts) {
+  if (!ts) return '';
+  try {
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  } catch(_) { return ''; }
+}
+
+// Close modals on background click
+window.onclick = function(event) {
+  if (event.target === document.getElementById('speechModal')) closeModal();
+  if (event.target === document.getElementById('settingsModal')) closeSettingsModal();
+};
 </script>
 </body>
 </html>
