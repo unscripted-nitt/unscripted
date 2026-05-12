@@ -1,18 +1,17 @@
-// js/nav.js — Navbar scroll, hamburger, scroll animations
+// js/nav.js — Navbar scroll, hamburger, scroll animations, counters
 
-// Initialize Scroll Progress Bar
+// Scroll progress bar
 const progressBar = document.createElement('div');
 progressBar.id = 'scroll-progress-bar';
 document.body.prepend(progressBar);
 
 window.addEventListener('scroll', () => {
-  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const winScroll = document.documentElement.scrollTop;
   const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  const scrolled = (winScroll / height) * 100;
-  progressBar.style.width = scrolled + "%";
+  progressBar.style.width = (height > 0 ? (winScroll / height) * 100 : 0) + '%';
 }, { passive: true });
 
-// Scroll effect
+// Navbar scroll effect
 const navbar = document.getElementById('navbar');
 if (navbar) {
   window.addEventListener('scroll', () => {
@@ -23,12 +22,12 @@ if (navbar) {
 // Hamburger toggle
 window.toggleMenu = function() {
   const links = document.getElementById('navLinks');
-  const ham = document.getElementById('hamburger');
+  const ham   = document.getElementById('hamburger');
   if (links) links.classList.toggle('open');
-  if (ham) ham.classList.toggle('open');
+  if (ham)   ham.classList.toggle('open');
 };
 
-// Close menu on link click
+// Close menu on nav link click
 document.querySelectorAll('.nav-links a').forEach(a => {
   a.addEventListener('click', () => {
     document.getElementById('navLinks')?.classList.remove('open');
@@ -36,47 +35,41 @@ document.querySelectorAll('.nav-links a').forEach(a => {
   });
 });
 
-// Intersection Observer for fade-up
+// Intersection Observer — fade-up
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.1 });
 document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
 // Counter animation
 function animateCounters() {
   document.querySelectorAll('.stat-num[data-target]').forEach(el => {
-    const target = +el.dataset.target;
-    const duration = 2000; // 2 seconds
-    let start = null;
-
-    // Easing function: easeOutExpo
-    const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
-
-    const step = (timestamp) => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / duration, 1);
-      const current = Math.floor(easeOutExpo(progress) * target);
-      el.textContent = current;
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        el.textContent = target; // Ensure it ends exactly at target
-      }
+    const target   = +el.dataset.target;
+    const duration = 2000;
+    let start      = null;
+    const ease     = t => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+    const step     = ts => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      el.textContent = Math.floor(ease(p) * target);
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = target;
     };
-    window.requestAnimationFrame(step);
+    requestAnimationFrame(step);
   });
 }
+
 const statsBar = document.querySelector('.stats-bar');
 if (statsBar) {
-  const statsObs = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting) { animateCounters(); statsObs.disconnect(); }
+  const obs = new IntersectionObserver(([e]) => {
+    if (e.isIntersecting) { animateCounters(); obs.disconnect(); }
   }, { threshold: 0.3 });
-  statsObs.observe(statsBar);
+  obs.observe(statsBar);
 }
 
-// Register service worker
+// Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
