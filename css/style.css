@@ -221,7 +221,7 @@ em { font-style: italic; }
 }
 .hero-bg { position: absolute; inset: 0; pointer-events: none; }
 
-.hero-watermark {
+/* .hero-watermark {
   position: absolute;
   right: -8vw; top: 50%;
   transform: translateY(-50%);
@@ -244,7 +244,45 @@ em { font-style: italic; }
 @keyframes blobPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.12); }
+} */
+
+.hero-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 1000px;
+  opacity: 0.04;
+  filter: grayscale(1) invert(1) brightness(2);
+  z-index: -1;
+  animation: pulseLogo 8s ease-in-out infinite;
 }
+@keyframes pulseLogo {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.04; }
+  50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.06; }
+}
+.hero-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.28; }
+.blob1 { width: 700px; height: 700px; background: radial-gradient(circle at 30% 30%, #FF8A65, #FF5722 50%, transparent 80%); top: -150px; right: -150px; animation: float1 9s ease-in-out infinite; }
+.blob2 { width: 450px; height: 450px; background: radial-gradient(circle, #FFD54F, #FF9800 60%, transparent 100%); bottom: -80px; left: -80px; animation: float2 12s ease-in-out infinite; }
+.blob3 { width: 280px; height: 280px; background: radial-gradient(circle, #FF5722, transparent 70%); top: 40%; left: 50%; transform: translate(-50%,-50%); animation: float1 7s 2s ease-in-out infinite; opacity: 0.1; }
+@keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-40px,50px)} }
+@keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-40px)} }
+.hero-content { position: relative; z-index: 1; text-align: center; max-width: 860px; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); margin-bottom: 1.75rem; background: rgba(255,87,34,0.08); padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid rgba(255,87,34,0.2); animation: fadeUp 0.8s ease both; }
+.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; line-height: 1.05; margin: 0; color: var(--dark); letter-spacing: -0.01em; text-align: left; }
+.hero-title .line1 { display: block; animation: fadeUp 0.8s ease 0.1s both; }
+.hero-title .line2 { display: block; color: var(--orange); animation: fadeUp 0.8s ease 0.22s both; }
+.hero-title .line3 { display: block; animation: fadeUp 0.8s ease 0.34s both; }
+.hero-sub { font-size: 1.12rem; color: var(--mid); max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.7; animation: fadeUp 0.8s ease 0.46s both; }
+.hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: fadeUp 0.8s ease 0.58s both; }
+.btn-primary { background: var(--orange); color: white; border: none; padding: 0.95rem 2.4rem; border-radius: 100px; font-family: var(--font-body); font-weight: 600; font-size: 0.98rem; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow-orange); letter-spacing: 0.02em; }
+.btn-primary:hover { background: var(--orange-dark); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(255,87,34,0.45); }
+.btn-ghost { background: transparent; color: var(--dark); border: 2px solid rgba(26,18,16,0.25); padding: 0.95rem 2.4rem; border-radius: 100px; font-family: var(--font-body); font-weight: 600; font-size: 0.98rem; cursor: pointer; transition: var(--transition); }
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-3px); background: var(--orange-glow); }
+.hero-scroll-hint { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mid); opacity: 0.5; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+.hero-scroll-hint::after { content: ''; display: block; width: 1px; height: 40px; background: linear-gradient(to bottom, var(--orange), transparent); animation: scrollLine 2s ease-in-out infinite; }
+@keyframes scrollLine { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
 .hero-content {
   position: relative; z-index: 1;
