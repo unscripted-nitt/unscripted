@@ -12,13 +12,13 @@ import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/fireb
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyD0XLC9q_H0R0oWbTntzB2uUv8Y8fog7LA",
+  authDomain: "unscripted-website.firebaseapp.com",
+  projectId: "unscripted-website",
+  storageBucket: "unscripted-website.firebasestorage.app",
+  messagingSenderId: "519266456785",
+  appId: "1:519266456785:web:385751f49948b38147a1f0",
+  measurementId: "G-YC1YKQRHMM"
 };
 
 const app = initializeApp(firebaseConfig);
