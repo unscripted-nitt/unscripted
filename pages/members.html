@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Members Unscripted NITT</title>
+  <title>Members — Unscripted NITT</title>
   <meta name="description" content="Meet the members of Unscripted, the public speaking club of NIT Trichy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
 </head>
@@ -22,31 +24,38 @@
   </div>
   <div class="nav-actions">
     <button class="btn-login" onclick="window.location.href='login.html'">Member Login</button>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
 <div class="page-header">
-  <span class="section-tag" style="position:relative;z-index:1;">The Club</span>
+  <span class="section-tag">The Club</span>
   <h1>Meet the Team</h1>
-  <p>The speakers, leaders, and mentors who make Unscripted what it is</p>
+  <p>The speakers, leaders, and mentors who make Unscripted what it is.</p>
 </div>
 
 <div class="page-content">
   <div class="filter-bar" id="filterBar">
-    <button class="filter-btn active" onclick="filterMembers('all', this)">All Members</button>
-    <button class="filter-btn" onclick="filterMembers('core', this)">Core Team</button>
-    <button class="filter-btn" onclick="filterMembers('mentor', this)">Mentors</button>
-    <button class="filter-btn" onclick="filterMembers('member', this)">Members</button>
+    <button class="filter-btn active" onclick="filterMembers('all',this)">All Members</button>
+    <button class="filter-btn" onclick="filterMembers('core',this)">Core Team</button>
+    <button class="filter-btn" onclick="filterMembers('mentor',this)">Mentors</button>
+    <button class="filter-btn" onclick="filterMembers('member',this)">Members</button>
   </div>
+
+  <!-- Search -->
+  <div style="margin-bottom:2rem;">
+    <input type="text" id="memberSearch" placeholder="Search by name or department..." style="max-width:380px;" oninput="searchMembers(this.value)" />
+  </div>
+
   <div class="members-grid" id="membersGrid">
-    <!-- Loading skeletons -->
-    <div class="event-skeleton" style="height:200px;"></div>
-    <div class="event-skeleton" style="height:200px;"></div>
-    <div class="event-skeleton" style="height:200px;"></div>
-    <div class="event-skeleton" style="height:200px;"></div>
-    <div class="event-skeleton" style="height:200px;"></div>
-    <div class="event-skeleton" style="height:200px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
+    <div class="event-skeleton" style="height:220px;"></div>
   </div>
 </div>
 
@@ -54,7 +63,7 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" style="height:120px; width:auto;" /></div>
+        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" /></div>
         <p class="footer-tagline">Unscripted NITT</p>
       </div>
       <div class="footer-nav"><h4>Pages</h4><ul>
@@ -66,8 +75,8 @@
       </ul></div>
     </div>
     <div class="footer-bottom">
-      <p class="footer-copy">© 2025 Unscripted, NIT Trichy.</p>
-      <p class="footer-love">Made with <span>♥</span> in Trichy</p>
+      <p class="footer-copy">&copy; 2025 Unscripted, NIT Trichy.</p>
+      <p class="footer-love">Made with <span>&hearts;</span> in Trichy</p>
     </div>
   </div>
 </footer>
@@ -76,51 +85,73 @@
 import { db } from '../js/firebase-config.js';
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const AVATAR_COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315','#FF6D00','#E65100'];
+const COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315'];
 let allMembers = [];
+let currentRole = 'all';
 
 async function loadMembers() {
   try {
-    const q = query(collection(db,'members'), orderBy('name'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db,'members'), orderBy('name')));
+    allMembers = [];
     snap.forEach(doc => {
-      const data = doc.data();
-      if (data.isActive !== false) allMembers.push({id:doc.id, ...data});
+      const d = doc.data();
+      if (d.isActive !== false) allMembers.push({id:doc.id,...d});
     });
-    if (allMembers.length === 0) {
-      document.getElementById('membersGrid').innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">Member list coming soon!</p>';
+    if (!allMembers.length) {
+      document.getElementById('membersGrid').innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:3rem;">Member list coming soon.</p>';
       return;
     }
     renderMembers(allMembers);
   } catch(e) {
-    document.getElementById('membersGrid').innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">Could not load members.</p>';
+    document.getElementById('membersGrid').innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:3rem;">Could not load members.</p>';
   }
 }
 
 function renderMembers(members) {
   const grid = document.getElementById('membersGrid');
-  grid.innerHTML = members.map((m, i) => {
+  if (!members.length) {
+    grid.innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:2rem;">No members found.</p>';
+    return;
+  }
+  grid.innerHTML = members.map((m,i) => {
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const color = m.avatarColor || AVATAR_COLORS[i % AVATAR_COLORS.length];
-    const roleLabel = m.role === 'core' ? 'Core Team' : m.role === 'mentor' ? 'Mentor' : 'Member';
+    const color = m.avatarColor || COLORS[i % COLORS.length];
+    const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
+    const roleColor = m.role === 'core' || m.role === 'admin' ? 'var(--orange)' : 'var(--text-light)';
+    // Photo from Excel upload or profile (req 8)
+    const avatarContent = m.photoUrl
+      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" />`
+      : initials;
     return `<div class="member-card fade-up visible">
-      <div class="avatar" style="background:${color}">${initials}</div>
+      <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
       <h3>${m.name||'Member'}</h3>
-        <div class="dept">${m.dept||''} ${m.year?`: ${m.year}`:''}</div>
-        <div class="video-meta">${roleLabel}</div>
+      <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
+      ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+      <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
     </div>`;
   }).join('');
 }
 
 window.filterMembers = function(role, btn) {
+  currentRole = role;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  if (role === 'all') renderMembers(allMembers);
-  else renderMembers(allMembers.filter(m=>m.role===role));
+  const search = document.getElementById('memberSearch').value.toLowerCase();
+  applyFilters(search);
 };
+
+window.searchMembers = function(val) {
+  applyFilters(val.toLowerCase());
+};
+
+function applyFilters(search) {
+  let filtered = currentRole === 'all' ? allMembers : allMembers.filter(m=>m.role===currentRole);
+  if (search) filtered = filtered.filter(m=>(m.name||'').toLowerCase().includes(search)||(m.dept||m.department||'').toLowerCase().includes(search));
+  renderMembers(filtered);
+}
 
 loadMembers();
 </script>
-<script src="../js/nav.js" type="module"></script>
+<script type="module" src="../js/nav.js"></script>
 </body>
 </html>
