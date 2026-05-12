@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Speech Videos Unscripted NITT</title>
-  <meta name="description" content="Watch speech videos from Unscripted members at NIT Trichy : talks, debates, and performances." />
+  <title>Speeches — Unscripted NITT</title>
+  <meta name="description" content="Watch speech videos from Unscripted members at NIT Trichy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
 </head>
@@ -22,12 +24,14 @@
   </div>
   <div class="nav-actions">
     <button class="btn-login" onclick="window.location.href='login.html'">Member Login</button>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
 <div class="page-header">
-  <span class="section-tag" style="position:relative;z-index:1;">Speech Videos</span>
+  <span class="section-tag">Speech Videos</span>
   <h1>Watch Our Speakers</h1>
   <p>Recorded speeches, debates, and talks from Unscripted members</p>
 </div>
@@ -35,14 +39,21 @@
 <div class="page-content">
   <div class="filter-bar">
     <button class="filter-btn active" onclick="filterVideos('all',this)">All</button>
-    <button class="filter-btn" onclick="filterVideos('speech',this)">🎤 Speeches</button>
-    <button class="filter-btn" onclick="filterVideos('debate',this)">⚖️ Debates</button>
-    <button class="filter-btn" onclick="filterVideos('humor',this)">😂 Humorous</button>
+    <button class="filter-btn" onclick="filterVideos('speech',this)">Speeches</button>
+    <button class="filter-btn" onclick="filterVideos('debate',this)">Debates</button>
+    <button class="filter-btn" onclick="filterVideos('humor',this)">Humorous</button>
+    <button class="filter-btn" onclick="filterVideos('workshop',this)">Workshops</button>
   </div>
+
+  <!-- Search -->
+  <div style="margin-bottom:2rem;">
+    <input type="text" id="videoSearch" placeholder="Search by title or speaker..." style="max-width:380px;" oninput="searchVideos(this.value)" />
+  </div>
+
   <div class="videos-grid" id="videosGrid">
-    <div class="event-skeleton" style="height:260px;"></div>
-    <div class="event-skeleton" style="height:260px;"></div>
-    <div class="event-skeleton" style="height:260px;"></div>
+    <div class="event-skeleton" style="height:300px;"></div>
+    <div class="event-skeleton" style="height:300px;"></div>
+    <div class="event-skeleton" style="height:300px;"></div>
   </div>
 </div>
 
@@ -50,7 +61,7 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" style="height:120px; width:auto;" /></div>
+        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" /></div>
         <p class="footer-tagline">Official Public Speaking and Leadership Club of NIT Trichy.</p>
       </div>
       <div class="footer-nav"><h4>Pages</h4><ul>
@@ -62,17 +73,23 @@
       </ul></div>
     </div>
     <div class="footer-bottom">
-      <p class="footer-copy">© 2025 Unscripted, NIT Trichy.</p>
-      <p class="footer-love">Made with <span>♥</span> in Trichy</p>
+      <p class="footer-copy">&copy; 2025 Unscripted, NIT Trichy.</p>
+      <p class="footer-love">Made with <span>&hearts;</span> in Trichy</p>
     </div>
   </div>
 </footer>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="event.stopPropagation();closeLightbox()">&times;</button>
+  <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()" />
+</div>
 
 <script type="module">
 import { db } from '../js/firebase-config.js';
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let allVideos = [];
+let currentCat = 'all';
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -83,49 +100,89 @@ function getYouTubeId(url) {
 async function loadVideos() {
   const grid = document.getElementById('videosGrid');
   try {
-    const q = query(collection(db,'videos'), orderBy('date','desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db,'videos'), orderBy('date','desc')));
     allVideos = [];
     snap.forEach(doc => allVideos.push({id:doc.id,...doc.data()}));
-    if (allVideos.length === 0) {
-      grid.innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">No videos uploaded yet. Check back soon!</p>';
+    if (!allVideos.length) {
+      grid.innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:3rem;">No videos uploaded yet. Check back soon.</p>';
       return;
     }
     renderVideos(allVideos);
   } catch(e) {
-    grid.innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">Could not load videos.</p>';
+    grid.innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:3rem;">Could not load videos.</p>';
   }
 }
 
 function renderVideos(videos) {
   const grid = document.getElementById('videosGrid');
+  if (!videos.length) {
+    grid.innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:2rem;">No videos found.</p>';
+    return;
+  }
   grid.innerHTML = videos.map(v => {
     const ytId = getYouTubeId(v.url);
     const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : '';
-    const dateStr = v.date?.toDate ? v.date.toDate().toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : (v.date||'');
+    let dateStr = '';
+    if (v.date) {
+      try {
+        const d = v.date.toDate ? v.date.toDate() : new Date(v.date);
+        dateStr = d.toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+      } catch(_) { dateStr = ''; }
+    }
+    const catLabels = { speech:'Speech', debate:'Debate', humor:'Humorous', workshop:'Workshop' };
+    const catColors = { speech:'var(--orange)', debate:'#3b82f6', humor:'#f59e0b', workshop:'#10b981' };
+    const catLabel = catLabels[v.category] || v.category || '';
+    const catColor = catColors[v.category] || 'var(--text-light)';
+
+    // External link if no YouTube embed
+    const thumbHtml = ytId
+      ? `<iframe src="${embedUrl}" title="${v.title||''}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
+      : (v.url ? `<a href="${v.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--surface3);gap:0.75rem;font-weight:700;color:var(--text-mid);font-size:0.9rem;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Watch Video
+        </a>`
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-light);font-size:0.88rem;">No video link</div>`);
+
     return `<div class="video-card">
-      <div class="video-thumb">
-        ${ytId ? `<iframe src="${embedUrl}" title="${v.title||''}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
-          : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.4);font-size:3rem;">🎤</div>`}
-      </div>
+      <div class="video-thumb">${thumbHtml}</div>
       <div class="video-info">
-        <div class="video-title">${v.title||'Speech'}</div>
-        <div class="video-meta">${v.speaker ? `by ${v.speaker} : ` : ''}${dateStr}</div>
-        ${v.category ? `<span class="event-badge badge-upcoming" style="margin-top:0.75rem;">${v.category}</span>` : ''}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem;">
+          <div class="video-title">${v.title || 'Speech'}</div>
+          ${catLabel ? `<span style="background:rgba(255,87,34,0.1);color:${catColor};padding:0.2rem 0.6rem;border-radius:100px;font-size:0.68rem;font-weight:800;white-space:nowrap;">${catLabel}</span>` : ''}
+        </div>
+        ${v.speaker ? `<div style="font-size:0.82rem;font-weight:700;color:var(--orange);margin-bottom:0.4rem;">by ${v.speaker}</div>` : ''}
+        ${v.description ? `<div class="video-desc">${v.description}</div>` : ''}
+        ${dateStr ? `<div class="video-meta">${dateStr}</div>` : ''}
+        ${v.url && !ytId ? `<a href="${v.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.75rem;color:var(--orange);font-weight:700;font-size:0.85rem;">Watch externally &rarr;</a>` : ''}
       </div>
     </div>`;
   }).join('');
 }
 
 window.filterVideos = function(cat, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  currentCat = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  if (cat === 'all') renderVideos(allVideos);
-  else renderVideos(allVideos.filter(v=>v.category===cat));
+  applyFilters(document.getElementById('videoSearch').value.toLowerCase());
 };
+
+window.searchVideos = function(val) {
+  applyFilters(val.toLowerCase());
+};
+
+function applyFilters(search) {
+  let filtered = currentCat === 'all' ? allVideos : allVideos.filter(v => v.category === currentCat);
+  if (search) filtered = filtered.filter(v =>
+    (v.title||'').toLowerCase().includes(search) ||
+    (v.speaker||'').toLowerCase().includes(search)
+  );
+  renderVideos(filtered);
+}
+
+window.closeLightbox = () => document.getElementById('lightbox')?.classList.remove('open');
 
 loadVideos();
 </script>
-<script src="../js/nav.js" type="module"></script>
+<script type="module" src="../js/nav.js"></script>
 </body>
 </html>
