@@ -3,116 +3,310 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login Unscripted NITT</title>
+  <title>Login — Unscripted NITT</title>
   <meta name="description" content="Member login for Unscripted NIT Trichy. Sign in with your NITT webmail." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
+  <style>
+    /* ── Theme toggle position ── */
+    .login-theme-toggle {
+      position: fixed; top: 1.25rem; right: 1.25rem; z-index: 100;
+    }
+
+    /* ── Roster ── */
+    #loginRoster {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    .roster-header {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .roster-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .roster-item {
+      padding: 0.6rem 0.85rem;
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .roster-role { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); }
+    .roster-name { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-top: 0.1rem; }
+
+    /* ── Left panel (decorative) ── */
+    .login-layout {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: 100svh;
+      gap: 0;
+    }
+    .login-panel-left {
+      background: linear-gradient(145deg, #1A1714, #0E0C0A);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-panel-left::before {
+      content: '';
+      position: absolute;
+      top: -200px; right: -200px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,87,34,0.12), transparent 70%);
+    }
+    .login-panel-left::after {
+      content: '';
+      position: absolute;
+      bottom: -150px; left: -150px;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,87,34,0.08), transparent 70%);
+    }
+    .left-content { position: relative; z-index: 1; text-align: center; }
+    .left-logo { height: 88px; margin: 0 auto 2.5rem; }
+    .left-title {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 900;
+      color: #F0EDE8;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .left-title em { color: var(--orange); font-style: italic; }
+    .left-sub {
+      font-size: 0.9rem;
+      color: rgba(240,237,232,0.55);
+      max-width: 360px;
+      line-height: 1.7;
+      margin: 0 auto;
+    }
+    .left-stats {
+      display: flex;
+      gap: 2rem;
+      margin-top: 3rem;
+      justify-content: center;
+    }
+    .left-stat { text-align: center; }
+    .left-stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--orange);
+      line-height: 1;
+    }
+    .left-stat-lbl {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(240,237,232,0.4);
+      margin-top: 0.25rem;
+    }
+    .left-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.08); }
+
+    /* ── Right panel ── */
+    .login-panel-right {
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      overflow-y: auto;
+    }
+    .login-form-wrap { width: 100%; max-width: 420px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .login-layout { grid-template-columns: 1fr; }
+      .login-panel-left { display: none; }
+      .login-panel-right { min-height: 100svh; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="login-wrapper">
-  <div class="login-bg-blob"></div>
-  <div class="login-bg-blob" style="top:auto;bottom:-150px;left:-150px;right:auto;background:radial-gradient(circle,#FF9800,transparent);opacity:0.12;"></div>
+<!-- Theme toggle (fixed) -->
+<button class="theme-toggle login-theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
+  <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+</button>
 
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="../icons/logo.png" alt="Unscripted NITT" />
+<div class="login-layout">
+
+  <!-- LEFT PANEL -->
+  <div class="login-panel-left">
+    <div class="left-content">
+      <img src="../icons/logo.png" alt="Unscripted NITT" class="left-logo" />
+      <h1 class="left-title">Speak.<br><em>Lead.</em><br>Inspire.</h1>
+      <p class="left-sub">The official public speaking and leadership club of NIT Trichy. Your platform to find your voice.</p>
+      <div class="left-stats">
+        <div class="left-stat">
+          <div class="left-stat-num">50+</div>
+          <div class="left-stat-lbl">Members</div>
+        </div>
+        <div class="left-divider"></div>
+        <div class="left-stat">
+          <div class="left-stat-num">350+</div>
+          <div class="left-stat-lbl">Meets</div>
+        </div>
+        <div class="left-divider"></div>
+        <div class="left-stat">
+          <div class="left-stat-num">10+</div>
+          <div class="left-stat-lbl">Years</div>
+        </div>
+      </div>
     </div>
-    <div class="login-tabs" style="display:flex; gap:1rem; margin-bottom:2rem; border-bottom:1px solid #eee;">
-      <div class="login-tab active" id="tabMember" onclick="switchLogin('member')" style="padding:0.5rem 1rem; cursor:pointer; font-weight:800; color:var(--orange); border-bottom:3px solid var(--orange);">Member</div>
-      <div class="login-tab" id="tabAdmin" onclick="switchLogin('admin')" style="padding:0.5rem 1rem; cursor:pointer; font-weight:800; color:#999; border-bottom:3px solid transparent;">Admin</div>
-    </div>
-    <h2 id="loginTitle">Welcome Back</h2>
-    <p id="loginSub">Sign in with your NIT Trichy webmail to access your member dashboard, Guidance material progress, and more.</p>
+  </div>
 
-    <div class="form-group">
-      <label for="email">NITT Webmail</label>
-      <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
-    </div>
+  <!-- RIGHT PANEL -->
+  <div class="login-panel-right">
+    <div class="login-form-wrap">
 
-    <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard →</button>
-    <div class="error-msg" id="errorMsg"></div>
+      <!-- Mobile logo -->
+      <div style="text-align:center;margin-bottom:2rem;display:none;" class="mobile-logo-wrap">
+        <img src="../icons/logo.png" alt="Unscripted NITT" style="height:56px;margin:0 auto;" />
+      </div>
 
-    <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
-    <p class="login-hint" style="margin-top:0.5rem;"><a href="../index.html">← Back to home</a></p>
+      <!-- Tabs -->
+      <div class="login-tabs" id="loginTabs">
+        <div class="login-tab active" id="tabMember" onclick="switchLogin('member')">Member</div>
+        <div class="login-tab" id="tabAdmin" onclick="switchLogin('admin')">Admin</div>
+      </div>
 
-    <!-- UPCOMING ROSTER -->
-    <div id="loginRoster" style="margin-top:2.5rem; padding-top:2rem; border-top:1px solid #eee; display:none;">
-      <h3 style="font-size:0.9rem; margin-bottom:1.2rem; display:flex; align-items:center; gap:0.5rem; color:var(--dark);">
-        Upcoming Meet Roster <span style="font-size:0.6rem; padding:0.2rem 0.6rem; background:#f0f0f0; border-radius:100px; color:#666;">LIVE</span>
-      </h3>
-      <div id="rosterList" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;"></div>
+      <h2 id="loginTitle" style="font-size:1.75rem;margin-bottom:0.3rem;">Welcome Back</h2>
+      <p id="loginSub" style="font-size:0.88rem;margin-bottom:2rem;">Sign in with your NIT Trichy webmail to access your member dashboard and progress.</p>
+
+      <div class="form-group">
+        <label for="email">NITT Webmail</label>
+        <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+      </div>
+
+      <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard &rarr;</button>
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div style="text-align:center;margin-top:1.5rem;">
+        <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
+        <p class="login-hint" style="margin-top:0.4rem;"><a href="../index.html">&larr; Back to home</a></p>
+      </div>
+
+      <!-- Upcoming Roster -->
+      <div id="loginRoster" style="display:none;">
+        <div class="roster-header">
+          Upcoming Meet Roster
+          <span class="live-badge">LIVE</span>
+        </div>
+        <div class="roster-grid" id="rosterList"></div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- Show mobile logo on small screens -->
+<style>
+@media (max-width:900px) { .mobile-logo-wrap { display:block !important; } }
+</style>
+
 <script type="module">
 import { auth, db } from '../js/firebase-config.js';
-import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, getDocs, collection, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Safer redirect check
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      const isAdmin = ['admin', 'core'].includes(data.role);
-      const wantAdmin = new URLSearchParams(window.location.search).get('type') === 'admin';
-      
-      if (isAdmin && wantAdmin) {
-        window.location.href = 'admin-dashboard.html';
-      } else {
-        window.location.href = 'dashboard.html';
-      }
-    }
-  }
-});
+// ── THEME ──────────────────────────────────────────────────
+const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`;
+const SUN_SVG  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
 
-// Check URL params
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('type') === 'admin') {
-  document.addEventListener('DOMContentLoaded', () => {
-    switchLogin('admin');
-  });
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('themeIcon').innerHTML = dark ? '' : '';
+  document.getElementById('themeToggle').innerHTML = dark ? SUN_SVG : MOON_SVG;
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
 }
 
-// Switch logic
+const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(savedTheme === 'dark');
+document.getElementById('themeToggle').onclick = () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  applyTheme(!isDark);
+};
+
+// ── AUTH REDIRECT ──────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  try {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists()) return;
+    const data = userDoc.data();
+    const isAdmin = ['admin','core'].includes(data.role);
+    const wantAdmin = new URLSearchParams(window.location.search).get('type') === 'admin';
+    if (isAdmin && wantAdmin) window.location.href = 'admin-dashboard.html';
+    else window.location.href = 'dashboard.html';
+  } catch(e) { /* ignore */ }
+});
+
+// Check URL params for admin mode
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('type') === 'admin') {
+  switchLogin('admin');
+}
+
+// ── TAB SWITCH ─────────────────────────────────────────────
 let currentMode = 'member';
+
 window.switchLogin = function(mode) {
   currentMode = mode;
   const tabM = document.getElementById('tabMember');
   const tabA = document.getElementById('tabAdmin');
   const title = document.getElementById('loginTitle');
-  const subtitle = document.getElementById('loginSub');
-  const btn = document.getElementById('loginBtn');
-  
+  const sub   = document.getElementById('loginSub');
+  const btn   = document.getElementById('loginBtn');
+
   if (mode === 'admin') {
-    tabA.style.color = 'var(--orange)'; tabA.style.borderColor = 'var(--orange)';
-    tabM.style.color = '#999'; tabM.style.borderColor = 'transparent';
-    title.textContent = 'Admin Portal Access';
-    subtitle.textContent = 'Authorized access only. Use your verified administrator credentials to manage club operations.';
-    btn.textContent = 'Enter Admin Portal →';
+    tabA.classList.add('active');   tabM.classList.remove('active');
+    title.textContent = 'Admin Portal';
+    sub.textContent   = 'Authorized access only. Use your verified administrator credentials.';
+    btn.innerHTML     = 'Enter Admin Portal &rarr;';
   } else {
-    tabM.style.color = 'var(--orange)'; tabM.style.borderColor = 'var(--orange)';
-    tabA.style.color = '#999'; tabA.style.borderColor = 'transparent';
+    tabM.classList.add('active');   tabA.classList.remove('active');
     title.textContent = 'Welcome Back';
-    subtitle.textContent = 'Sign in with your NIT Trichy webmail to access your member dashboard, Guidance material progress, and more.';
-    btn.textContent = 'Log In to Dashboard →';
+    sub.textContent   = 'Sign in with your NIT Trichy webmail to access your member dashboard and progress.';
+    btn.innerHTML     = 'Log In to Dashboard &rarr;';
   }
 };
 
+// ── LOGIN ──────────────────────────────────────────────────
 window.doLogin = async function() {
-  const email = document.getElementById('email').value.trim();
+  const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  const btn = document.getElementById('loginBtn');
-  const err = document.getElementById('errorMsg');
+  const btn      = document.getElementById('loginBtn');
+  const err      = document.getElementById('errorMsg');
   err.style.display = 'none';
 
   if (!email.endsWith('@nitt.edu')) {
@@ -124,65 +318,60 @@ window.doLogin = async function() {
     err.style.display = 'block'; return;
   }
 
-  btn.textContent = 'Signing in...';
-  btn.disabled = true;
+  btn.innerHTML = 'Signing in...';
+  btn.disabled  = true;
 
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const cred    = await signInWithEmailAndPassword(auth, email, password);
     const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-    
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      
-      // Strict role check for Admin Tab
-      if (currentMode === 'admin' && !['admin', 'core'].includes(data.role)) {
-        err.textContent = 'Access Denied: You do not have administrative privileges. Please use the Member login tab.';
-        err.style.display = 'block';
-        await auth.signOut();
-        btn.textContent = 'Enter Admin Portal →';
-        btn.disabled = false;
-        return;
-      }
 
-      if (data.isActive === false) {
-        err.textContent = 'This account has been deactivated. Please contact the core team.';
-        err.style.display = 'block';
-        await auth.signOut();
-      } else {
-        // Route based on Tab + Role
-        if (currentMode === 'admin') {
-          window.location.href = 'admin-dashboard.html';
-        } else {
-          window.location.href = 'dashboard.html';
-        }
-      }
-    } else {
+    if (!userDoc.exists()) {
       err.textContent = 'Account not registered in Unscripted. Contact a core member.';
       err.style.display = 'block';
-      await auth.signOut();
+      await auth.signOut(); return;
     }
+
+    const data    = userDoc.data();
+    const isAdmin = ['admin','core'].includes(data.role);
+
+    // Strict role check for Admin tab
+    if (currentMode === 'admin' && !isAdmin) {
+      err.textContent = 'Access Denied: You do not have admin privileges. Use the Member tab.';
+      err.style.display = 'block';
+      await auth.signOut(); return;
+    }
+
+    if (data.isActive === false) {
+      err.textContent = 'This account has been deactivated. Contact the core team.';
+      err.style.display = 'block';
+      await auth.signOut(); return;
+    }
+
+    window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html';
+
   } catch(e) {
     const msgs = {
-      'auth/wrong-password': 'Incorrect password.',
-      'auth/user-not-found': 'No account found for this email.',
+      'auth/wrong-password':    'Incorrect password.',
+      'auth/user-not-found':    'No account found for this email.',
       'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
-      'auth/invalid-email': 'Invalid email format.',
-      'auth/invalid-credential': 'Incorrect email or password.',
+      'auth/invalid-email':     'Invalid email format.',
+      'auth/invalid-credential':'Incorrect email or password.',
     };
     err.textContent = msgs[e.code] || 'Login failed. Check your credentials.';
     err.style.display = 'block';
   } finally {
-    btn.textContent = 'Log In →';
-    btn.disabled = false;
+    btn.innerHTML = currentMode === 'admin' ? 'Enter Admin Portal &rarr;' : 'Log In to Dashboard &rarr;';
+    btn.disabled  = false;
   }
 };
 
+// Enter key support
+document.addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+
+// ── ROSTER ────────────────────────────────────────────────
 async function loadLoginRoster() {
-  const container = document.getElementById('rosterList');
-  const wrap = document.getElementById('loginRoster');
   try {
-    const q = query(collection(db, 'events'), orderBy('date', 'desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db,'events'), orderBy('date','desc')));
     const events = [];
     snap.forEach(d => events.push(d.data()));
 
@@ -193,23 +382,17 @@ async function loadLoginRoster() {
         .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
     }
 
-    if (upcoming && upcoming.rolesDisplay && upcoming.rolesDisplay.length > 0) {
-      wrap.style.display = 'block';
-      container.innerHTML = upcoming.rolesDisplay.map(rd => `
-        <div style="padding:0.6rem; background:#f9f9f9; border-radius:10px; border:1px solid #f0f0f0;">
-          <div style="font-size:0.6rem; color:#999; font-weight:800; text-transform:uppercase;">${rd.role}</div>
-          <div style="font-size:0.8rem; font-weight:700; color:var(--dark);">${rd.name}</div>
-        </div>
-      `).join('');
+    if (upcoming?.rolesDisplay?.length) {
+      document.getElementById('loginRoster').style.display = 'block';
+      document.getElementById('rosterList').innerHTML = upcoming.rolesDisplay.map(rd => `
+        <div class="roster-item">
+          <div class="roster-role">${rd.role}</div>
+          <div class="roster-name">${rd.name}</div>
+        </div>`).join('');
     }
-  } catch(e) { console.warn("Roster load failed", e); }
+  } catch(e) { console.warn('Roster load failed', e); }
 }
 loadLoginRoster();
-
-// Enter key support
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.doLogin();
-});
 </script>
 </body>
 </html>
