@@ -860,35 +860,56 @@ async function loadLeaderboard() {
   document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
     `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`
   ).join('');
+
   try {
+    // Fetch leaderboard reset timestamp (same source as admin)
+    let resetAt = null;
+    try {
+      const rSnap = await getDoc(doc(db, 'settings', 'leaderboard'));
+      if (rSnap.exists() && rSnap.data().resetAt) resetAt = rSnap.data().resetAt.toDate();
+    } catch(_) {}
+
+    const filteredEvents = resetAt
+      ? allEventsCache.filter(e => {
+          try { return (e.date?.toDate ? e.date.toDate() : new Date(e.date)) > resetAt; } catch(_) { return true; }
+        })
+      : allEventsCache;
+
     const snap = await getDocs(collection(db,'users'));
     const users = [];
     snap.forEach(d => { const u={id:d.id,...d.data()}; if(u.isActive!==false) users.push(u); });
+
     const f = v => v===0?'':v;
     const rows = users.map(u => {
       let c={hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,listener:0,grammarian:0,attendance:0,mom:0};
-      allEventsCache.forEach(e => {
+      filteredEvents.forEach(e => {
         const rm=e.roles||{};
         for (const [rk,uid] of Object.entries(rm)) {
           if (uid!==u.id) continue;
-          if (rk.startsWith('hom')) c.hom++;
-          else if (rk.startsWith('speaker')) c.speaker++;
-          else if (rk.startsWith('evaluator')) c.evaluator++;
-          else if (rk==='ttm') c.ttm++;
-          else if (rk==='tte') c.tte++;
-          else if (rk==='ge') c.ge++;
-          else if (rk==='timer') c.timer++;
-          else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
-          else if (rk==='momTaker'||rk==='momPres') c.mom++;
-          else if (rk==='listener') c.listener++;
-          else if (rk==='grammarian') c.grammarian++;
+          if      (rk.startsWith('hom'))                              c.hom++;
+          else if (rk.startsWith('speaker'))                          c.speaker++;
+          else if (rk.startsWith('evaluator'))                        c.evaluator++;
+          else if (rk==='ttm')                                        c.ttm++;
+          else if (rk==='tte')                                        c.tte++;
+          else if (rk==='ge')                                         c.ge++;
+          else if (rk==='timer')                                      c.timer++;
+          else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte')      c.tt++;
+          else if (rk==='momTaker'||rk==='momPres')                   c.mom++;
+          else if (rk==='listener')                                   c.listener++;
+          else if (rk==='grammarian')                                 c.grammarian++;
         }
         if (e.attended?.includes(u.id)) c.attendance++;
       });
-      const totalRoles=c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.listener+c.grammarian+c.mom;
-      const totalPoints=c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.listener*3+c.grammarian*3+c.attendance*1+c.mom*4;
+
+      // speaker and tt excluded from Roles count, included in points
+      const totalRoles = c.hom + c.evaluator + c.ttm + c.tte +
+                         c.ge  + c.timer + c.listener + c.grammarian + c.mom;
+      const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
+                          c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
+                          c.attendance*1 + c.mom*4;
       return {u, c, totalRoles, totalPoints};
     });
+
     rows.sort((a,b) => b.totalPoints - a.totalPoints);
     let html = '';
     rows.forEach(({u,c,totalRoles,totalPoints}) => {
@@ -901,6 +922,8 @@ async function loadLeaderboard() {
     document.getElementById('leaderboardTableBody').innerHTML = html || `<tr><td colspan="${HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>`;
   } catch(e) { console.warn('Leaderboard error',e); }
 }
+
+
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
