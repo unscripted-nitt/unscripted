@@ -385,10 +385,6 @@
     <button onclick="closeModal()" class="modal-close">&times;</button>
     <h2 id="modalTitle" style="font-size:1.5rem;margin-bottom:0.5rem;"></h2>
     <p id="modalLvl" style="color:var(--orange);font-weight:700;font-size:0.9rem;text-transform:uppercase;margin-bottom:1.5rem;"></p>
-    <div id="modalDescriptionWrap" style="margin-bottom:1.5rem;">
-      <h4 style="margin-bottom:0.5rem;">Context / Description</h4>
-      <p id="modalDescription" style="font-size:0.95rem;line-height:1.6;color:var(--text-mid);"></p>
-    </div>
     <div id="modalPurposeWrap" style="margin-bottom:1.5rem;display:none;">
       <h4 style="margin-bottom:0.5rem;">Purpose Statement</h4>
       <p id="modalPurpose" style="font-size:0.95rem;border-left:3px solid var(--orange);padding-left:1rem;font-style:italic;color:var(--text-mid);"></p>
@@ -649,7 +645,7 @@ async function renderProgress() {
  
         const projData  = firestoreProjs[i];
         const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
-        const projDesc  = typeof projData === 'object' ? (projData.description || projData.purpose || '') : '';
+        const projDesc = typeof proj === 'object' ? (proj.purpose || '') : '';
         const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
         const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
  
@@ -1322,14 +1318,12 @@ window.showSpeechDetails = function(speech, lvlKey, stepNum, guideLink) {
   const name = typeof speech==='string' ? speech : (speech.name||`Project ${stepNum}`);
   document.getElementById('modalTitle').textContent = name;
   document.getElementById('modalLvl').textContent = `${lvlKey} — Project ${stepNum}`;
-  const desc = typeof speech==='object' ? (speech.description||speech.purpose||'No description available.') : 'No description available.';
-  document.getElementById('modalDescription').textContent = desc;
 
-  const purpWrap = document.getElementById('modalPurposeWrap');
-  if (typeof speech==='object'&&speech.purpose&&speech.purpose!==speech.description) {
-    purpWrap.style.display='block';
-    document.getElementById('modalPurpose').textContent = speech.purpose;
-  } else { purpWrap.style.display='none'; }
+const purpWrap = document.getElementById('modalPurposeWrap');
+if (typeof speech==='object' && speech.purpose) {
+  purpWrap.style.display='block';
+  document.getElementById('modalPurpose').textContent = speech.purpose;
+} else { purpWrap.style.display='none'; }
 
   const objWrap = document.getElementById('modalObjectivesWrap');
   if (typeof speech==='object'&&speech.objectives) {
