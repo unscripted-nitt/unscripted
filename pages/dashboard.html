@@ -697,7 +697,7 @@ async function renderProgress() {
               onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
               <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
-                           color:var(--orange);margin-bottom:0.4rem;">3a</div>
+                           color:var(--orange);margin-bottom:0.4rem;">L3K</div>
               <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3kName}</div>
               <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3kDesc}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -712,7 +712,7 @@ async function renderProgress() {
               onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
               <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
-                           color:var(--orange);margin-bottom:0.4rem;">3b</div>
+                           color:var(--orange);margin-bottom:0.4rem;">L3H</div>
               <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3hName}</div>
               <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3hDesc}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -745,7 +745,7 @@ async function renderProgress() {
 // ADD this new function anywhere after renderProgress()
 // ─────────────────────────────────────────────────────────────
 window.selectElective = async function(key) {
-  const label = key === 'L3K' ? 'Level 3 — Keynote (3a)' : 'Level 3 — Humorous (3b)';
+  const label = key === 'L3K' ? 'Level 3 — Keynote (L3K)' : 'Level 3 — Humorous (L3H)';
   if (!confirm(`Choose ${label} as your Level 3 elective?\n\nThis choice is permanent and cannot be changed later.`)) return;
   try {
     await updateDoc(doc(db, 'users', currentUid), { pathwayKey: key });
