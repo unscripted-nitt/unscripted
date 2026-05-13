@@ -672,37 +672,47 @@
 <div class="modal-overlay" id="pathwayModal">
   <div class="modal-card" style="max-width:600px;">
     <button class="modal-close" onclick="closePathwayModal()">&times;</button>
-    <h2 style="margin-top:0;font-size:1.4rem;" id="pathwayModalTitle">Edit Project</h2>
+
+    <h2 style="margin-top:0;font-size:1.4rem;" id="pathwayModalTitle">
+      Edit Project
+    </h2>
+
     <input type="hidden" id="pmPathwayKey" />
     <input type="hidden" id="pmProjectIndex" />
+
     <div style="display:flex;flex-direction:column;gap:1.1rem;">
+
       <div class="form-group">
         <label class="form-label">Project Name</label>
         <input type="text" id="pmName" placeholder="e.g. The Ice Breaker" />
       </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea id="pmDesc" rows="3" placeholder="What this project is about..."></textarea>
-      </div>
+
       <div class="form-group">
         <label class="form-label">Purpose Statement</label>
-        <input type="text" id="pmPurpose" placeholder="To learn X by doing Y..." />
+        <textarea id="pmPurpose" rows="4" placeholder="The Icebreaker speech is your first step into..."></textarea>
       </div>
+
       <div class="form-group">
         <label class="form-label">Objectives</label>
         <textarea id="pmObjectives" rows="2" placeholder="What the member will achieve..."></textarea>
       </div>
-      <!-- req 9: guide link per project -->
+
       <div class="form-group">
-        <label class="form-label" style="color:var(--orange);">Guide Link (per project — req 9)</label>
+        <label class="form-label" style="color:var(--orange);">Guide Link (per project)</label>
         <input type="url" id="pmGuideLink" placeholder="https://drive.google.com/..." />
-        <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">Members will see a prominent "Open Speech Guide" button for this specific project.</p>
+        <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">
+          Members will see a prominent "Open Speech Guide" button for this specific project.
+        </p>
       </div>
-      <button class="btn-primary" onclick="saveProjectEdit()" style="width:100%;padding:1rem;border-radius:100px;">Save Project &rarr;</button>
+
+      <button class="btn-primary" onclick="saveProjectEdit()" style="width:100%;padding:1rem;border-radius:100px;">
+        Save Project →
+      </button>
+
     </div>
   </div>
 </div>
-
+  
 <!-- ─────────────────────────────────────────────────── -->
 <script type="module">
 import { auth, db, storage } from '../js/firebase-config.js';
@@ -1356,6 +1366,7 @@ function renderRoleDropdowns() {
   const container = document.getElementById('rolesSelectorsContainer');
   let opts = '<option value="">-- Unassigned --</option>';
   allUsers.filter(u => u.isActive !== false).forEach(u => { opts += `<option value="${u.id}">${u.name}</option>`; });
+ 
   let html = '<div class="roles-grid" style="margin-bottom:1.5rem;">';
   ROLE_KEYS.forEach(r => {
     html += `<div class="form-group">
@@ -1364,18 +1375,22 @@ function renderRoleDropdowns() {
     </div>`;
   });
   html += '</div>';
-  const buildRepeater = (title,prefix,count,color) => {
-    let block=`<div style="margin-bottom:1.5rem;"><h4 style="margin:0 0 1rem;color:${color};font-weight:800;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;">${title}</h4><div class="roles-grid">`;
-    for(let i=1;i<=count;i++) {
-      block+=`<div class="form-group"><label class="form-label">#${i}</label>
-        <select id="role_${prefix}${i}" class="role-select" data-key="${prefix}${i}" style="font-size:0.85rem;">${opts}</select>
+ 
+  const buildRepeater = (title, prefix, count, color) => {
+    let block = `<div style="margin-bottom:1.5rem;">
+      <h4 style="margin:0 0 1rem;color:${color};font-weight:800;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;">${title}</h4>
+      <div class="roles-grid">`;
+    for (let i = 1; i <= count; i++) {
+      block += `<div class="form-group"><label class="form-label">#${i}</label>
+        <select id="role_${prefix}${i}" class="role-select" data-key="${prefix}${i}">${opts}</select>
       </div>`;
     }
-    return block+'</div></div>';
+    return block + '</div></div>';
   };
-  html += buildRepeater('Prepared Speakers','speaker',7,'var(--orange)');
-  html += buildRepeater('Evaluators','evaluator',7,'#2196F3');
-  html += buildRepeater('Table Topics Speakers','tt',7,'#9C27B0');
+ 
+  html += buildRepeater('Prepared Speakers',      'speaker',   7,  'var(--orange)');
+  html += buildRepeater('Evaluators',             'evaluator', 7,  '#2196F3');
+  html += buildRepeater('Table Topics Speakers',  'tt',        15, '#9C27B0'); // ← was 7, now 15
   container.innerHTML = html;
 }
 
@@ -1443,46 +1458,65 @@ window.saveMeetRoles = async () => {
 const MATRIX_HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
 
 function loadMeetRoles() {
-  document.getElementById('roleTableHeader').innerHTML = MATRIX_HEADERS.map((h,i) =>
-    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;${i===0?'text-align:left;':'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
+  document.getElementById('roleTableHeader').innerHTML = MATRIX_HEADERS.map((h, i) =>
+    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;
+      ${i === 0 ? 'text-align:left;' : 'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
   ).join('');
+ 
   const tbody = document.getElementById('roleTableBody');
-  rolesDataList = []; tbody.innerHTML='';
-  const f = v => v===0 ? '' : v;
+  rolesDataList = []; tbody.innerHTML = '';
+  const f = v => v === 0 ? '' : v;
   const activeUsers = allUsers.filter(u => u.isActive !== false);
+ 
   if (!activeUsers.length) {
-    tbody.innerHTML=`<tr><td colspan="${MATRIX_HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No active members.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${MATRIX_HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No active members.</td></tr>`;
     return;
   }
+ 
   const rows = activeUsers.map(u => {
-    let c={hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,listener:0,grammarian:0,attendance:0,mom:0};
+    let c = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, listener:0, grammarian:0, attendance:0, mom:0 };
     allEventsCache.forEach(e => {
-      const rm=e.roles||{};
-      for (const [rk,uid] of Object.entries(rm)) {
-        if (uid!==u.id) continue;
-        if (rk.startsWith('hom')) c.hom++;
-        else if (rk.startsWith('speaker')) c.speaker++;
-        else if (rk.startsWith('evaluator')) c.evaluator++;
-        else if (rk==='ttm') c.ttm++;
-        else if (rk==='tte') c.tte++;
-        else if (rk==='ge') c.ge++;
-        else if (rk==='timer') c.timer++;
-        else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
-        else if (rk==='momTaker'||rk==='momPres') c.mom++;
-        else if (rk==='listener') c.listener++;
-        else if (rk==='grammarian') c.grammarian++;
+      const rm = e.roles || {};
+      for (const [rk, uid] of Object.entries(rm)) {
+        if (uid !== u.id) continue;
+        if      (rk.startsWith('hom'))                        c.hom++;
+        else if (rk.startsWith('speaker'))                    c.speaker++;
+        else if (rk.startsWith('evaluator'))                  c.evaluator++;
+        else if (rk === 'ttm')                                c.ttm++;
+        else if (rk === 'tte')                                c.tte++;
+        else if (rk === 'ge')                                 c.ge++;
+        else if (rk === 'timer')                              c.timer++;
+        else if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte') c.tt++;
+        else if (rk === 'momTaker' || rk === 'momPres')       c.mom++;
+        else if (rk === 'listener')                           c.listener++;
+        else if (rk === 'grammarian')                         c.grammarian++;
       }
       if (e.attended?.includes(u.id)) c.attendance++;
     });
-    const totalRoles=c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.listener+c.grammarian+c.mom;
-    const totalPoints=c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.listener*3+c.grammarian*3+c.attendance*1+c.mom*4;
-    return {name:u.name,hom:f(c.hom),speaker:f(c.speaker),evaluator:f(c.evaluator),ttm:f(c.ttm),tte:f(c.tte),ge:f(c.ge),timer:f(c.timer),tt:f(c.tt),listener:f(c.listener),grammarian:f(c.grammarian),attendance:f(c.attendance),mom:f(c.mom),totalRoles:f(totalRoles),_pts:totalPoints};
+ 
+    const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
+                        c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
+                        c.attendance*1 + c.mom*4;
+ 
+    // "Roles" = meaningful assigned roles only — excludes table topic speakers
+    const totalRoles = c.hom + c.speaker + c.evaluator + c.ttm + c.tte +
+                       c.ge  + c.timer   + c.listener  + c.grammarian + c.mom;
+    // (c.tt intentionally excluded from totalRoles)
+ 
+    return { name: u.name, hom: f(c.hom), speaker: f(c.speaker), evaluator: f(c.evaluator),
+             ttm: f(c.ttm), tte: f(c.tte), ge: f(c.ge), timer: f(c.timer), tt: f(c.tt),
+             listener: f(c.listener), grammarian: f(c.grammarian), attendance: f(c.attendance),
+             mom: f(c.mom), totalRoles: f(totalRoles), _pts: totalPoints };
   });
-  rows.sort((a,b) => b._pts - a._pts);
-  rolesDataList = rows.map(r=>({...r,points:r._pts||''}));
-  tbody.innerHTML = rows.map(r=>`<tr style="border-bottom:1px solid var(--border);">
+ 
+  rows.sort((a, b) => b._pts - a._pts);
+  rolesDataList = rows.map(r => ({ ...r, points: r._pts || '' }));
+ 
+  tbody.innerHTML = rows.map(r => `<tr style="border-bottom:1px solid var(--border);">
     <td style="padding:0.9rem;font-weight:700;">${r.name}</td>
-    ${[r.hom,r.speaker,r.evaluator,r.ttm,r.tte,r.ge,r.timer,r.tt,r.listener,r.grammarian,r.attendance,r.mom,r._pts||'',r.totalRoles].map(v=>`<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
+    ${[r.hom, r.speaker, r.evaluator, r.ttm, r.tte, r.ge, r.timer, r.tt,
+       r.listener, r.grammarian, r.attendance, r.mom, r._pts || '', r.totalRoles]
+      .map(v => `<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
   </tr>`).join('');
 }
 
@@ -1902,56 +1936,59 @@ window.selectPathway = async (key, btn) => {
 };
 
 window.editProject = (key, idx) => {
-  const data=pathwayDataCache[key]; if (!data) return;
-  const proj=data.projects?.[idx];
-  if (!proj) return;
-  document.getElementById('pmPathwayKey').value=key;
-  document.getElementById('pmProjectIndex').value=idx;
-  document.getElementById('pathwayModalTitle').textContent=`Edit Project ${idx+1}`;
-  document.getElementById('pmName').value=typeof proj==='string'?proj:(proj.name||'');
-  document.getElementById('pmDesc').value=typeof proj==='object'?(proj.description||proj.purpose||''):'';
-  document.getElementById('pmPurpose').value=typeof proj==='object'?(proj.purpose||''):'';
-  document.getElementById('pmObjectives').value=typeof proj==='object'?(proj.objectives||''):'';
-  document.getElementById('pmGuideLink').value=typeof proj==='object'?(proj.guideLink||''):'';
+  const data = pathwayDataCache[key]; if (!data) return;
+  const proj = data.projects?.[idx]; if (!proj) return;
+  document.getElementById('pmPathwayKey').value    = key;
+  document.getElementById('pmProjectIndex').value  = idx;
+  document.getElementById('pathwayModalTitle').textContent = `Edit Project ${idx + 1}`;
+  document.getElementById('pmName').value      = typeof proj === 'string' ? proj : (proj.name || '');
+  document.getElementById('pmPurpose').value   = typeof proj === 'object' ? (proj.purpose || proj.description || '') : '';
+  document.getElementById('pmObjectives').value = typeof proj === 'object' ? (proj.objectives || '') : '';
+  document.getElementById('pmGuideLink').value  = typeof proj === 'object' ? (proj.guideLink || '') : '';
   document.getElementById('pathwayModal').classList.add('open');
 };
-
+ 
 window.addNewProject = (key) => {
   if (!pathwayDataCache[key]) return;
-  const projects=pathwayDataCache[key].projects||[];
-  document.getElementById('pmPathwayKey').value=key;
-  document.getElementById('pmProjectIndex').value=projects.length; // new
-  document.getElementById('pathwayModalTitle').textContent='Add New Project';
-  ['pmName','pmDesc','pmPurpose','pmObjectives','pmGuideLink'].forEach(id=>document.getElementById(id).value='');
+  const projects = pathwayDataCache[key].projects || [];
+  document.getElementById('pmPathwayKey').value   = key;
+  document.getElementById('pmProjectIndex').value = projects.length;
+  document.getElementById('pathwayModalTitle').textContent = 'Add New Project';
+  ['pmName','pmPurpose','pmObjectives','pmGuideLink'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('pathwayModal').classList.add('open');
 };
-
+ 
 window.closePathwayModal = () => document.getElementById('pathwayModal').classList.remove('open');
 
 window.saveProjectEdit = async () => {
-  const key=document.getElementById('pmPathwayKey').value;
-  const idx=parseInt(document.getElementById('pmProjectIndex').value);
-  const name=document.getElementById('pmName').value.trim();
+  const key = document.getElementById('pmPathwayKey').value;
+  const idx = parseInt(document.getElementById('pmProjectIndex').value);
+  const name = document.getElementById('pmName').value.trim();
   if (!name) { alert('Project name is required.'); return; }
-  const btn=document.querySelector('[onclick="saveProjectEdit()"]');
-  btn.disabled=true; btn.textContent='Saving...';
+  const btn = document.querySelector('[onclick="saveProjectEdit()"]');
+  btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const snap=await getDoc(doc(db,'pathways',key));
-    const data=snap.exists()?snap.data():{name:key,projects:[]};
-    const projects=[...(data.projects||[])];
-    const projObj={name,description:document.getElementById('pmDesc').value.trim(),purpose:document.getElementById('pmPurpose').value.trim(),objectives:document.getElementById('pmObjectives').value.trim(),guideLink:document.getElementById('pmGuideLink').value.trim()};
-    if (idx<projects.length) projects[idx]=projObj;
+    const snap = await getDoc(doc(db, 'pathways', key));
+    const data = snap.exists() ? snap.data() : { name: key, projects: [] };
+    const projects = [...(data.projects || [])];
+    const projObj = {
+      name,
+      // Store in both fields so old readers that use .description still work
+      description: document.getElementById('pmPurpose').value.trim(),
+      purpose:     document.getElementById('pmPurpose').value.trim(),
+      objectives:  document.getElementById('pmObjectives').value.trim(),
+      guideLink:   document.getElementById('pmGuideLink').value.trim(),
+    };
+    if (idx < projects.length) projects[idx] = projObj;
     else projects.push(projObj);
-    await setDoc(doc(db,'pathways',key),{...data,projects},{merge:true});
+    await setDoc(doc(db, 'pathways', key), { ...data, projects }, { merge: true });
     alert('Project saved!'); closePathwayModal();
-    pathwayDataCache[key]={...data,projects};
-    // Re-render the active pathway
-    const btn2=document.querySelector('.filter-btn.active');
-    if (btn2) { const k=btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k,btn2); }
-  } catch(e) { alert('Error: '+e.message); }
-  finally { btn.disabled=false; btn.textContent='Save Project \u2192'; }
+    pathwayDataCache[key] = { ...data, projects };
+    const btn2 = document.querySelector('.filter-btn.active');
+    if (btn2) { const k = btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k, btn2); }
+  } catch (e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Save Project →'; }
 };
-
 window.deleteProject = async (key, idx) => {
   if (!confirm('Delete this project?')) return;
   try {
