@@ -565,117 +565,200 @@ async function renderProgress() {
   try {
     const currentPathwayKey = userData.pathwayKey || 'L1';
     const speechIndex = getDashSpeechIdx(userData);
-
-    // Stat cards
+ 
+    // ── Stat cards ─────────────────────────────────────────
     document.getElementById('statSpeeches').textContent = speechIndex;
     document.getElementById('statLevel').textContent = userData.pathway || 'Not started';
-    const totalMeets = allEventsCache.length;
+    const totalMeets   = allEventsCache.length;
     const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
-    document.getElementById('statAttPct').textContent = totalMeets ? Math.round(presentCount/totalMeets*100)+'%' : '0%';
-
-    // Project-to-speech-slot mapping
-    // s = first speech slot index (0-based), e = last speech slot index
+    document.getElementById('statAttPct').textContent =
+      totalMeets ? Math.round(presentCount / totalMeets * 100) + '%' : '0%';
+ 
+    // ── Project-to-speech-slot mapping ─────────────────────
     const PROJ_RANGES = {
       L1: [
-        {label:'L1P1',s:0,e:0},{label:'L1P2',s:1,e:1},{label:'L1P3',s:2,e:2},
-        {label:'L1P4',s:3,e:4}, // counts twice
-        {label:'L1P5',s:5,e:5},{label:'L1P6',s:6,e:6}
+        {label:'L1P1',s:0,e:0}, {label:'L1P2',s:1,e:1}, {label:'L1P3',s:2,e:2},
+        {label:'L1P4',s:3,e:4},   // counts twice
+        {label:'L1P5',s:5,e:5},   {label:'L1P6',s:6,e:6}
       ],
       L2: [
-        {label:'L2P1',s:7,e:7},{label:'L2P2',s:8,e:8},{label:'L2P3',s:9,e:9},
+        {label:'L2P1',s:7,e:7},  {label:'L2P2',s:8,e:8},  {label:'L2P3',s:9,e:9},
         {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11}
       ],
-      L3K: [{label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},{label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}],
-      L3H: [{label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},{label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}]
+      L3K: [
+        {label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},
+        {label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}
+      ],
+      L3H: [
+        {label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},
+        {label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}
+      ]
     };
-
-    // Derive effective level from speechIndex (handles stale pathwayKey in Firestore)
-    let effectiveKey = currentPathwayKey;
-    if      (speechIndex > 11 && !effectiveKey.startsWith('L3')) effectiveKey = 'L3K';
-    else if (speechIndex > 6  && effectiveKey === 'L1')          effectiveKey = 'L2';
-
-    // Show all levels from L1 up to where the member currently is
+ 
+    // ── Which levels to show ────────────────────────────────
+    const hasChosenL3 = ['L3K','L3H'].includes(currentPathwayKey);
     const levelsToShow = ['L1'];
-    if (speechIndex > 6  || ['L2','L3K','L3H'].includes(effectiveKey)) levelsToShow.push('L2');
-    if (speechIndex > 11 || ['L3K','L3H'].includes(effectiveKey)) {
-      levelsToShow.push(effectiveKey.startsWith('L3') ? effectiveKey : 'L3K');
-    }
-    // Load Firestore pathway docs for project names/descriptions/guide links
+    if (speechIndex > 6 || ['L2','L3K','L3H'].includes(currentPathwayKey))
+      levelsToShow.push('L2');
+    if (hasChosenL3)
+      levelsToShow.push(currentPathwayKey);
+ 
+    // ── Load Firestore pathway docs ─────────────────────────
+    // Always load L3K + L3H so the picker can show descriptions even before choice
+    const docsToLoad = new Set([...levelsToShow, 'L3K', 'L3H']);
     const pathwayDocs = {};
-    for (const k of levelsToShow) {
+    for (const k of docsToLoad) {
       try {
-        const snap = await getDoc(doc(db,'pathways',k));
+        const snap = await getDoc(doc(db, 'pathways', k));
         if (snap.exists()) pathwayDocs[k] = snap.data();
-      } catch(_) {}
+      } catch (_) {}
     }
-
-    // Total speech slots across shown levels
-    const totalSlots = levelsToShow.reduce((acc,k) =>
-      acc + (PROJ_RANGES[k]||[]).reduce((a,p) => a+(p.e-p.s+1), 0), 0);
-
+ 
+    // ── Total slots (only count chosen path) ───────────────
+    const totalSlots = levelsToShow.reduce(
+      (acc, k) => acc + (PROJ_RANGES[k] || []).reduce((a, p) => a + (p.e - p.s + 1), 0), 0
+    );
+ 
     const pathwayNames = {
       L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency',
       L3K:'Level 3 — Keynote',   L3H:'Level 3 — Humorous'
     };
-    document.getElementById('pathwayTitle').textContent = 'Curriculum Progress';
-    document.getElementById('pathwayBadge').textContent = userData.pathway || currentPathwayKey;
-    document.getElementById('pathwayBar').style.width = Math.round(Math.min(speechIndex/totalSlots,1)*100)+'%';
-    document.getElementById('progressDone').textContent = speechIndex + ' speeches done';
-    document.getElementById('progressTotal').textContent = 'of ' + totalSlots + ' total';
-
-    // Render all steps with section headers
+ 
+    document.getElementById('pathwayTitle').textContent   = 'Curriculum Progress';
+    document.getElementById('pathwayBadge').textContent   = userData.pathway || currentPathwayKey;
+    document.getElementById('pathwayBar').style.width     = Math.round(Math.min(speechIndex / totalSlots, 1) * 100) + '%';
+    document.getElementById('progressDone').textContent   = speechIndex + ' speeches done';
+    document.getElementById('progressTotal').textContent  = 'of ' + totalSlots + ' total';
+ 
+    // ── Build step HTML ────────────────────────────────────
     const stepsContainer = document.getElementById('pathwaySteps');
     let html = '';
-
+ 
     for (const levelKey of levelsToShow) {
-      const ranges = PROJ_RANGES[levelKey] || [];
+      const ranges        = PROJ_RANGES[levelKey] || [];
       const firestoreProjs = pathwayDocs[levelKey]?.projects || [];
-
+ 
       html += `<div style="font-size:0.68rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;
         color:var(--text-light);padding:1.5rem 0 0.5rem;border-top:1px solid var(--border);margin-top:0.5rem;">
-        ${pathwayNames[levelKey]||levelKey}</div>`;
-
+        ${pathwayNames[levelKey] || levelKey}</div>`;
+ 
       ranges.forEach((range, i) => {
-        // isDone: all speeches for this project are completed
-        const isDone   = speechIndex > range.e;
-        // isActive: currently working on this project (partial or at this slot)
-        const isActive = !isDone && speechIndex >= range.s;
+        const isDone    = speechIndex > range.e;
+        const isActive  = !isDone && speechIndex >= range.s;
         const isPending = !isDone && !isActive;
-
+ 
         const projData  = firestoreProjs[i];
-        const projName  = typeof projData==='object' ? (projData.name||range.label) : (projData||range.label);
-        const projDesc  = typeof projData==='object' ? (projData.description||projData.purpose||'') : '';
-        const guideLink = typeof projData==='object' ? (projData.guideLink||'') : '';
+        const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
+        const projDesc  = typeof projData === 'object' ? (projData.description || projData.purpose || '') : '';
+        const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
         const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
-
+ 
         const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
         const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
-        const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i+1);
-
+        const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i + 1);
+ 
         html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
-          onclick='showSpeechDetails(${JSON.stringify(projData||range.label)}, "${levelKey}", ${i+1}, "${guideLink}")'>
+          onclick='showSpeechDetails(${JSON.stringify(projData || range.label)}, "${levelKey}", ${i + 1}, "${guideLink}")'>
           <div class="step-num ${numClass}">${icon}</div>
           <div class="step-info">
             <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
-            <p>${projDesc ? projDesc.substring(0,80)+(projDesc.length>80?'...':'') : range.label}</p>
+            <p>${projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label}</p>
           </div>
           ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
         </div>`;
       });
     }
+ 
+    // ── L3 Elective Picker (shown when L2 exists and no L3 chosen yet) ──
+    if (levelsToShow.includes('L2') && !hasChosenL3) {
+      const l3kName = pathwayDocs['L3K']?.name || 'Level 3 — Keynote';
+      const l3hName = pathwayDocs['L3H']?.name || 'Level 3 — Humorous';
+      const l3kDesc = pathwayDocs['L3K']?.description || 'TED-style delivery, signature talks, leadership narratives.';
+      const l3hDesc = pathwayDocs['L3H']?.description || 'Comedic timing, wit, punchlines, and entertaining speaking.';
+      const l3kProjects = (pathwayDocs['L3K']?.projects || []).length || 4;
+      const l3hProjects = (pathwayDocs['L3H']?.projects || []).length || 4;
+ 
+      html += `
+        <div style="margin-top:2rem;padding:1.5rem;border:2px dashed rgba(255,87,34,0.4);
+          border-radius:var(--radius);background:var(--orange-light);">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <i class="fa-solid fa-road" style="color:var(--orange);"></i>
+            <h4 style="margin:0;font-size:1rem;color:var(--orange);">Choose Your Level 3 Elective</h4>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.25rem;">
+            Complete Level 2, then specialize in one of two advanced tracks.
+            <strong style="color:var(--text);">This choice is permanent.</strong>
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+ 
+            <button onclick="selectElective('L3K')"
+              style="padding:1.25rem;border:2px solid var(--border);border-radius:var(--radius-sm);
+                     background:var(--surface);cursor:pointer;text-align:left;transition:all 0.2s;width:100%;"
+              onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+              <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+                           color:var(--orange);margin-bottom:0.4rem;">3a</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3kName}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3kDesc}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.72rem;color:var(--text-light);">${l3kProjects} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+              </div>
+            </button>
+ 
+            <button onclick="selectElective('L3H')"
+              style="padding:1.25rem;border:2px solid var(--border);border-radius:var(--radius-sm);
+                     background:var(--surface);cursor:pointer;text-align:left;transition:all 0.2s;width:100%;"
+              onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+              <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+                           color:var(--orange);margin-bottom:0.4rem;">3b</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3hName}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3hDesc}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.72rem;color:var(--text-light);">${l3hProjects} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+              </div>
+            </button>
+ 
+          </div>
+        </div>`;
+    }
+ 
     stepsContainer.innerHTML = html;
-
-    // Upcoming roles card
-    const upcoming = allEventsCache.find(e=>e.isActive===true) || allEventsCache.find(e=>e.type==='upcoming');
+ 
+    // ── Upcoming roles card ─────────────────────────────────
+    const upcoming = allEventsCache.find(e => e.isActive === true)
+                  || allEventsCache.find(e => e.type === 'upcoming');
     if (upcoming?.rolesDisplay?.length) {
       document.getElementById('upcomingRolesCard').style.display = 'block';
       renderUpcomingRolesCard(upcoming);
       renderMyUpcomingRoles(upcoming);
     }
-  } catch(e) {
+ 
+  } catch (e) {
     console.warn('Progress render error', e);
   }
 }
+ 
+// ─────────────────────────────────────────────────────────────
+// ADD this new function anywhere after renderProgress()
+// ─────────────────────────────────────────────────────────────
+window.selectElective = async function(key) {
+  const label = key === 'L3K' ? 'Level 3 — Keynote (3a)' : 'Level 3 — Humorous (3b)';
+  if (!confirm(`Choose ${label} as your Level 3 elective?\n\nThis choice is permanent and cannot be changed later.`)) return;
+  try {
+    await updateDoc(doc(db, 'users', currentUid), { pathwayKey: key });
+    userData.pathwayKey = key;
+    // Re-render to show the chosen L3 projects immediately
+    await renderProgress();
+  } catch (e) {
+    alert('Could not save your choice. Please try again.');
+    console.error(e);
+  }
+};
+
+  
 function renderUpcomingRolesCard(upcoming) {
   const container = document.getElementById('upcomingRolesContainer');
   container.innerHTML = `
