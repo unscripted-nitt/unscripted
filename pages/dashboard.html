@@ -42,6 +42,7 @@
       <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-bar"></i></span> Analysis</a>
       <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon"><i class="fa-solid fa-medal"></i></span> Achievements</a>
       <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon"><i class="fa-solid fa-trophy"></i></span> Leaderboard</a>
+      <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon"><i class="fa-solid fa-star"></i></span> Points Guide</a>
 
       <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
@@ -185,6 +186,34 @@
       </div>
     </div>
 
+<!-- SECTION: POINTS GUIDE (Req 6) -->
+<div class="dash-section" id="section-points">
+  <h2 class="section-title">Points Guide</h2>
+  <p class="section-sub">Points earned per role in every meeting</p>
+  <div class="card" style="max-width:600px;">
+    <table style="min-width:auto;">
+      <thead><tr>
+        <th style="text-align:left;">Role</th>
+        <th style="text-align:center;">Points</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;">HOM (Host of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">10</td></tr>
+        <tr><td style="font-weight:700;">Prepared Speech</td><td style="text-align:center;font-weight:800;color:var(--orange);">7</td></tr>
+        <tr><td style="font-weight:700;">TTM (Table Topics Master)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
+        <tr><td style="font-weight:700;">GE (General Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
+        <tr><td style="font-weight:700;">MOM (Minutes of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">4</td></tr>
+        <tr><td style="font-weight:700;">Speech Evaluator</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">TTE (Table Topics Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Timer</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Listener</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Grammarian</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
+        <tr><td style="font-weight:700;">Table Topic Speaker</td><td style="text-align:center;font-weight:800;color:var(--orange);">2</td></tr>
+        <tr><td style="font-weight:700;">Attendance</td><td style="text-align:center;font-weight:800;color:var(--orange);">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+    
     <!-- ──────────────────────────────────────────────────── -->
     <!-- SECTION: LEADERBOARD                                 -->
     <!-- ──────────────────────────────────────────────────── -->
@@ -356,10 +385,6 @@
     <button onclick="closeModal()" class="modal-close">&times;</button>
     <h2 id="modalTitle" style="font-size:1.5rem;margin-bottom:0.5rem;"></h2>
     <p id="modalLvl" style="color:var(--orange);font-weight:700;font-size:0.9rem;text-transform:uppercase;margin-bottom:1.5rem;"></p>
-    <div id="modalDescriptionWrap" style="margin-bottom:1.5rem;">
-      <h4 style="margin-bottom:0.5rem;">Context / Description</h4>
-      <p id="modalDescription" style="font-size:0.95rem;line-height:1.6;color:var(--text-mid);"></p>
-    </div>
     <div id="modalPurposeWrap" style="margin-bottom:1.5rem;display:none;">
       <h4 style="margin-bottom:0.5rem;">Purpose Statement</h4>
       <p id="modalPurpose" style="font-size:0.95rem;border-left:3px solid var(--orange);padding-left:1rem;font-style:italic;color:var(--text-mid);"></p>
@@ -430,6 +455,22 @@ import {
 import '../js/session.js';
 
 let userData = null;
+  function getDashSpeechIdx(u) {
+  if (typeof u.speechIndex === 'number') return u.speechIndex;
+  const pway = u.pathway || '';
+  const key  = u.pathwayKey || 'L1';
+  const seq  = [
+    'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
+    'L2P1','L2P2','L2P3','L2P4','L2P5',
+    key==='L3H'?'L3HP1':'L3KP1',
+    key==='L3H'?'L3HP2':'L3KP2',
+    key==='L3H'?'L3HP3':'L3KP3',
+    key==='L3H'?'L3HP4':'L3KP4',
+  ];
+  let idx = 0;
+  seq.forEach((s,i) => { if (s===pway) idx = i+1; });
+  return idx;
+}
 let currentUid = null;
 let chartsRendered = false;
 let allEventsCache = [];
@@ -518,71 +559,207 @@ function checkActiveMeet() {
 // ── PROGRESS ─────────────────────────────────────────────
 async function renderProgress() {
   try {
-    // Load pathway data
-    const pathwaySnap = await getDocs(collection(db,'pathways'));
-    const pathways = {};
-    pathwaySnap.forEach(d => pathways[d.id] = d.data());
-
     const currentPathwayKey = userData.pathwayKey || 'L1';
-    const pathway = pathways[currentPathwayKey] || {};
-    const speeches = userData.speeches || [];
-    const done = speeches.filter(s => s.status === 'done').length;
-    const total = (pathway.projects || []).length || 7;
-
-    document.getElementById('statSpeeches').textContent = done;
-    document.getElementById('statLevel').textContent = userData.pathway || 'L1P1';
-    const attData = allEventsCache.filter(e => e.attended?.includes(currentUid));
-    const totalMeets = allEventsCache.length;
-    const pct = totalMeets ? Math.round(attData.length / totalMeets * 100) : 0;
-    document.getElementById('statAttPct').textContent = pct + '%';
-
-    const pathwayNames = { L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency', L3K:'Level 3 — Keynote', L3H:'Level 3 — Humorous' };
-    document.getElementById('pathwayTitle').textContent = pathwayNames[currentPathwayKey] || 'Curriculum Progress';
-    document.getElementById('pathwayBadge').textContent = userData.pathway || currentPathwayKey;
-    document.getElementById('pathwayBar').style.width = Math.round(done/total*100) + '%';
-    document.getElementById('progressDone').textContent = done + ' speeches done';
-    document.getElementById('progressTotal').textContent = 'of ' + total + ' total';
-
-    // Render steps
-    const stepsContainer = document.getElementById('pathwaySteps');
-    const projects = pathway.projects || [];
-    if (projects.length === 0) {
-      stepsContainer.innerHTML = '<p style="color:var(--text-mid);padding:1rem 0;">No projects loaded for this pathway.</p>';
-    } else {
-      stepsContainer.innerHTML = projects.map((proj, i) => {
-        const speechObj = speeches[i] || {};
-        const isDone = speechObj.status === 'done';
-        const isCurrent = !isDone && speeches.filter(s=>s.status==='done').length === i;
-        const statusClass = isDone ? 'done' : (isCurrent ? 'active-step' : 'pending');
-        const icon = isDone ? '<i class="fa-solid fa-check"></i>' : (isCurrent ? (i+1) : (i+1));
-        const projName = typeof proj === 'string' ? proj : (proj.name || `Project ${i+1}`);
-        const projDesc = typeof proj === 'object' ? (proj.description || proj.purpose || '') : '';
-        // Guide link — connected to project (req 9)
-        const guideLink = (typeof proj === 'object' && proj.guideLink) ? proj.guideLink : (pathway.guideLink || '');
-        return `<div class="step-item ${statusClass}" onclick='showSpeechDetails(${JSON.stringify(proj)}, "${currentPathwayKey}", ${i+1}, "${guideLink}")'>
-          <div class="step-num ${statusClass}">${icon}</div>
-          <div class="step-info">
-            <h4>${projName}</h4>
-            ${projDesc ? `<p>${projDesc.substring(0,80)}${projDesc.length>80?'...':''}</p>` : ''}
-            ${speechObj.date ? `<div class="step-date">Completed ${speechObj.date}</div>` : ''}
-          </div>
-          ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
-        </div>`;
-      }).join('');
+    const speechIndex = getDashSpeechIdx(userData);
+ 
+    // ── Stat cards ─────────────────────────────────────────
+    document.getElementById('statSpeeches').textContent = speechIndex;
+    document.getElementById('statLevel').textContent = userData.pathway || 'Not started';
+    const totalMeets   = allEventsCache.length;
+    const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
+    document.getElementById('statAttPct').textContent =
+      totalMeets ? Math.round(presentCount / totalMeets * 100) + '%' : '0%';
+ 
+    // ── Project-to-speech-slot mapping ─────────────────────
+    const PROJ_RANGES = {
+      L1: [
+        {label:'L1P1',s:0,e:0}, {label:'L1P2',s:1,e:1}, {label:'L1P3',s:2,e:2},
+        {label:'L1P4',s:3,e:4},   // counts twice
+        {label:'L1P5',s:5,e:5},   {label:'L1P6',s:6,e:6}
+      ],
+      L2: [
+        {label:'L2P1',s:7,e:7},  {label:'L2P2',s:8,e:8},  {label:'L2P3',s:9,e:9},
+        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11}
+      ],
+      L3K: [
+        {label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},
+        {label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}
+      ],
+      L3H: [
+        {label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},
+        {label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}
+      ]
+    };
+ 
+    // ── Which levels to show ────────────────────────────────
+    const hasChosenL3 = ['L3K','L3H'].includes(currentPathwayKey);
+    const levelsToShow = ['L1'];
+    if (speechIndex > 6 || ['L2','L3K','L3H'].includes(currentPathwayKey))
+      levelsToShow.push('L2');
+    if (hasChosenL3)
+      levelsToShow.push(currentPathwayKey);
+ 
+    // ── Load Firestore pathway docs ─────────────────────────
+    // Always load L3K + L3H so the picker can show descriptions even before choice
+    const docsToLoad = new Set([...levelsToShow, 'L3K', 'L3H']);
+    const pathwayDocs = {};
+    for (const k of docsToLoad) {
+      try {
+        const snap = await getDoc(doc(db, 'pathways', k));
+        if (snap.exists()) pathwayDocs[k] = snap.data();
+      } catch (_) {}
     }
+ 
+    // ── Total slots (only count chosen path) ───────────────
+    const totalSlots = levelsToShow.reduce(
+      (acc, k) => acc + (PROJ_RANGES[k] || []).reduce((a, p) => a + (p.e - p.s + 1), 0), 0
+    );
+ 
+    const pathwayNames = {
+      L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency',
+      L3K:'Level 3 — Keynote',   L3H:'Level 3 — Humorous'
+    };
+ 
+    document.getElementById('pathwayTitle').textContent   = 'Curriculum Progress';
+    document.getElementById('pathwayBadge').textContent   = userData.pathway || currentPathwayKey;
+    document.getElementById('pathwayBar').style.width     = Math.round(Math.min(speechIndex / totalSlots, 1) * 100) + '%';
+    document.getElementById('progressDone').textContent   = speechIndex + ' speeches done';
+    document.getElementById('progressTotal').textContent  = 'of ' + totalSlots + ' total';
+ 
+    // ── Build step HTML ────────────────────────────────────
+    const stepsContainer = document.getElementById('pathwaySteps');
+    window._projCache = {};
+    let html = '';
+ 
+    for (const levelKey of levelsToShow) {
+      const ranges        = PROJ_RANGES[levelKey] || [];
+      const firestoreProjs = pathwayDocs[levelKey]?.projects || [];
+ 
+      html += `<div style="font-size:0.68rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;
+        color:var(--text-light);padding:1.5rem 0 0.5rem;border-top:1px solid var(--border);margin-top:0.5rem;">
+        ${pathwayNames[levelKey] || levelKey}</div>`;
+ 
+      ranges.forEach((range, i) => {
+  const isDone    = speechIndex > range.e;
+  const isActive  = !isDone && speechIndex >= range.s;
+  const isPending = !isDone && !isActive;
 
-    // Upcoming roles card
-    const upcoming = allEventsCache.find(e => e.isActive === true) || allEventsCache.find(e => e.type === 'upcoming');
-    if (upcoming && upcoming.rolesDisplay?.length) {
+  const projData  = firestoreProjs[i];
+  const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
+  const projDesc  = typeof projData === 'object' ? (projData.purpose || '') : '';
+  const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
+  const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
+
+  const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
+  const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
+  const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i + 1);
+
+  // Cache the project data so onclick never has to inline JSON
+  const cacheKey = `${levelKey}_${i}`;
+  window._projCache[cacheKey] = projData || range.label;
+
+  html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
+    onclick="showSpeechDetails(window._projCache['${cacheKey}'], '${levelKey}', ${i + 1}, '${guideLink.replace(/'/g, "\\'")}')">
+    <div class="step-num ${numClass}">${icon}</div>
+    <div class="step-info">
+      <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
+      <p>${projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label}</p>
+    </div>
+    ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
+  </div>`;
+});
+    }
+ 
+    // ── L3 Elective Picker (shown when L2 exists and no L3 chosen yet) ──
+    if (levelsToShow.includes('L2') && !hasChosenL3) {
+      const l3kName = pathwayDocs['L3K']?.name || 'Level 3 — Keynote';
+      const l3hName = pathwayDocs['L3H']?.name || 'Level 3 — Humorous';
+      const l3kDesc = pathwayDocs['L3K']?.description || 'TED-style delivery, signature talks, leadership narratives.';
+      const l3hDesc = pathwayDocs['L3H']?.description || 'Comedic timing, wit, punchlines, and entertaining speaking.';
+      const l3kProjects = (pathwayDocs['L3K']?.projects || []).length || 4;
+      const l3hProjects = (pathwayDocs['L3H']?.projects || []).length || 4;
+ 
+      html += `
+        <div style="margin-top:2rem;padding:1.5rem;border:2px dashed rgba(255,87,34,0.4);
+          border-radius:var(--radius);background:var(--orange-light);">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <i class="fa-solid fa-road" style="color:var(--orange);"></i>
+            <h4 style="margin:0;font-size:1rem;color:var(--orange);">Choose Your Level 3 Elective</h4>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.25rem;">
+            Complete Level 2, then specialize in one of two advanced tracks.
+            <strong style="color:var(--text);">This choice is permanent.</strong>
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+ 
+            <button onclick="selectElective('L3K')"
+              style="padding:1.25rem;border:2px solid var(--border);border-radius:var(--radius-sm);
+                     background:var(--surface);cursor:pointer;text-align:left;transition:all 0.2s;width:100%;"
+              onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+              <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+                           color:var(--orange);margin-bottom:0.4rem;">L3K</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3kName}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3kDesc}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.72rem;color:var(--text-light);">${l3kProjects} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+              </div>
+            </button>
+ 
+            <button onclick="selectElective('L3H')"
+              style="padding:1.25rem;border:2px solid var(--border);border-radius:var(--radius-sm);
+                     background:var(--surface);cursor:pointer;text-align:left;transition:all 0.2s;width:100%;"
+              onmouseover="this.style.borderColor='var(--orange)';this.style.boxShadow='0 0 0 4px var(--orange-glow)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+              <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+                           color:var(--orange);margin-bottom:0.4rem;">L3H</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3hName}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3hDesc}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.72rem;color:var(--text-light);">${l3hProjects} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+              </div>
+            </button>
+ 
+          </div>
+        </div>`;
+    }
+ 
+    stepsContainer.innerHTML = html;
+ 
+    // ── Upcoming roles card ─────────────────────────────────
+    const upcoming = allEventsCache.find(e => e.isActive === true)
+                  || allEventsCache.find(e => e.type === 'upcoming');
+    if (upcoming?.rolesDisplay?.length) {
       document.getElementById('upcomingRolesCard').style.display = 'block';
       renderUpcomingRolesCard(upcoming);
       renderMyUpcomingRoles(upcoming);
     }
-  } catch(e) {
+ 
+  } catch (e) {
     console.warn('Progress render error', e);
   }
 }
+ 
+// ─────────────────────────────────────────────────────────────
+// ADD this new function anywhere after renderProgress()
+// ─────────────────────────────────────────────────────────────
+window.selectElective = async function(key) {
+  const label = key === 'L3K' ? 'Level 3 — Keynote (L3K)' : 'Level 3 — Humorous (L3H)';
+  if (!confirm(`Choose ${label} as your Level 3 elective?\n\nThis choice is permanent and cannot be changed later.`)) return;
+  try {
+    await updateDoc(doc(db, 'users', currentUid), { pathwayKey: key });
+    userData.pathwayKey = key;
+    // Re-render to show the chosen L3 projects immediately
+    await renderProgress();
+  } catch (e) {
+    alert('Could not save your choice. Please try again.');
+    console.error(e);
+  }
+};
 
+  
 function renderUpcomingRolesCard(upcoming) {
   const container = document.getElementById('upcomingRolesContainer');
   container.innerHTML = `
@@ -679,45 +856,73 @@ async function loadAchievements() {
 
 // ── LEADERBOARD ───────────────────────────────────────────
 async function loadLeaderboard() {
-  const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Attendance','MOM','Points','Roles'];
-  const headerHtml = HEADERS.map((h,i) => `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`).join('');
-  document.getElementById('leaderboardTableHeader').innerHTML = headerHtml;
+  const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
+  document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
+    `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`
+  ).join('');
 
   try {
+    // Fetch leaderboard reset timestamp (same source as admin)
+    let resetAt = null;
+    try {
+      const rSnap = await getDoc(doc(db, 'settings', 'leaderboard'));
+      if (rSnap.exists() && rSnap.data().resetAt) resetAt = rSnap.data().resetAt.toDate();
+    } catch(_) {}
+
+    const filteredEvents = resetAt
+      ? allEventsCache.filter(e => {
+          try { return (e.date?.toDate ? e.date.toDate() : new Date(e.date)) > resetAt; } catch(_) { return true; }
+        })
+      : allEventsCache;
+
     const snap = await getDocs(collection(db,'users'));
-    const users = []; snap.forEach(d => users.push({id:d.id,...d.data()}));
-    const sorted = [...users].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-    let html = '';
-    sorted.forEach(u => {
-      let c = {hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,attendance:0,mom:0};
-      allEventsCache.forEach(e => {
-        const rm = e.roles||{};
+    const users = [];
+    snap.forEach(d => { const u={id:d.id,...d.data()}; if(u.isActive!==false) users.push(u); });
+
+    const f = v => v===0?'':v;
+    const rows = users.map(u => {
+      let c={hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,listener:0,grammarian:0,attendance:0,mom:0};
+      filteredEvents.forEach(e => {
+        const rm=e.roles||{};
         for (const [rk,uid] of Object.entries(rm)) {
-          if (uid !== u.id) continue;
-          if (rk.startsWith('hom')) c.hom++;
-          else if (rk.startsWith('speaker')) c.speaker++;
-          else if (rk.startsWith('evaluator')) c.evaluator++;
-          else if (rk==='ttm') c.ttm++;
-          else if (rk==='tte') c.tte++;
-          else if (rk==='ge') c.ge++;
-          else if (rk==='timer') c.timer++;
-          else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
-          else if (rk==='momTaker'||rk==='momPres') c.mom++;
+          if (uid!==u.id) continue;
+          if      (rk.startsWith('hom'))                              c.hom++;
+          else if (rk.startsWith('speaker'))                          c.speaker++;
+          else if (rk.startsWith('evaluator'))                        c.evaluator++;
+          else if (rk==='ttm')                                        c.ttm++;
+          else if (rk==='tte')                                        c.tte++;
+          else if (rk==='ge')                                         c.ge++;
+          else if (rk==='timer')                                      c.timer++;
+          else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte')      c.tt++;
+          else if (rk==='momTaker'||rk==='momPres')                   c.mom++;
+          else if (rk==='listener')                                   c.listener++;
+          else if (rk==='grammarian')                                 c.grammarian++;
         }
         if (e.attended?.includes(u.id)) c.attendance++;
       });
-      const totalRoles = c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.mom;
-      const totalPoints = c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.attendance*1+c.mom*4;
-      const f = v => v===0?'':v;
+
+      // speaker and tt excluded from Roles count, included in points
+      const totalRoles = c.hom + c.evaluator + c.ttm + c.tte +
+                         c.ge  + c.timer + c.listener + c.grammarian + c.mom;
+      const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
+                          c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
+                          c.attendance*1 + c.mom*4;
+      return {u, c, totalRoles, totalPoints};
+    });
+
+    rows.sort((a,b) => b.totalPoints - a.totalPoints);
+    let html = '';
+    rows.forEach(({u,c,totalRoles,totalPoints}) => {
       const isMe = u.id === currentUid;
-      html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}${isMe?'border:2px solid rgba(255,87,34,0.2);':''}">
+      html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}">
         <td style="position:sticky;left:0;background:${isMe?'rgba(255,87,34,0.08)':'var(--surface)'};z-index:5;padding:0.9rem;font-weight:${isMe?'800':'700'};">${u.name||''}${isMe?' (you)':''}</td>
-        ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
+        ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.listener),f(c.grammarian),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
       </tr>`;
     });
-    document.getElementById('leaderboardTableBody').innerHTML = html || '<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>';
+    document.getElementById('leaderboardTableBody').innerHTML = html || `<tr><td colspan="${HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>`;
   } catch(e) { console.warn('Leaderboard error',e); }
 }
+
 
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
@@ -813,12 +1018,11 @@ async function loadGallery() {
 // ── NOTIFICATIONS (req 4) ─────────────────────────────────
 async function loadNotifications() {
   try {
-    // Personal notifications
     const pSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','personal'), where('targetUid','==',currentUid),
-      orderBy('createdAt','desc')));
+      where('type','==','personal'), where('targetUid','==',currentUid)));
     const personalNotifs = [];
     pSnap.forEach(d => personalNotifs.push({id:d.id,...d.data()}));
+    personalNotifs.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
 
     const pList = document.getElementById('personalNotifsList');
     const pCard = document.getElementById('personalNotifsCard');
@@ -832,11 +1036,12 @@ async function loadNotifications() {
         </div>`).join('');
     }
 
-    // Common notifications
     const cSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','common'), orderBy('createdAt','desc')));
+      where('type','==','common')));
     const commonNotifs = [];
     cSnap.forEach(d => commonNotifs.push({id:d.id,...d.data()}));
+    commonNotifs.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+
     const cList = document.getElementById('commonNotifsList');
     if (commonNotifs.length) {
       cList.innerHTML = commonNotifs.map(n => `
@@ -849,7 +1054,6 @@ async function loadNotifications() {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
     }
 
-    // Update badges
     const unread = personalNotifs.filter(n=>!n.read).length;
     const notifCount = document.getElementById('notifCount');
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
@@ -865,20 +1069,20 @@ async function checkPersonalNotification() {
   try {
     const snap = await getDocs(query(collection(db,'notifications'),
       where('type','==','personal'), where('targetUid','==',currentUid),
-      where('read','==',false), orderBy('createdAt','desc'), limit(1)));
+      where('read','==',false)));
     if (snap.empty) return;
-    const n = snap.docs[0].data();
-    const nId = snap.docs[0].id;
+    const unread = [];
+    snap.forEach(d => unread.push({id:d.id,...d.data()}));
+    unread.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+    const n = unread[0];
     document.getElementById('pnModalTitle').textContent = n.title;
     document.getElementById('pnModalBody').textContent = n.body;
     document.getElementById('pnModalTime').textContent = formatTime(n.createdAt);
     document.getElementById('personalNotifModal').classList.add('open');
-
-    // Mark as read
-    await updateDoc(doc(db,'notifications',nId), {read:true});
+    await updateDoc(doc(db,'notifications',n.id), {read:true});
   } catch(e) { console.warn('Personal notif check error',e); }
 }
-
+  
 window.dismissPersonalNotif = () => {
   document.getElementById('personalNotifModal').classList.remove('open');
 };
@@ -1141,14 +1345,12 @@ window.showSpeechDetails = function(speech, lvlKey, stepNum, guideLink) {
   const name = typeof speech==='string' ? speech : (speech.name||`Project ${stepNum}`);
   document.getElementById('modalTitle').textContent = name;
   document.getElementById('modalLvl').textContent = `${lvlKey} — Project ${stepNum}`;
-  const desc = typeof speech==='object' ? (speech.description||speech.purpose||'No description available.') : 'No description available.';
-  document.getElementById('modalDescription').textContent = desc;
 
-  const purpWrap = document.getElementById('modalPurposeWrap');
-  if (typeof speech==='object'&&speech.purpose&&speech.purpose!==speech.description) {
-    purpWrap.style.display='block';
-    document.getElementById('modalPurpose').textContent = speech.purpose;
-  } else { purpWrap.style.display='none'; }
+const purpWrap = document.getElementById('modalPurposeWrap');
+if (typeof speech==='object' && speech.purpose) {
+  purpWrap.style.display='block';
+  document.getElementById('modalPurpose').textContent = speech.purpose;
+} else { purpWrap.style.display='none'; }
 
   const objWrap = document.getElementById('modalObjectivesWrap');
   if (typeof speech==='object'&&speech.objectives) {
