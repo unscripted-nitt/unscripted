@@ -465,10 +465,11 @@ let userData = null;
   const key  = u.pathwayKey || 'L1';
   const seq  = [
     'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
-    'L2P1','L2P2','L2P3','L2P4','L2P5','L2P6',
+    'L2P1','L2P2','L2P3','L2P4','L2P5',
     key==='L3H'?'L3HP1':'L3KP1',
     key==='L3H'?'L3HP2':'L3KP2',
     key==='L3H'?'L3HP3':'L3KP3',
+    key==='L3H'?'L3HP4':'L3KP4',
   ];
   let idx = 0;
   seq.forEach((s,i) => { if (s===pway) idx = i+1; });
@@ -582,21 +583,21 @@ async function renderProgress() {
       ],
       L2: [
         {label:'L2P1',s:7,e:7},{label:'L2P2',s:8,e:8},{label:'L2P3',s:9,e:9},
-        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11},{label:'L2P6',s:12,e:12}
+        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11}
       ],
-      L3K: [{label:'L3KP1',s:13,e:13},{label:'L3KP2',s:14,e:14},{label:'L3KP3',s:15,e:15}],
-      L3H: [{label:'L3HP1',s:13,e:13},{label:'L3HP2',s:14,e:14},{label:'L3HP3',s:15,e:15}]
+      L3K: [{label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},{label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}],
+      L3H: [{label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},{label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}]
     };
 
     // Derive effective level from speechIndex (handles stale pathwayKey in Firestore)
     let effectiveKey = currentPathwayKey;
-    if      (speechIndex > 12 && !effectiveKey.startsWith('L3')) effectiveKey = 'L3K';
+    if      (speechIndex > 11 && !effectiveKey.startsWith('L3')) effectiveKey = 'L3K';
     else if (speechIndex > 6  && effectiveKey === 'L1')          effectiveKey = 'L2';
 
     // Show all levels from L1 up to where the member currently is
     const levelsToShow = ['L1'];
     if (speechIndex > 6  || ['L2','L3K','L3H'].includes(effectiveKey)) levelsToShow.push('L2');
-    if (speechIndex > 12 || ['L3K','L3H'].includes(effectiveKey)) {
+    if (speechIndex > 11 || ['L3K','L3H'].includes(effectiveKey)) {
       levelsToShow.push(effectiveKey.startsWith('L3') ? effectiveKey : 'L3K');
     }
     // Load Firestore pathway docs for project names/descriptions/guide links
