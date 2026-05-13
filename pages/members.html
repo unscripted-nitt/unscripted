@@ -163,23 +163,6 @@ window.toggleBatch = function(id) {
   el.style.display = isHidden ? 'grid' : 'none';
   if (icon) icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
 };
-    const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const color = m.avatarColor || COLORS[i % COLORS.length];
-    const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
-    const roleColor = m.role === 'core' || m.role === 'admin' ? 'var(--orange)' : 'var(--text-light)';
-    // Photo from Excel upload or profile (req 8)
-    const avatarContent = m.photoUrl
-      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" />`
-      : initials;
-    return `<div class="member-card fade-up visible">
-      <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
-      <h3>${m.name||'Member'}</h3>
-      <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
-      ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
-      <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
-    </div>`;
-  }).join('');
-}
 
 window.filterMembers = function(role, btn) {
   currentRole = role;
