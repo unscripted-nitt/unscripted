@@ -420,6 +420,23 @@
   </div>
 </div>
 
+<!-- ── COMMON NOTIFICATION MODAL ──────────────────────── -->
+<div class="modal-overlay" id="commonNotifModal">
+  <div class="modal-card" style="border-top:4px solid #3b82f6;max-width:500px;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+      <div style="width:44px;height:44px;background:rgba(59,130,246,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-bullhorn" style="color:#3b82f6;font-size:1.2rem;"></i>
+      </div>
+      <div>
+        <h3 style="margin:0;font-size:1.2rem;" id="cnModalTitle">Club Announcement</h3>
+        <p style="margin:0;font-size:0.8rem;color:var(--text-light);" id="cnModalTime"></p>
+      </div>
+    </div>
+    <p id="cnModalBody" style="font-size:1rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;"></p>
+    <button class="btn-primary" style="width:100%;background:#3b82f6;" onclick="dismissCommonNotif()">Got it</button>
+  </div>
+</div>
+  
 <!-- ── SPEECH MODAL ──────────────────────────────────────── -->
 <div id="speechModal" class="modal-overlay" style="display:none;">
   <div class="modal-card" style="max-width:600px;">
@@ -1040,9 +1057,9 @@ async function loadMentorship() {
       menteesCard.style.display = 'block';
       document.getElementById('menteesList').innerHTML = mentees.map(m => {
         const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-        return `<div class="mentee-item">
-          <div class="member-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
-          <div><div style="font-weight:700;">${m.name}</div><div style="font-size:0.8rem;color:var(--text-mid);">${m.pathway||'L1P1'}</div></div>
+        return `<div class="mentor-card">
+          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
+          <div class="mentor-info"><h3>${m.name}</h3><p>${m.pathway||'L1P1'}</p></div>
         </div>`;
       }).join('');
     }
@@ -1138,11 +1155,45 @@ async function checkPersonalNotification() {
     document.getElementById('personalNotifModal').classList.add('open');
     await updateDoc(doc(db,'notifications',n.id), {read:true});
   } catch(e) { console.warn('Personal notif check error',e); }
+  // Show latest common notification as popup if not seen yet
+  try {
+    let lastSeen = '';
+    try { lastSeen = localStorage.getItem('lastCommonNotifSeen') || ''; } catch(_) {}
+    const cSnap = await getDocs(query(collection(db,'notifications'),
+      where('type','==','common'), orderBy('createdAt','desc'), limit(1)));
+    if (!cSnap.empty) {
+      const cn = {id:cSnap.docs[0].id,...cSnap.docs[0].data()};
+      if (cn.id !== lastSeen) {
+        _lastCommonNotifId = cn.id;
+        document.getElementById('cnModalTitle').textContent = cn.title;
+        document.getElementById('cnModalBody').textContent = cn.body;
+        document.getElementById('cnModalTime').textContent = formatTime(cn.createdAt);
+        // Only show if personal modal is not showing
+        if (!document.getElementById('personalNotifModal').classList.contains('open')) {
+          document.getElementById('commonNotifModal').classList.add('open');
+        } else {
+          // Show after personal is dismissed
+          const origDismiss = window.dismissPersonalNotif;
+          window.dismissPersonalNotif = () => {
+            origDismiss();
+            document.getElementById('commonNotifModal').classList.add('open');
+            window.dismissPersonalNotif = origDismiss;
+          };
+        }
+      }
+    }
+  } catch(e) { console.warn('Common notif popup error',e); }
 }
   
 window.dismissPersonalNotif = () => {
   document.getElementById('personalNotifModal').classList.remove('open');
 };
+
+window.dismissCommonNotif = () => {
+  document.getElementById('commonNotifModal').classList.remove('open');
+  try { localStorage.setItem('lastCommonNotifSeen', _lastCommonNotifId); } catch(_) {}
+};
+let _lastCommonNotifId = '';
 
 // ── SPEECH FEEDBACK (req 13) ──────────────────────────────
 const FB_CATEGORIES = ['Content','Clarity of Speech','Fluency','Expression & Gestures','Pace & Pauses','Creativity','Organization','X-Factor'];
@@ -1479,6 +1530,7 @@ function formatTime(ts) {
 window.onclick = function(event) {
   if (event.target === document.getElementById('speechModal')) closeModal();
   if (event.target === document.getElementById('settingsModal')) closeSettingsModal();
+  if (event.target === document.getElementById('commonNotifModal')) dismissCommonNotif();
 };
 </script>
 </body>
