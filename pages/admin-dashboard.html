@@ -128,6 +128,10 @@
     <div class="dash-section active" id="section-insights">
       <h1 class="section-title">Club Insights</h1>
       <p class="section-sub">Live overview of club activity</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Live snapshot of club activity. <strong>Upcoming Meet Roles</strong> shows the roster for the next active or upcoming event — assign roles first in the Role Assignments section.</span>
+</div>
       <div class="grid-insights">
         <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">—</div></div>
         <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">—</div></div>
@@ -144,6 +148,10 @@
     <div class="dash-section" id="section-matrix">
       <h1 class="section-title">Leaderboard Matrix</h1>
       <p class="section-sub">Aggregated role points and involvement across all meetings</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Full breakdown of every active member's role counts and total points across all meets. Sorted by points (highest first). Use <strong>Export CSV</strong> to download. Use <strong>Clear Leaderboard</strong> at the bottom to reset totals to zero — no data is deleted, only the display resets from that point.</span>
+</div>
       <div class="card" style="padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem;">
           <h3 style="margin:0;">Activity Matrix</h3>
@@ -172,6 +180,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
         <h1 class="section-title" style="margin:0;">Member Control</h1>
         <input type="text" id="userSearch" placeholder="Search by name, email..." style="max-width:300px;" oninput="filterUsers()" />
+        <p style="font-size:0.82rem;color:var(--text-mid);width:100%;margin:0;">Edit member profiles, assign mentors, set pathway progress, and toggle active/inactive status. <strong>Inactive members</strong> are hidden from all dropdowns, leaderboards, and attendance lists — but their historical data is preserved.</p>
       </div>
       <div class="card" style="padding:0;overflow-x:auto;">
         <table>
@@ -252,6 +261,10 @@
     <div class="dash-section" id="section-attendance">
       <h1 class="section-title">Club Attendance</h1>
       <p class="section-sub">Select a meeting event and mark member attendance</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:960px;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Select a meeting event, tick who was present, then click <strong>Save</strong>. Only active members appear in the checklist. Each saved attendance adds 1 leaderboard point per present member. You can re-save to overwrite a previous entry for the same event.</span>
+</div>
       <div class="card" style="max-width:960px;">
         <div class="admin-grid-2">
           <div style="display:flex;flex-direction:column;gap:1.25rem;">
@@ -288,6 +301,10 @@
     <div class="dash-section" id="section-roles">
       <h1 class="section-title">Meeting Role Assignments</h1>
       <p class="section-sub">Assign roles to members. Selections add badges to their profile.</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:960px;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Select a meet, assign members to each role, then click <strong>Save Role Assignments</strong>. Saving will automatically advance the speech project of any assigned prepared speakers. Role badges are added to each member's profile. You can re-save to update assignments for the same event.</span>
+</div>
       <div class="card" style="max-width:960px;">
         <div class="form-group" style="max-width:500px;margin-bottom:2rem;">
           <label class="form-label">Select Event</label>
@@ -306,6 +323,10 @@
     <div class="dash-section" id="section-voting">
       <h1 class="section-title">Voting Manager</h1>
       <p class="section-sub">Create anonymous post-meeting voting sessions and view results</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>After a meet, select the event and open a voting session — candidates are auto-filled from the role assignments. Members vote anonymously from their dashboards. Once voting closes, view results and use <strong>Award Badge</strong> to permanently add winner badges to member profiles.</span>
+</div>
 
       <!-- Create session -->
       <div class="card" style="max-width:760px;margin-bottom:2rem;">
@@ -359,6 +380,10 @@
     <div class="dash-section" id="section-pathways">
       <h1 class="section-title">Pathway &amp; Guide Links</h1>
       <p class="section-sub">Edit curriculum content and guide links for each project. Guide links are per-project.</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Edit the name, purpose, objectives, and guide link for each project in all four pathways (L1, L2, L3K, L3H). Members see this content when they click a project card on their dashboard. The guide link opens as a prominent button inside the project modal.</span>
+</div>
 
       <div class="card">
         <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -375,6 +400,7 @@
     <div class="dash-section" id="section-events">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
         <h1 class="section-title" style="margin:0;">Event Manager</h1>
+        <p style="font-size:0.82rem;color:var(--text-mid);flex:1;margin:0;">Create and manage meets. Set an event <strong>Live</strong> to show it as active to members. Events appear in role assignments, attendance, and voting dropdowns. Deleting an event also reverts speech progress for any speakers assigned in it.</p>
         <button class="btn-primary" onclick="toggleEventForm()" id="toggleEventBtn"><i class="fa-solid fa-plus"></i> Add Event</button>
       </div>
 
@@ -447,6 +473,10 @@
     <!-- ═══════════════ GALLERY MANAGER ═══════════════ -->
     <div class="dash-section" id="section-gallery">
       <h1 class="section-title">Gallery Manager</h1>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span><strong>Public</strong> photos appear on the homepage for all visitors without login. <strong>Members only</strong> photos are visible only to logged-in members in their dashboard gallery. You can delete any photo using the trash icon on the photo card.</span>
+</div>
       <div class="admin-grid-2" style="margin-bottom:2rem;">
         <div class="card" style="margin-bottom:0;">
           <h3>Upload Photo</h3>
@@ -548,6 +578,10 @@
     <div class="dash-section" id="section-notifications">
       <h1 class="section-title">Send Notification</h1>
       <p class="section-sub">Broadcast to all members, or send a personal message to a specific member</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span><strong>Club Announcements</strong> are visible to all members in their Notifications section. <strong>Personal Messages</strong> go to one member and appear as a pop-up on their very next login, then remain readable in their notifications. Both types are stored and viewable in the Sent Notifications log below.</span>
+</div>
 
       <div class="admin-grid-2">
         <!-- Common notification -->
