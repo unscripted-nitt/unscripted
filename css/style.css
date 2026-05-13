@@ -218,7 +218,7 @@ em { font-style: italic; }
   position: relative;
   overflow: hidden;
   padding: calc(var(--nav-h) + 4rem) 3rem 6rem;
-  background-image: url('../icons/us.jpeg');
+  background-image: url('../icons/us.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
