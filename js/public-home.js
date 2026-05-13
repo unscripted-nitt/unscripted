@@ -59,9 +59,8 @@ async function loadGalleryPreview(isLoggedIn = false) {
   const container = document.getElementById('galleryPreview');
   if (!container) return;
   try {
-    const q = isLoggedIn
-      ? query(collection(db, 'gallery'), orderBy('date', 'desc'))
-      : query(collection(db, 'gallery'), where('visibility','==','public'), orderBy('date','desc'));
+    // Always fetch all, filter client-side to avoid needing composite Firestore index
+    const q = query(collection(db, 'gallery'), orderBy('date', 'desc'));
     const snap = await getDocs(q);
     container.innerHTML = '';
     if (snap.empty) {
@@ -69,6 +68,7 @@ async function loadGalleryPreview(isLoggedIn = false) {
     }
     snap.forEach(doc => {
       const p = doc.data();
+      if (!isLoggedIn && p.visibility !== 'public') return;
       const img = document.createElement('img');
       img.src = p.url; img.alt = p.caption || 'Unscripted';
       img.loading = 'lazy';
