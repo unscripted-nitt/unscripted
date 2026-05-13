@@ -1,4 +1,6 @@
 // js/nav.js — Navbar scroll, hamburger, scroll animations, counters
+if (typeof document === 'undefined') { /* server build — skip */ }
+else {
 
 // Scroll progress bar
 const progressBar = document.createElement('div');
@@ -74,4 +76,5 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
+}
 }
