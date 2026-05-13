@@ -235,6 +235,14 @@ em { font-style: italic; }
 .hero .hero-scroll-hint { position: absolute; z-index: 2; color: rgba(255,255,255,0.6); }
 .hero-bg { position: absolute; inset: 0; pointer-events: none; }
 
+/* Hero text white on image background */
+.hero-title .line1,
+.hero-title .line3    { color: #ffffff; }
+.hero-sub             { color: rgba(255,255,255,0.82); }
+.hero-eyebrow         { color: var(--orange); }
+.navbar:not(.scrolled) .nav-links a { color: rgba(255,255,255,0.88); }
+.navbar:not(.scrolled) .nav-links a:hover { color: var(--orange); }
+
 /* .hero-watermark {
   position: absolute;
   right: -8vw; top: 50%;
