@@ -1128,7 +1128,13 @@ async function loadNotifications() {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
     }
 
-    const unread = personalNotifs.filter(n=>!n.read).length;
+    let commonUnread = 0;
+if (commonNotifs.length > 0) {
+  let lastSeen = '';
+  try { lastSeen = localStorage.getItem('lastCommonNotifSeen') || ''; } catch(_) {}
+  if (commonNotifs[0].id !== lastSeen) commonUnread = 1;
+}
+const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
     const notifCount = document.getElementById('notifCount');
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
     if (unread > 0) {
@@ -1160,9 +1166,12 @@ async function checkPersonalNotification() {
     let lastSeen = '';
     try { lastSeen = localStorage.getItem('lastCommonNotifSeen') || ''; } catch(_) {}
     const cSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','common'), orderBy('createdAt','desc'), limit(1)));
-    if (!cSnap.empty) {
-      const cn = {id:cSnap.docs[0].id,...cSnap.docs[0].data()};
+  where('type','==','common')));
+const allCommon = [];
+cSnap.forEach(d => allCommon.push({id:d.id,...d.data()}));
+allCommon.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+if (allCommon.length > 0) {
+  const cn = allCommon[0];
       if (cn.id !== lastSeen) {
         _lastCommonNotifId = cn.id;
         document.getElementById('cnModalTitle').textContent = cn.title;
