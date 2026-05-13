@@ -385,6 +385,16 @@
   <span>Edit the name, purpose, objectives, and guide link for each project in all four pathways (L1, L2, L3K, L3H). Members see this content when they click a project card on their dashboard. The guide link opens as a prominent button inside the project modal.</span>
 </div>
 
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;">Role Guide Documents</h3>
+        <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1rem;">Add a guide/description link for each role. These appear in the Points Guide on members' dashboards.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem;" id="roleGuidesContainer">
+          <p style="color:var(--text-mid);">Loading...</p>
+        </div>
+        <button class="btn-primary btn-sm" style="margin-top:1rem;" onclick="saveRoleGuides()">Save Role Guides →</button>
+        <div id="roleGuideStatus" style="display:none;margin-top:0.75rem;font-size:0.85rem;font-weight:600;color:#2e7d32;"></div>
+      </div>
+
       <div class="card">
         <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
           <button class="filter-btn active" onclick="selectPathway('L1',this)">Level 1</button>
@@ -436,6 +446,10 @@
             <label class="form-label">Event Gallery Link (Google Photos / Drive etc.)</label>
             <input type="url" id="evGalleryLink" placeholder="https://photos.google.com/..." />
           </div>
+          <div class="form-group">
+            <label class="form-label">Event Documentation Link (Google Drive — agenda, notes, etc.)</label>
+            <input type="url" id="evDocLink" placeholder="https://drive.google.com/..." />
+          </div>
 
           <!-- req 5: Video links per event -->
           <div>
@@ -460,6 +474,7 @@
             <th style="padding-left:1.5rem;">Event Details</th>
             <th>Status</th>
             <th>Gallery</th>
+            <th>Docs</th>
             <th>Videos</th>
             <th style="text-align:right;padding-right:1.5rem;">Actions</th>
           </tr></thead>
@@ -816,6 +831,7 @@ async function loadAllData() {
     renderRoleDropdowns();
     populateMemberPhotoSelect();
     await loadEvents();
+    loadRoleGuides();
   } catch(e) { console.warn('loadAllData error',e); }
 }
 
@@ -1147,6 +1163,7 @@ window.toggleEventForm = (show=null) => {
     document.getElementById('evDate').value='';
     document.getElementById('evDesc').value='';
     document.getElementById('evGalleryLink').value='';
+    document.getElementById('evDocLink').value='';
     document.getElementById('evVideoLinksContainer').innerHTML='';
     document.getElementById('eventFormTitle').textContent='Add New Event';
   }
@@ -1208,6 +1225,7 @@ async function loadEvents() {
             </span>
           </td>
           <td>${galleryCell}</td>
+          <td>${e.docLink ? `<a href="${e.docLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>` : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>'}</td>
           <td>${videoCell}</td>
           <td style="padding-right:1.5rem;">
             <div class="action-row">
@@ -1241,6 +1259,7 @@ window.editEvent = async (id) => {
     document.getElementById('evDesc').value = e.description||'';
     document.getElementById('evType').value = e.type||'upcoming';
     document.getElementById('evGalleryLink').value = e.galleryLink||'';
+    document.getElementById('evDocLink').value = e.docLink||'';
     // Re-populate video links
     const videoContainer = document.getElementById('evVideoLinksContainer');
     videoContainer.innerHTML = '';
@@ -1274,12 +1293,13 @@ window.saveEvent = async () => {
   });
   try {
     const data = {
-      title, date:new Date(date), description:document.getElementById('evDesc').value.trim(),
-      type:document.getElementById('evType').value,
-      galleryLink: document.getElementById('evGalleryLink').value.trim(),
-      eventVideos,
-      updated:serverTimestamp()
-    };
+        title, date:new Date(date), description:document.getElementById('evDesc').value.trim(),
+        type:document.getElementById('evType').value,
+        galleryLink: document.getElementById('evGalleryLink').value.trim(),
+        docLink: document.getElementById('evDocLink').value.trim(),
+        eventVideos,
+        updated:serverTimestamp()
+      };
     if (id) await updateDoc(doc(db,'events',id), data);
     else await addDoc(collection(db,'events'), {...data,isActive:false,created:serverTimestamp()});
     alert(id?'Event updated!':'Event added!');
@@ -2069,6 +2089,49 @@ window.deleteProject = async (key, idx) => {
   } catch(e) { alert('Error: '+e.message); }
 };
 
+// ── ROLE GUIDES ──────────────────────────────────────────
+const ROLE_GUIDE_KEYS = [
+  {id:'hom', label:'HOM (Host of Meeting)'},
+  {id:'evaluator', label:'Speech Evaluator'},
+  {id:'ttm', label:'TTM (Table Topics Master)'},
+  {id:'tte', label:'TTE (Table Topics Evaluator)'},
+  {id:'ge', label:'GE (General Evaluator)'},
+  {id:'timer', label:'Timer'},
+  {id:'listener', label:'Listener'},
+  {id:'grammarian', label:'Grammarian'},
+  {id:'mom', label:'MOM (Minutes of Meeting)'},
+  {id:'tt', label:'Table Topic Speaker'},
+];
+
+async function loadRoleGuides() {
+  const container = document.getElementById('roleGuidesContainer');
+  if (!container) return;
+  let existing = {};
+  try {
+    const snap = await getDoc(doc(db,'settings','roleGuides'));
+    if (snap.exists()) existing = snap.data();
+  } catch(_) {}
+  container.innerHTML = ROLE_GUIDE_KEYS.map(r => `
+    <div>
+      <label class="form-label">${r.label}</label>
+      <input type="url" id="rg_${r.id}" value="${existing[r.id]||''}" placeholder="https://drive.google.com/..." style="font-size:0.82rem;" />
+    </div>`).join('');
+}
+
+window.saveRoleGuides = async function() {
+  const data = {};
+  ROLE_GUIDE_KEYS.forEach(r => {
+    const val = document.getElementById('rg_'+r.id)?.value.trim();
+    if (val) data[r.id] = val;
+  });
+  try {
+    await setDoc(doc(db,'settings','roleGuides'), data, {merge:true});
+    const s = document.getElementById('roleGuideStatus');
+    s.textContent = 'Role guides saved!'; s.style.display='block';
+    setTimeout(()=>s.style.display='none', 2500);
+  } catch(e) { alert('Failed: '+e.message); }
+};
+  
 // Close modals on overlay click
 window.onclick = e => {
   if (e.target===document.getElementById('editModal')) closeModal();
