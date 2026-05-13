@@ -49,15 +49,16 @@
     <input type="text" id="memberSearch" placeholder="Search by name or department..." style="max-width:380px;" oninput="searchMembers(this.value)" />
   </div>
 
-  <div class="members-grid" id="membersGrid">
-    <div class="event-skeleton" style="height:220px;"></div>
-    <div class="event-skeleton" style="height:220px;"></div>
-    <div class="event-skeleton" style="height:220px;"></div>
-    <div class="event-skeleton" style="height:220px;"></div>
-    <div class="event-skeleton" style="height:220px;"></div>
-    <div class="event-skeleton" style="height:220px;"></div>
+<div id="membersGrid">
+    <div class="members-grid">
+      <div class="event-skeleton" style="height:220px;"></div>
+      <div class="event-skeleton" style="height:220px;"></div>
+      <div class="event-skeleton" style="height:220px;"></div>
+      <div class="event-skeleton" style="height:220px;"></div>
+      <div class="event-skeleton" style="height:220px;"></div>
+      <div class="event-skeleton" style="height:220px;"></div>
+    </div>
   </div>
-</div>
 
 <footer class="footer">
   <div class="footer-inner">
@@ -81,7 +82,148 @@
   </div>
 </footer>
 
-<script type="module" src="/js/members.js"></script>
+<script type="module">
+import { db } from '../js/firebase-config.js';
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315'];
+let allMembers = [];
+let currentRole = 'all';
+let currentSearch = '';
+
+async function loadMembers() {
+  try {
+    const snap = await getDocs(query(collection(db,'members'), orderBy('name')));
+    allMembers = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.isActive !== false) allMembers.push({id:doc.id,...d});
+    });
+    if (!allMembers.length) {
+      document.getElementById('membersGrid').innerHTML = '<p style="color:var(--text-light);text-align:center;padding:3rem;">Member list coming soon.</p>';
+      return;
+    }
+    renderMembers(allMembers);
+  } catch(e) {
+    document.getElementById('membersGrid').innerHTML = '<p style="color:var(--text-light);text-align:center;padding:3rem;">Could not load members.</p>';
+  }
+}
+
+function getMemberCard(m, colorIdx) {
+  const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const color = m.avatarColor || COLORS[colorIdx % COLORS.length];
+  const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
+  const roleColor = (m.role === 'core' || m.role === 'admin') ? 'var(--orange)' : 'var(--text-light)';
+  const avatarContent = m.photoUrl
+    ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
+    : initials;
+  return `<div class="member-card fade-up visible">
+    <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
+    <h3>${m.name||'Member'}</h3>
+    <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
+    ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+    <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
+  </div>`;
+}
+
+function renderMembers(members) {
+  const container = document.getElementById('membersGrid');
+
+  // If role filter active OR search active → flat grid, no accordion
+  const useBatchAccordion = (currentRole === 'all' && currentSearch === '');
+
+  if (!useBatchAccordion) {
+    if (!members.length) {
+      container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:2rem;">No members found.</p>';
+      return;
+    }
+    container.innerHTML = `<div class="members-grid">${members.map((m,i) => getMemberCard(m,i)).join('')}</div>`;
+    return;
+  }
+
+  // Batch accordion mode
+  if (!members.length) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:2rem;">No members found.</p>';
+    return;
+  }
+
+  // Group by batch
+  const batchMap = {};
+  members.forEach((m, i) => {
+    const batch = (m.batch || 'Unknown').toString().trim();
+    if (!batchMap[batch]) batchMap[batch] = [];
+    batchMap[batch].push({ m, globalIdx: i });
+  });
+
+  // Sort batches descending (numeric where possible)
+  const sortedBatches = Object.keys(batchMap).sort((a, b) => {
+    const na = parseInt(a) || 0;
+    const nb = parseInt(b) || 0;
+    if (nb !== na) return nb - na;
+    return b.localeCompare(a);
+  });
+
+  container.innerHTML = sortedBatches.map(batch => {
+    const items = batchMap[batch];
+    const safeId = 'batch_' + batch.replace(/[^a-zA-Z0-9]/g, '_');
+    return `
+      <div style="margin-bottom:1rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <button onclick="toggleBatchSection('${safeId}','${batch}')"
+          style="width:100%;padding:1.1rem 1.5rem;background:var(--surface2);border:none;cursor:pointer;
+                 display:flex;justify-content:space-between;align-items:center;
+                 font-weight:800;font-size:1rem;color:var(--text);text-align:left;">
+          <span>Batch of ${batch}</span>
+          <span style="display:flex;align-items:center;gap:1rem;">
+            <span style="font-size:0.78rem;font-weight:600;color:var(--text-light);">${items.length} member${items.length!==1?'s':''}</span>
+            <i class="fa-solid fa-chevron-down" id="icon_${safeId}" style="color:var(--orange);transition:transform 0.25s;"></i>
+          </span>
+        </button>
+        <div id="${safeId}" style="display:none;padding:1.5rem 1.5rem 1rem;">
+          <div class="members-grid">
+            ${items.map(({m, globalIdx}) => getMemberCard(m, globalIdx)).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.toggleBatchSection = function(safeId, batch) {
+  const el   = document.getElementById(safeId);
+  const icon = document.getElementById('icon_' + safeId);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display   = isOpen ? 'none' : 'block';
+  if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+};
+
+window.filterMembers = function(role, btn) {
+  currentRole   = role;
+  currentSearch = '';
+  document.getElementById('memberSearch').value = '';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+};
+
+window.searchMembers = function(val) {
+  currentSearch = val.toLowerCase();
+  applyFilters();
+};
+
+function applyFilters() {
+  let filtered = currentRole === 'all' ? allMembers : allMembers.filter(m => m.role === currentRole);
+  if (currentSearch) {
+    filtered = filtered.filter(m =>
+      (m.name||'').toLowerCase().includes(currentSearch) ||
+      (m.dept||m.department||'').toLowerCase().includes(currentSearch)
+    );
+  }
+  renderMembers(filtered);
+}
+
+loadMembers();
+</script>
+  
 <script type="module" src="../js/nav.js"></script>
 </body>
 </html>
