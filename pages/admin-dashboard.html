@@ -1210,12 +1210,12 @@ const SPEECH_SEQUENCE = [
   {label:'L1P4',key:'L1'},{label:'L1P4',key:'L1'}, // L1P4 counts twice
   {label:'L1P5',key:'L1'},{label:'L1P6',key:'L1'},
   {label:'L2P1',key:'L2'},{label:'L2P2',key:'L2'},{label:'L2P3',key:'L2'},
-  {label:'L2P4',key:'L2'},{label:'L2P5',key:'L2'},{label:'L2P6',key:'L2'},
+  {label:'L2P4',key:'L2'},{label:'L2P5',key:'L2'},
 ];
 function getFullSeq(pKey) {
   const l3 = pKey==='L3H'
-    ? [{label:'L3HP1',key:'L3H'},{label:'L3HP2',key:'L3H'},{label:'L3HP3',key:'L3H'}]
-    : [{label:'L3KP1',key:'L3K'},{label:'L3KP2',key:'L3K'},{label:'L3KP3',key:'L3K'}];
+    ? [{label:'L3HP1',key:'L3H'},{label:'L3HP2',key:'L3H'},{label:'L3HP3',key:'L3H'},{label:'L3HP4',key:'L3H'}]
+    : [{label:'L3KP1',key:'L3K'},{label:'L3KP2',key:'L3K'},{label:'L3KP3',key:'L3K'},{label:'L3KP4',key:'L3K'}];
   return [...SPEECH_SEQUENCE, ...l3];
 }
 function getSpeechIdx(u) {
