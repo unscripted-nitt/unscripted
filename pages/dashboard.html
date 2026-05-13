@@ -459,6 +459,21 @@ import {
 import '../js/session.js';
 
 let userData = null;
+  function getDashSpeechIdx(u) {
+  if (typeof u.speechIndex === 'number') return u.speechIndex;
+  const pway = u.pathway || '';
+  const key  = u.pathwayKey || 'L1';
+  const seq  = [
+    'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
+    'L2P1','L2P2','L2P3','L2P4','L2P5','L2P6',
+    key==='L3H'?'L3HP1':'L3KP1',
+    key==='L3H'?'L3HP2':'L3KP2',
+    key==='L3H'?'L3HP3':'L3KP3',
+  ];
+  let idx = 0;
+  seq.forEach((s,i) => { if (s===pway) idx = i+1; });
+  return idx;
+}
 let currentUid = null;
 let chartsRendered = false;
 let allEventsCache = [];
@@ -547,62 +562,105 @@ function checkActiveMeet() {
 // ── PROGRESS ─────────────────────────────────────────────
 async function renderProgress() {
   try {
-    // Load pathway data
-    const pathwaySnap = await getDocs(collection(db,'pathways'));
-    const pathways = {};
-    pathwaySnap.forEach(d => pathways[d.id] = d.data());
-
     const currentPathwayKey = userData.pathwayKey || 'L1';
-    const pathway = pathways[currentPathwayKey] || {};
-    const speeches = userData.speeches || [];
-    const done = speeches.filter(s => s.status === 'done').length;
-    const total = (pathway.projects || []).length || 7;
+    const speechIndex = getDashSpeechIdx(userData);
 
-    document.getElementById('statSpeeches').textContent = done;
-    document.getElementById('statLevel').textContent = userData.pathway || 'L1P1';
-    const attData = allEventsCache.filter(e => e.attended?.includes(currentUid));
+    // Stat cards
+    document.getElementById('statSpeeches').textContent = speechIndex;
+    document.getElementById('statLevel').textContent = userData.pathway || 'Not started';
     const totalMeets = allEventsCache.length;
-    const pct = totalMeets ? Math.round(attData.length / totalMeets * 100) : 0;
-    document.getElementById('statAttPct').textContent = pct + '%';
+    const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
+    document.getElementById('statAttPct').textContent = totalMeets ? Math.round(presentCount/totalMeets*100)+'%' : '0%';
 
-    const pathwayNames = { L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency', L3K:'Level 3 — Keynote', L3H:'Level 3 — Humorous' };
-    document.getElementById('pathwayTitle').textContent = pathwayNames[currentPathwayKey] || 'Curriculum Progress';
+    // Project-to-speech-slot mapping
+    // s = first speech slot index (0-based), e = last speech slot index
+    const PROJ_RANGES = {
+      L1: [
+        {label:'L1P1',s:0,e:0},{label:'L1P2',s:1,e:1},{label:'L1P3',s:2,e:2},
+        {label:'L1P4',s:3,e:4}, // counts twice
+        {label:'L1P5',s:5,e:5},{label:'L1P6',s:6,e:6}
+      ],
+      L2: [
+        {label:'L2P1',s:7,e:7},{label:'L2P2',s:8,e:8},{label:'L2P3',s:9,e:9},
+        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11},{label:'L2P6',s:12,e:12}
+      ],
+      L3K: [{label:'L3KP1',s:13,e:13},{label:'L3KP2',s:14,e:14},{label:'L3KP3',s:15,e:15}],
+      L3H: [{label:'L3HP1',s:13,e:13},{label:'L3HP2',s:14,e:14},{label:'L3HP3',s:15,e:15}]
+    };
+
+    // Which levels to show (all levels up to and including current)
+    const levelsToShow = ['L1'];
+    if (['L2','L3K','L3H'].includes(currentPathwayKey)) levelsToShow.push('L2');
+    if (['L3K','L3H'].includes(currentPathwayKey)) levelsToShow.push(currentPathwayKey);
+
+    // Load Firestore pathway docs for project names/descriptions/guide links
+    const pathwayDocs = {};
+    for (const k of levelsToShow) {
+      try {
+        const snap = await getDoc(doc(db,'pathways',k));
+        if (snap.exists()) pathwayDocs[k] = snap.data();
+      } catch(_) {}
+    }
+
+    // Total speech slots across shown levels
+    const totalSlots = levelsToShow.reduce((acc,k) =>
+      acc + (PROJ_RANGES[k]||[]).reduce((a,p) => a+(p.e-p.s+1), 0), 0);
+
+    const pathwayNames = {
+      L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency',
+      L3K:'Level 3 — Keynote',   L3H:'Level 3 — Humorous'
+    };
+    document.getElementById('pathwayTitle').textContent = pathwayNames[currentPathwayKey] || 'Curriculum';
     document.getElementById('pathwayBadge').textContent = userData.pathway || currentPathwayKey;
-    document.getElementById('pathwayBar').style.width = Math.round(done/total*100) + '%';
-    document.getElementById('progressDone').textContent = done + ' speeches done';
-    document.getElementById('progressTotal').textContent = 'of ' + total + ' total';
+    document.getElementById('pathwayBar').style.width = Math.round(Math.min(speechIndex/totalSlots,1)*100)+'%';
+    document.getElementById('progressDone').textContent = speechIndex + ' speeches done';
+    document.getElementById('progressTotal').textContent = 'of ' + totalSlots + ' total';
 
-    // Render steps
+    // Render all steps with section headers
     const stepsContainer = document.getElementById('pathwaySteps');
-    const projects = pathway.projects || [];
-    if (projects.length === 0) {
-      stepsContainer.innerHTML = '<p style="color:var(--text-mid);padding:1rem 0;">No projects loaded for this pathway.</p>';
-    } else {
-      stepsContainer.innerHTML = projects.map((proj, i) => {
-        const speechObj = speeches[i] || {};
-        const isDone = speechObj.status === 'done';
-        const isCurrent = !isDone && speeches.filter(s=>s.status==='done').length === i;
-        const statusClass = isDone ? 'done' : (isCurrent ? 'active-step' : 'pending');
-        const icon = isDone ? '<i class="fa-solid fa-check"></i>' : (isCurrent ? (i+1) : (i+1));
-        const projName = typeof proj === 'string' ? proj : (proj.name || `Project ${i+1}`);
-        const projDesc = typeof proj === 'object' ? (proj.description || proj.purpose || '') : '';
-        // Guide link — connected to project (req 9)
-        const guideLink = (typeof proj === 'object' && proj.guideLink) ? proj.guideLink : (pathway.guideLink || '');
-        return `<div class="step-item ${statusClass}" onclick='showSpeechDetails(${JSON.stringify(proj)}, "${currentPathwayKey}", ${i+1}, "${guideLink}")'>
-          <div class="step-num ${statusClass}">${icon}</div>
+    let html = '';
+
+    for (const levelKey of levelsToShow) {
+      const ranges = PROJ_RANGES[levelKey] || [];
+      const firestoreProjs = pathwayDocs[levelKey]?.projects || [];
+
+      html += `<div style="font-size:0.68rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;
+        color:var(--text-light);padding:1.5rem 0 0.5rem;border-top:1px solid var(--border);margin-top:0.5rem;">
+        ${pathwayNames[levelKey]||levelKey}</div>`;
+
+      ranges.forEach((range, i) => {
+        // isDone: all speeches for this project are completed
+        const isDone   = speechIndex > range.e;
+        // isActive: currently working on this project (partial or at this slot)
+        const isActive = !isDone && speechIndex >= range.s;
+        const isPending = !isDone && !isActive;
+
+        const projData  = firestoreProjs[i];
+        const projName  = typeof projData==='object' ? (projData.name||range.label) : (projData||range.label);
+        const projDesc  = typeof projData==='object' ? (projData.description||projData.purpose||'') : '';
+        const guideLink = typeof projData==='object' ? (projData.guideLink||'') : '';
+        const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
+
+        const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
+        const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
+        const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i+1);
+
+        html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
+          onclick='showSpeechDetails(${JSON.stringify(projData||range.label)}, "${levelKey}", ${i+1}, "${guideLink}")'>
+          <div class="step-num ${numClass}">${icon}</div>
           <div class="step-info">
-            <h4>${projName}</h4>
-            ${projDesc ? `<p>${projDesc.substring(0,80)}${projDesc.length>80?'...':''}</p>` : ''}
-            ${speechObj.date ? `<div class="step-date">Completed ${speechObj.date}</div>` : ''}
+            <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
+            <p>${projDesc ? projDesc.substring(0,80)+(projDesc.length>80?'...':'') : range.label}</p>
           </div>
           ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
         </div>`;
-      }).join('');
+      });
     }
+    stepsContainer.innerHTML = html;
 
     // Upcoming roles card
-    const upcoming = allEventsCache.find(e => e.isActive === true) || allEventsCache.find(e => e.type === 'upcoming');
-    if (upcoming && upcoming.rolesDisplay?.length) {
+    const upcoming = allEventsCache.find(e=>e.isActive===true) || allEventsCache.find(e=>e.type==='upcoming');
+    if (upcoming?.rolesDisplay?.length) {
       document.getElementById('upcomingRolesCard').style.display = 'block';
       renderUpcomingRolesCard(upcoming);
       renderMyUpcomingRoles(upcoming);
@@ -611,7 +669,6 @@ async function renderProgress() {
     console.warn('Progress render error', e);
   }
 }
-
 function renderUpcomingRolesCard(upcoming) {
   const container = document.getElementById('upcomingRolesContainer');
   container.innerHTML = `
