@@ -144,7 +144,7 @@ function renderMembers(members) {
               <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
               <h3>${m.name||'Member'}</h3>
               <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
-              ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+              ${m.degree?'<div class="dept" style="font-size:0.72rem;">'+m.degree+'</div>':''}
               <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
             </div>`;
           }).join('')}
