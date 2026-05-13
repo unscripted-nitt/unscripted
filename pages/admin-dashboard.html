@@ -844,22 +844,44 @@ function populateMentorDropdown() {
   '<option value="">(None)</option>' + allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
 }
 
+//
+// When admin sets a pathway label (e.g. "L2P5") manually, we also compute
+// and write the correct speechIndex so the member dashboard stays in sync.
+//
 window.saveUserChanges = async () => {
   const uid = document.getElementById('editUid').value; if (!uid) return;
-  const btn = event.target; btn.disabled=true; btn.textContent='Saving...';
+  const btn = event.target; btn.disabled = true; btn.textContent = 'Saving...';
+ 
+  const newPathway    = document.getElementById('editPathway').value || 'L1P1';
+  const newPathwayKey = document.getElementById('editPathwayKey').value || 'L1';
+ 
+  // Derive speechIndex from the admin-supplied label so the dashboard is in sync.
+  // We find the LAST occurrence of the label in the full sequence
+  // (L1P4 appears twice; "L1P4" means both speeches done → higher index wins).
+  const seq = getFullSeq(newPathwayKey);
+  let newSpeechIndex = 0;
+  seq.forEach((s, i) => { if (s.label === newPathway) newSpeechIndex = i + 1; });
+  // If no match found (admin typed a valid label not in sequence for that key)
+  // fall back to 0 so the member simply shows "not started".
+ 
   try {
-    await updateDoc(doc(db,'users',uid), {
-      pathway: document.getElementById('editPathway').value||'L1P1',
-      pathwayKey: document.getElementById('editPathwayKey').value||'L1',
-      role: document.getElementById('editRole').value||'user',
-      mentor: document.getElementById('editMentor').value||'',
-      points: parseInt(document.getElementById('editPoints').value)||0,
+    await updateDoc(doc(db, 'users', uid), {
+      pathway:     newPathway,
+      pathwayKey:  newPathwayKey,
+      speechIndex: newSpeechIndex,
+      role:    document.getElementById('editRole').value    || 'user',
+      mentor:  document.getElementById('editMentor').value  || '',
+      points:  parseInt(document.getElementById('editPoints').value) || 0,
       isActive: document.getElementById('editIsActive').checked,
     });
     alert('Profile updated!'); closeModal(); loadAllData();
-  } catch(e) { alert('Failed: '+e.message); }
-  finally { btn.disabled=false; btn.textContent='Apply Changes \u2192'; }
+  } catch (e) {
+    alert('Failed: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Apply Changes →';
+  }
 };
+ 
 
 // ── EXCEL UPLOAD (req 8) ─────────────────────────────────
 let excelData = [];
@@ -1198,11 +1220,98 @@ window.toggleEventActive = async (id,active) => {
   try { await updateDoc(doc(db,'events',id),{isActive:active}); loadEvents(); }
   catch(e) { alert(e.message); }
 };
+  
+//
+// Before deleting the event document, this:
+//   a) finds every member who gave a prepared speech in this event
+//   b) decrements their speechIndex by 1 (each speaker was incremented once
+//      when roles were saved — the Set in saveMeetRoles ensures that)
+//   c) re-derives their pathway label from the new index
+//   d) removes this event's attendance from the event document
+//      (the per-user u.attendance[] array entries and leaderboard counts are
+//       live-computed from allEventsCache, so removing the event doc is enough)
+//
 window.deleteEvent = async (id) => {
-  if (!confirm('Delete this event?')) return;
-  try { await deleteDoc(doc(db,'events',id)); loadEvents(); }
-  catch(e) { alert(e.message); }
+  if (!confirm('Delete this event? This will also revert speech progress for any speakers assigned in it.')) return;
+ 
+  try {
+    // ── Fetch the event to inspect its roles ────────────────────────────────
+    const evSnap = await getDoc(doc(db, 'events', id));
+    if (!evSnap.exists()) { await deleteDoc(doc(db, 'events', id)); loadEvents(); return; }
+    const evData = evSnap.data();
+    const roles  = evData.roles || {};
+ 
+    // ── Collect unique speaker UIDs ─────────────────────────────────────────
+    const speakerUids = new Set();
+    for (const [rk, uid] of Object.entries(roles)) {
+      if (rk.startsWith('speaker')) speakerUids.add(uid);
+    }
+ 
+    // ── Revert speechIndex / pathway for each speaker ───────────────────────
+    for (const uid of speakerUids) {
+      try {
+        const uSnap = await getDoc(doc(db, 'users', uid));
+        if (!uSnap.exists()) continue;
+        const u = { id: uid, ...uSnap.data() };
+ 
+        // Current index (use stored value if present, else derive from label)
+        const curIdx = typeof u.speechIndex === 'number' ? u.speechIndex : getSpeechIdx(u);
+        const newIdx = Math.max(0, curIdx - 1);
+ 
+        // Derive pathway label for the new index
+        const seq    = getFullSeq(u.pathwayKey || 'L1');
+        const newItem = newIdx > 0 ? seq[newIdx - 1] : null;
+ 
+        await updateDoc(doc(db, 'users', uid), {
+          speechIndex: newIdx,
+          // If newIdx is 0, keep whatever key they had but blank the label
+          pathway:    newItem ? newItem.label : '',
+          pathwayKey: newItem ? newItem.key   : (u.pathwayKey || 'L1'),
+        });
+      } catch (err) {
+        console.warn('Could not revert speech index for uid', uid, err);
+      }
+    }
+ 
+    // ── Also revert per-user attendance[] entries for this event ────────────
+    // u.attendance is an array of {date, present} objects pushed per-event.
+    // We need to remove the entry whose date matches this event's date.
+    // (Leaderboard attendance is computed live from event.attended[], so
+    //  deleting the event doc covers that automatically.)
+    if (evData.attended?.length && evData.date) {
+      let eventDateStr = '';
+      try {
+        const d = evData.date.toDate ? evData.date.toDate() : new Date(evData.date);
+        eventDateStr = d.toLocaleDateString('en-IN');
+      } catch (_) {}
+ 
+      if (eventDateStr) {
+        for (const attendedUid of evData.attended) {
+          try {
+            const uSnap = await getDoc(doc(db, 'users', attendedUid));
+            if (!uSnap.exists()) continue;
+            const attendance = uSnap.data().attendance || [];
+            // Remove the entry that matches this event's date
+            const filtered = attendance.filter(a => a.date !== eventDateStr);
+            if (filtered.length !== attendance.length) {
+              await updateDoc(doc(db, 'users', attendedUid), { attendance: filtered });
+            }
+          } catch (err) {
+            console.warn('Could not revert attendance for uid', attendedUid, err);
+          }
+        }
+      }
+    }
+ 
+    // ── Finally delete the event document itself ─────────────────────────────
+    await deleteDoc(doc(db, 'events', id));
+    loadEvents();
+    loadAllData();
+  } catch (e) {
+    alert('Delete failed: ' + e.message);
+  }
 };
+ 
 
 // ── SPEECH SEQUENCE (Req 1) ──────────────────────────────
 const SPEECH_SEQUENCE = [
