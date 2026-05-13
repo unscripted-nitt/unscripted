@@ -12,7 +12,29 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#FF5722" />
 </head>
-<body> 
+<body>
+
+<!-- NEW VISITOR POPUP -->
+<div id="newVisitorModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:24px;padding:2.5rem 2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.35);">
+    <img src="icons/logo.png" alt="Unscripted NITT" style="height:60px;margin:0 auto 1.25rem;display:block;" />
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.7rem;color:#1A1714;margin-bottom:0.4rem;">Are you new here?</h2>
+    <p style="font-size:0.88rem;color:#5A554E;margin-bottom:1.75rem;line-height:1.6;">Follow us and stay updated on meets, events, and public speaking tips!</p>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem;">
+      <a href="https://instagram.com/unscripted_nitt" target="_blank" rel="noopener"
+        style="display:flex;align-items:center;justify-content:center;gap:0.6rem;padding:0.9rem 1.5rem;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;border-radius:100px;font-weight:700;font-size:0.92rem;text-decoration:none;">
+        Follow on Instagram
+      </a>
+      <a href="https://chat.whatsapp.com/L7VeSvqUCQsJmsfdP9X7mF" target="_blank" rel="noopener"
+        style="display:flex;align-items:center;justify-content:center;gap:0.6rem;padding:0.9rem 1.5rem;background:#25D366;color:#fff;border-radius:100px;font-weight:700;font-size:0.92rem;text-decoration:none;">
+        Join WhatsApp Group
+      </a>
+    </div>
+    <button onclick="closeVisitorPopup()" style="background:none;border:none;color:#9A958D;font-size:0.85rem;cursor:pointer;text-decoration:underline;font-family:inherit;">
+      No thanks, take me to the website
+    </button>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav class="navbar" id="navbar">
@@ -243,5 +265,14 @@
 
 <script type="module" src="js/public-home.js"></script>
 <script type="module" src="js/nav.js"></script>
+<script>
+  function closeVisitorPopup() {
+    document.getElementById('newVisitorModal').style.display = 'none';
+    sessionStorage.setItem('popupSeen','1');
+  }
+  if (sessionStorage.getItem('popupSeen')) {
+    document.getElementById('newVisitorModal').style.display = 'none';
+  }
+</script>
 </body>
 </html>
