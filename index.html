@@ -11,6 +11,45 @@
   <link rel="icon" href="icons/favicon.png" type="image/png" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#FF5722" />
+
+  <style>
+    /* ── Navbar: always dark semi-transparent ── */
+    .navbar {
+      background: rgba(0, 0, 0, 0.55) !important;
+      backdrop-filter: blur(18px) saturate(160%) !important;
+      box-shadow: none !important;
+    }
+    .navbar.scrolled {
+      background: rgba(0, 0, 0, 0.72) !important;
+      backdrop-filter: blur(24px) saturate(180%) !important;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+    /* Nav links always white */
+    .nav-links a {
+      color: rgba(255,255,255,0.85) !important;
+    }
+    .nav-links a:hover {
+      color: #fff !important;
+      background: rgba(255,255,255,0.1) !important;
+    }
+    /* Hero eyebrow white */
+    .hero-eyebrow {
+      color: #fff !important;
+      background: rgba(255,255,255,0.1) !important;
+      border-color: rgba(255,255,255,0.2) !important;
+    }
+    /* "Through Fun" white */
+    .hero-title .line3 {
+      color: #fff !important;
+    }
+    /* Scroll hint white and slightly bigger */
+    .hero-scroll-hint {
+      color: rgba(255,255,255,0.75) !important;
+      opacity: 1 !important;
+      font-size: 0.82rem !important;
+      letter-spacing: 0.28em !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -74,10 +113,6 @@
       </h1>
     </div>
     <p class="hero-sub" style="margin-top:2rem;">Your spotlight starts here. Your voice matters.</p>
-    <div class="hero-cta">
-      <button class="btn-primary" onclick="window.location.href='pages/login.html'">Member Portal &rarr;</button>
-      <button class="btn-ghost" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">Explore &darr;</button>
-    </div>
   </div>
   <div class="hero-scroll-hint">scroll</div>
 </section>
@@ -193,7 +228,7 @@
           </span>
           <div><div class="soc-name">LinkedIn</div><div class="soc-handle">Unscripted NITT</div></div>
         </a>
-        <a href="mailto:unscripted@nitt.edu" class="contact-social-item">
+        <a href="mailto:unscriptednitt@gmail.com" class="contact-social-item">
           <span class="soc-icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           </span>
@@ -209,12 +244,13 @@
       <div style="margin-top:2rem; padding:1.5rem; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2); border-radius:var(--radius);">
         <h3 style="font-size:1.1rem; margin-bottom:0.5rem; color:#25D366; font-family:var(--font-body);">Join the Community</h3>
         <p style="font-size:0.85rem; margin-bottom:1rem;">Get updates and public speaking tips on WhatsApp.</p>
-<button
-  class="btn-whatsapp"
-  onclick="window.open('https://chat.whatsapp.com/L7VeSvqUCQsJmsfdP9X7mF', '_blank')"
->
-  Click to Join WhatsApp Group
-</button></div>
+        <button class="btn-whatsapp" onclick="window.open('https://chat.whatsapp.com/L7VeSvqUCQsJmsfdP9X7mF','_blank')">
+          Click to Join WhatsApp Group
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer class="footer">
