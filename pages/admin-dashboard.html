@@ -799,8 +799,15 @@ onAuthStateChanged(auth, async user => {
   if (!snap.exists() || !['admin','core'].includes(snap.data().role)) {
     await signOut(auth); window.location.href = 'login.html'; return;
   }
-  document.getElementById('adminName').textContent = snap.data().name || 'Admin';
+  const adminData = snap.data();
+  document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
+  const adminAvatar = document.getElementById('adminTopAvatar');
+  if (adminData.photoUrl) {
+    adminAvatar.innerHTML = `<img src="${adminData.photoUrl}" alt="${adminData.name||''}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
+  } else {
+    adminAvatar.textContent = (adminData.name||'A').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  }
   loadAllData();
   loadGallery();
   loadVideos();
