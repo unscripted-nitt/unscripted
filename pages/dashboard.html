@@ -1150,7 +1150,7 @@ async function checkPersonalNotification() {
     const snap = await getDocs(query(collection(db,'notifications'),
       where('type','==','personal'), where('targetUid','==',currentUid),
       where('read','==',false)));
-    if (snap.empty) return;
+    if (!snap.empty){
     const unread = [];
     snap.forEach(d => unread.push({id:d.id,...d.data()}));
     unread.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
@@ -1160,6 +1160,7 @@ async function checkPersonalNotification() {
     document.getElementById('pnModalTime').textContent = formatTime(n.createdAt);
     document.getElementById('personalNotifModal').classList.add('open');
     await updateDoc(doc(db,'notifications',n.id), {read:true});
+    }
   } catch(e) { console.warn('Personal notif check error',e); }
   // Show latest common notification as popup if not seen yet
   try {
@@ -1201,6 +1202,18 @@ window.dismissPersonalNotif = () => {
 window.dismissCommonNotif = () => {
   document.getElementById('commonNotifModal').classList.remove('open');
   try { localStorage.setItem('lastCommonNotifSeen', _lastCommonNotifId); } catch(_) {}
+  // Clear the unread badge immediately
+  const notifCount = document.getElementById('notifCount');
+  const sidebarBadge = document.getElementById('sidebarNotifBadge');
+  const currentCount = parseInt(notifCount?.textContent || '0');
+  const newCount = Math.max(0, currentCount - 1);
+  if (newCount === 0) {
+    if (notifCount) notifCount.style.display = 'none';
+    if (sidebarBadge) sidebarBadge.style.display = 'none';
+  } else {
+    if (notifCount) notifCount.textContent = newCount;
+    if (sidebarBadge) sidebarBadge.textContent = newCount;
+  }
 };
 let _lastCommonNotifId = '';
 
