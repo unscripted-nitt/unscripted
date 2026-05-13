@@ -211,20 +211,21 @@
       <thead><tr>
         <th style="text-align:left;">Role</th>
         <th style="text-align:center;">Points</th>
+        <th style="text-align:left;">Guide</th>
       </tr></thead>
-      <tbody>
-        <tr><td style="font-weight:700;">HOM (Host of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">10</td></tr>
-        <tr><td style="font-weight:700;">Prepared Speech</td><td style="text-align:center;font-weight:800;color:var(--orange);">7</td></tr>
-        <tr><td style="font-weight:700;">TTM (Table Topics Master)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
-        <tr><td style="font-weight:700;">GE (General Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td></tr>
-        <tr><td style="font-weight:700;">MOM (Minutes of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">4</td></tr>
-        <tr><td style="font-weight:700;">Speech Evaluator</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
-        <tr><td style="font-weight:700;">TTE (Table Topics Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
-        <tr><td style="font-weight:700;">Timer</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
-        <tr><td style="font-weight:700;">Listener</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
-        <tr><td style="font-weight:700;">Grammarian</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td></tr>
-        <tr><td style="font-weight:700;">Table Topic Speaker</td><td style="text-align:center;font-weight:800;color:var(--orange);">2</td></tr>
-        <tr><td style="font-weight:700;">Attendance</td><td style="text-align:center;font-weight:800;color:var(--orange);">1</td></tr>
+      <tbody id="pointsGuideBody">
+        <tr><td style="font-weight:700;">HOM (Host of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">10</td><td id="guide_hom"></td></tr>
+        <tr><td style="font-weight:700;">Prepared Speech</td><td style="text-align:center;font-weight:800;color:var(--orange);">7</td><td></td></tr>
+        <tr><td style="font-weight:700;">TTM (Table Topics Master)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td><td id="guide_ttm"></td></tr>
+        <tr><td style="font-weight:700;">GE (General Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">5</td><td id="guide_ge"></td></tr>
+        <tr><td style="font-weight:700;">MOM (Minutes of Meeting)</td><td style="text-align:center;font-weight:800;color:var(--orange);">4</td><td id="guide_mom"></td></tr>
+        <tr><td style="font-weight:700;">Speech Evaluator</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td><td id="guide_evaluator"></td></tr>
+        <tr><td style="font-weight:700;">TTE (Table Topics Evaluator)</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td><td id="guide_tte"></td></tr>
+        <tr><td style="font-weight:700;">Timer</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td><td id="guide_timer"></td></tr>
+        <tr><td style="font-weight:700;">Listener</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td><td id="guide_listener"></td></tr>
+        <tr><td style="font-weight:700;">Grammarian</td><td style="text-align:center;font-weight:800;color:var(--orange);">3</td><td id="guide_grammarian"></td></tr>
+        <tr><td style="font-weight:700;">Table Topic Speaker</td><td style="text-align:center;font-weight:800;color:var(--orange);">2</td><td id="guide_tt"></td></tr>
+        <tr><td style="font-weight:700;">Attendance</td><td style="text-align:center;font-weight:800;color:var(--orange);">1</td><td></td></tr>
       </tbody>
     </table>
   </div>
@@ -546,6 +547,7 @@ onAuthStateChanged(auth, async user => {
   loadNotifications();
   loadFeedbackSectionEvents();
   loadVoting();
+  loadRoleGuidesForPointsPage();
   checkActiveMeet();
 
   // req 4: Personal notification modal on login
@@ -569,6 +571,21 @@ window.showSection = function(id) {
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
 };
 
+async function loadRoleGuidesForPointsPage() {
+  try {
+    const snap = await getDoc(doc(db,'settings','roleGuides'));
+    if (!snap.exists()) return;
+    const guides = snap.data();
+    const keys = ['hom','ttm','ge','mom','evaluator','tte','timer','listener','grammarian','tt'];
+    keys.forEach(k => {
+      const cell = document.getElementById('guide_'+k);
+      if (cell && guides[k]) {
+        cell.innerHTML = `<a href="${guides[k]}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.8rem;">View Guide →</a>`;
+      }
+    });
+  } catch(e) { console.warn('Role guides load error',e); }
+}
+  
 // ── LOAD EVENTS CACHE ────────────────────────────────────
 async function loadAllEvents() {
   try {
