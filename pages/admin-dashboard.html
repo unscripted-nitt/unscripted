@@ -155,6 +155,15 @@
             <tbody id="roleTableBody"></tbody>
           </table>
         </div>
+        <div class="card" style="margin-top:1.5rem;border:1px solid rgba(198,40,40,0.15);">
+  <h4 style="margin:0 0 0.5rem;color:var(--text);">Danger Zone</h4>
+  <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1rem;">
+    Clears all leaderboard totals to zero. <strong>No data is deleted</strong> — roles, attendance, and member records are untouched. New events added after this point will start accumulating again.
+  </p>
+  <button onclick="clearLeaderboard()" style="background:#fff0f0;color:#c62828;border:1px solid rgba(198,40,40,0.2);padding:0.6rem 1.4rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.82rem;">
+    Clear Leaderboard (Reset to Zero)
+  </button>
+</div>
       </div>
     </div>
 
@@ -843,6 +852,16 @@ window.deleteUser = async (uid, name) => {
   catch(e) { alert('Delete failed: '+e.message); }
 };
 
+window.clearLeaderboard = async () => {
+  if (!confirm('Clear the leaderboard? Totals will reset to zero. No data is deleted — only the leaderboard display resets from this point forward.')) return;
+  if (!confirm('Second confirmation: proceed with leaderboard reset?')) return;
+  try {
+    await setDoc(doc(db, 'settings', 'leaderboard'), { resetAt: serverTimestamp() }, { merge: true });
+    alert('Leaderboard cleared! Only events from this point forward will count.');
+    loadMeetRoles();
+  } catch(e) { alert('Failed: ' + e.message); }
+};
+
 // ── EDIT MODAL ───────────────────────────────────────────
 window.openEditModal = (uid) => {
   const u = allUsers.find(x=>x.id===uid); if (!u) return;
@@ -1457,61 +1476,73 @@ window.saveMeetRoles = async () => {
 // ── MATRIX ───────────────────────────────────────────────
 const MATRIX_HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
 
-function loadMeetRoles() {
+async function loadMeetRoles() {
   document.getElementById('roleTableHeader').innerHTML = MATRIX_HEADERS.map((h, i) =>
     `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;
       ${i === 0 ? 'text-align:left;' : 'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
   ).join('');
- 
+
   const tbody = document.getElementById('roleTableBody');
   rolesDataList = []; tbody.innerHTML = '';
   const f = v => v === 0 ? '' : v;
   const activeUsers = allUsers.filter(u => u.isActive !== false);
- 
+
   if (!activeUsers.length) {
     tbody.innerHTML = `<tr><td colspan="${MATRIX_HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No active members.</td></tr>`;
     return;
   }
- 
+
+  // Fetch leaderboard reset timestamp
+  let resetAt = null;
+  try {
+    const rSnap = await getDoc(doc(db, 'settings', 'leaderboard'));
+    if (rSnap.exists() && rSnap.data().resetAt) resetAt = rSnap.data().resetAt.toDate();
+  } catch(_) {}
+
+  const filteredEvents = resetAt
+    ? allEventsCache.filter(e => {
+        try { return (e.date?.toDate ? e.date.toDate() : new Date(e.date)) > resetAt; } catch(_) { return true; }
+      })
+    : allEventsCache;
+
   const rows = activeUsers.map(u => {
     let c = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, listener:0, grammarian:0, attendance:0, mom:0 };
-    allEventsCache.forEach(e => {
+    filteredEvents.forEach(e => {
       const rm = e.roles || {};
       for (const [rk, uid] of Object.entries(rm)) {
         if (uid !== u.id) continue;
-        if      (rk.startsWith('hom'))                        c.hom++;
-        else if (rk.startsWith('speaker'))                    c.speaker++;
-        else if (rk.startsWith('evaluator'))                  c.evaluator++;
-        else if (rk === 'ttm')                                c.ttm++;
-        else if (rk === 'tte')                                c.tte++;
-        else if (rk === 'ge')                                 c.ge++;
-        else if (rk === 'timer')                              c.timer++;
+        if      (rk.startsWith('hom'))                              c.hom++;
+        else if (rk.startsWith('speaker'))                          c.speaker++;
+        else if (rk.startsWith('evaluator'))                        c.evaluator++;
+        else if (rk === 'ttm')                                      c.ttm++;
+        else if (rk === 'tte')                                      c.tte++;
+        else if (rk === 'ge')                                       c.ge++;
+        else if (rk === 'timer')                                    c.timer++;
         else if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte') c.tt++;
-        else if (rk === 'momTaker' || rk === 'momPres')       c.mom++;
-        else if (rk === 'listener')                           c.listener++;
-        else if (rk === 'grammarian')                         c.grammarian++;
+        else if (rk === 'momTaker' || rk === 'momPres')             c.mom++;
+        else if (rk === 'listener')                                 c.listener++;
+        else if (rk === 'grammarian')                               c.grammarian++;
       }
       if (e.attended?.includes(u.id)) c.attendance++;
     });
- 
+
     const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
                         c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
                         c.attendance*1 + c.mom*4;
- 
-    // "Roles" = meaningful assigned roles only — excludes table topic speakers
-    const totalRoles = c.hom + c.speaker + c.evaluator + c.ttm + c.tte +
-                       c.ge  + c.timer   + c.listener  + c.grammarian + c.mom;
-    // (c.tt intentionally excluded from totalRoles)
- 
+
+    // speaker and tt excluded from Roles count (same as Table Topics)
+    const totalRoles = c.hom + c.evaluator + c.ttm + c.tte +
+                       c.ge  + c.timer + c.listener + c.grammarian + c.mom;
+
     return { name: u.name, hom: f(c.hom), speaker: f(c.speaker), evaluator: f(c.evaluator),
              ttm: f(c.ttm), tte: f(c.tte), ge: f(c.ge), timer: f(c.timer), tt: f(c.tt),
              listener: f(c.listener), grammarian: f(c.grammarian), attendance: f(c.attendance),
              mom: f(c.mom), totalRoles: f(totalRoles), _pts: totalPoints };
   });
- 
+
   rows.sort((a, b) => b._pts - a._pts);
   rolesDataList = rows.map(r => ({ ...r, points: r._pts || '' }));
- 
+
   tbody.innerHTML = rows.map(r => `<tr style="border-bottom:1px solid var(--border);">
     <td style="padding:0.9rem;font-weight:700;">${r.name}</td>
     ${[r.hom, r.speaker, r.evaluator, r.ttm, r.tte, r.ge, r.timer, r.tt,
