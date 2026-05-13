@@ -103,6 +103,10 @@
 
       <h2 class="section-title">My Progress</h2>
       <p class="section-sub">Your speech curriculum journey at a glance</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>This page tracks your speech curriculum progress. Each time you give a prepared speech at a meet, your project automatically advances. Click any project card to see its guide and details.</span>
+</div>
 
       <div class="stats-cards" id="progressStats">
         <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Done</div></div>
@@ -130,6 +134,10 @@
     <div class="dash-section" id="section-analysis">
       <h2 class="section-title">Speech Analysis</h2>
       <p class="section-sub">Visual breakdown of your speaking skills and feedback scores</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Charts here are built from feedback other members have submitted for your speeches. The radar shows your average scores across 8 skill dimensions. Data populates once you have received at least one feedback response.</span>
+</div>
       <div class="card">
         <h3>Skill Radar</h3>
         <p style="color:var(--text-mid);font-size:0.88rem;margin-bottom:1rem;">Based on feedback across speech dimensions</p>
@@ -157,6 +165,10 @@
     <div class="dash-section" id="section-achievements">
       <h2 class="section-title">Achievements</h2>
       <p class="section-sub">Badges and recognitions earned on your Unscripted journey</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Badges unlock automatically as you hit milestones. <strong>Meeting Awards</strong> are given by the admin after a voting session. <strong>My Upcoming Roles</strong> shows your assignment for the next meet. <strong>Role History</strong> is private — only you can see it.</span>
+</div>
 
       <!-- Win badges (req 15) -->
       <div class="card" id="winBadgesCard" style="display:none;margin-bottom:1.5rem;border:2px solid rgba(255,200,0,0.4);">
@@ -190,6 +202,10 @@
 <div class="dash-section" id="section-points">
   <h2 class="section-title">Points Guide</h2>
   <p class="section-sub">Points earned per role in every meeting</p>
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:600px;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Every role you play at a meeting earns you points. These points accumulate on the leaderboard. Points are assigned automatically when the admin saves the role assignments for a meet.</span>
+</div>
   <div class="card" style="max-width:600px;">
     <table style="min-width:auto;">
       <thead><tr>
@@ -220,6 +236,10 @@
     <div class="dash-section" id="section-leaderboard">
       <h2 class="section-title">Club Leaderboard</h2>
       <p class="section-sub">Historical role involvement and aggregated activity points</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Points are earned for every role you play at a meet. Sorted by total points. The <strong>Roles</strong> column counts major roles only — speeches and table topic slots are tracked separately. Check the <strong>Points Guide</strong> in the sidebar to see how much each role is worth.</span>
+</div>
       <div class="card" style="padding:0;">
         <div class="scroll-container" style="padding:1.5rem;">
           <table style="min-width:1400px;" id="leaderboardTable">
@@ -236,6 +256,10 @@
     <div class="dash-section" id="section-mentorship">
       <h2 class="section-title">Mentor &amp; Mentee</h2>
       <p class="section-sub">Your personal support network</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Your mentor is assigned by the admin and is your go-to person for guidance on speeches and club activities. If you are a mentor yourself, your mentees will appear below.</span>
+</div>
       <div class="card">
         <h3>Your Mentor</h3>
         <div id="mentorInfo"><p style="color:var(--text-mid);">Loading...</p></div>
@@ -252,6 +276,10 @@
     <div class="dash-section" id="section-attendance">
       <h2 class="section-title">Attendance</h2>
       <p class="section-sub">Your meet attendance record</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Attendance is marked by the admin after each meet. Each meet you attend earns 1 point on the leaderboard. <strong>P</strong> = Present, <strong>A</strong> = Absent.</span>
+</div>
       <div class="card">
         <div class="att-summary">
           <div class="att-stat"><div class="num" id="attPresent">—</div><div class="lbl">Present</div></div>
@@ -279,6 +307,10 @@
     <div class="dash-section" id="section-notifications">
       <h2 class="section-title">Notifications</h2>
       <p class="section-sub">Club announcements and personal messages</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span><strong>Personal messages</strong> are sent directly to you by the admin — they also appear as a pop-up on your next login. <strong>Club announcements</strong> are broadcast to all members for meet updates and general news.</span>
+</div>
 
       <div class="card" id="personalNotifsCard" style="display:none;border:1px solid rgba(255,87,34,0.2);">
         <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;color:var(--orange);">
@@ -301,6 +333,10 @@
     <div class="dash-section" id="section-feedback">
       <h2 class="section-title">Give Feedback</h2>
       <p class="section-sub">Rate and provide written feedback for a speaker from a recent meeting</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>Select a past meeting and a speaker to rate their speech across 8 dimensions. Your feedback is anonymous to the speaker — they only see the average scores. Rate at least 3 categories to submit.</span>
+</div>
 
       <div class="card">
         <h3>Select Speaker</h3>
@@ -350,6 +386,10 @@
     <div class="dash-section" id="section-voting">
       <h2 class="section-title">Give Vote</h2>
       <p class="section-sub">Vote anonymously for the best performers of the meeting</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span>After each meet, the admin opens a short voting window. Vote for the best speaker, evaluator, table topic speaker, and role player. Voting is completely anonymous — your identity is never linked to your choices.</span>
+</div>
 
       <div id="votingContainer">
         <div class="card" style="text-align:center;padding:3rem;">
