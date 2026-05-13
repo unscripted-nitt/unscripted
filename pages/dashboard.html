@@ -628,6 +628,7 @@ async function renderProgress() {
  
     // ── Build step HTML ────────────────────────────────────
     const stepsContainer = document.getElementById('pathwaySteps');
+    window._projCache = {};
     let html = '';
  
     for (const levelKey of levelsToShow) {
@@ -639,30 +640,34 @@ async function renderProgress() {
         ${pathwayNames[levelKey] || levelKey}</div>`;
  
       ranges.forEach((range, i) => {
-        const isDone    = speechIndex > range.e;
-        const isActive  = !isDone && speechIndex >= range.s;
-        const isPending = !isDone && !isActive;
- 
-        const projData  = firestoreProjs[i];
-        const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
-        const projDesc = typeof proj === 'object' ? (proj.purpose || '') : '';
-        const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
-        const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
- 
-        const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
-        const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
-        const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i + 1);
- 
-        html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
-          onclick='showSpeechDetails(${JSON.stringify(projData || range.label)}, "${levelKey}", ${i + 1}, "${guideLink}")'>
-          <div class="step-num ${numClass}">${icon}</div>
-          <div class="step-info">
-            <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
-            <p>${projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label}</p>
-          </div>
-          ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
-        </div>`;
-      });
+  const isDone    = speechIndex > range.e;
+  const isActive  = !isDone && speechIndex >= range.s;
+  const isPending = !isDone && !isActive;
+
+  const projData  = firestoreProjs[i];
+  const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
+  const projDesc  = typeof projData === 'object' ? (projData.purpose || '') : '';
+  const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
+  const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
+
+  const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
+  const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
+  const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i + 1);
+
+  // Cache the project data so onclick never has to inline JSON
+  const cacheKey = `${levelKey}_${i}`;
+  window._projCache[cacheKey] = projData || range.label;
+
+  html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
+    onclick="showSpeechDetails(window._projCache['${cacheKey}'], '${levelKey}', ${i + 1}, '${guideLink.replace(/'/g, "\\'")}')">
+    <div class="step-num ${numClass}">${icon}</div>
+    <div class="step-info">
+      <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
+      <p>${projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label}</p>
+    </div>
+    ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
+  </div>`;
+});
     }
  
     // ── L3 Elective Picker (shown when L2 exists and no L3 chosen yet) ──
