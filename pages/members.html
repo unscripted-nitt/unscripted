@@ -113,7 +113,56 @@ function renderMembers(members) {
     grid.innerHTML = '<p style="color:var(--text-light);text-align:center;grid-column:1/-1;padding:2rem;">No members found.</p>';
     return;
   }
-  grid.innerHTML = members.map((m,i) => {
+  // Group by batch
+  const batches = {};
+  members.forEach((m,i) => {
+    const batch = m.batch || 'Others';
+    if (!batches[batch]) batches[batch] = [];
+    batches[batch].push({...m, _idx: i});
+  });
+  // Sort batches descending
+  const sortedBatches = Object.keys(batches).sort((a,b) => b.localeCompare(a));
+  let html = '<div style="grid-column:1/-1;">';
+  sortedBatches.forEach(batch => {
+    const bMembers = batches[batch];
+    html += `
+      <div style="margin-bottom:1.5rem;">
+        <button onclick="toggleBatch('batch_${batch.replace(/\s/g,'_')}')"
+          style="display:flex;align-items:center;gap:0.75rem;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.25rem;cursor:pointer;font-weight:800;font-size:0.95rem;color:var(--text);text-align:left;margin-bottom:0.75rem;">
+          <i class="fa-solid fa-chevron-down" id="icon_batch_${batch.replace(/\s/g,'_')}" style="color:var(--orange);font-size:0.75rem;transition:0.2s;"></i>
+          Batch ${batch}
+          <span style="margin-left:auto;font-size:0.75rem;font-weight:600;color:var(--text-light);">${bMembers.length} member${bMembers.length!==1?'s':''}</span>
+        </button>
+        <div id="batch_${batch.replace(/\s/g,'_')}" class="members-grid" style="display:grid;">
+          ${bMembers.map((m,i) => {
+            const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+            const color = m.avatarColor || COLORS[m._idx % COLORS.length];
+            const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
+            const roleColor = m.role === 'core' || m.role === 'admin' ? 'var(--orange)' : 'var(--text-light)';
+            const avatarContent = m.photoUrl ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />` : initials;
+            return `<div class="member-card fade-up visible">
+              <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
+              <h3>${m.name||'Member'}</h3>
+              <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
+              ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+              <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+window.toggleBatch = function(id) {
+  const el = document.getElementById(id);
+  const icon = document.getElementById('icon_'+id);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'grid' : 'none';
+  if (icon) icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+};
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const color = m.avatarColor || COLORS[i % COLORS.length];
     const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
