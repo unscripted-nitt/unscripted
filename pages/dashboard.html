@@ -422,10 +422,10 @@
 
 <!-- ── COMMON NOTIFICATION MODAL ──────────────────────── -->
 <div class="modal-overlay" id="commonNotifModal">
-  <div class="modal-card" style="border-top:4px solid #3b82f6;max-width:500px;">
+  <div class="modal-card" style="border-top:4px solid var(--orange);max-width:500px;">
     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
-      <div style="width:44px;height:44px;background:rgba(59,130,246,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-        <i class="fa-solid fa-bullhorn" style="color:#3b82f6;font-size:1.2rem;"></i>
+      <div style="width:44px;height:44px;background:var(--orange-light);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-bullhorn" style="color:var(--orange);font-size:1.2rem;"></i>
       </div>
       <div>
         <h3 style="margin:0;font-size:1.2rem;" id="cnModalTitle">Club Announcement</h3>
@@ -433,7 +433,7 @@
       </div>
     </div>
     <p id="cnModalBody" style="font-size:1rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;"></p>
-    <button class="btn-primary" style="width:100%;background:#3b82f6;" onclick="dismissCommonNotif()">Got it</button>
+    <button class="btn-primary" style="width:100%;" onclick="dismissCommonNotif()">Got it, continue to dashboard</button>
   </div>
 </div>
   
