@@ -128,6 +128,15 @@
     <div class="dash-section active" id="section-insights">
       <h1 class="section-title">Club Insights</h1>
       <p class="section-sub">Live overview of club activity</p>
+      <div style="background:var(--orange-light);border:1px solid rgba(255,87,34,0.18);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:0.75rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+        <div style="font-size:0.83rem;color:var(--text-mid);line-height:1.6;">
+          <strong style="color:var(--text);">Welcome to Admin Command.</strong> Use the sidebar to navigate between modules.
+          Start by adding members via <strong>Member Control → Edit</strong>, then create events in <strong>Event Manager</strong>,
+          assign roles in <strong>Role Assignments</strong>, and mark attendance in <strong>Bulk Attendance</strong>.
+          The leaderboard and stats update automatically.
+        </div>
+      </div>
       <div class="grid-insights">
         <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">—</div></div>
         <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">—</div></div>
@@ -144,6 +153,11 @@
     <div class="dash-section" id="section-matrix">
       <h1 class="section-title">Leaderboard Matrix</h1>
       <p class="section-sub">Aggregated role points and involvement across all meetings</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>This table is read-only and auto-calculated from all saved role assignments and attendance.
+        Sorted by total points (descending). Inactive members are excluded. Use <strong>Export CSV</strong> to share with leadership.</span>
+      </div>
       <div class="card" style="padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem;">
           <h3 style="margin:0;">Activity Matrix</h3>
@@ -155,23 +169,19 @@
             <tbody id="roleTableBody"></tbody>
           </table>
         </div>
-        <div class="card" style="margin-top:1.5rem;border:1px solid rgba(198,40,40,0.15);">
-  <h4 style="margin:0 0 0.5rem;color:var(--text);">Danger Zone</h4>
-  <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1rem;">
-    Clears all leaderboard totals to zero. <strong>No data is deleted</strong> — roles, attendance, and member records are untouched. New events added after this point will start accumulating again.
-  </p>
-  <button onclick="clearLeaderboard()" style="background:#fff0f0;color:#c62828;border:1px solid rgba(198,40,40,0.2);padding:0.6rem 1.4rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.82rem;">
-    Clear Leaderboard (Reset to Zero)
-  </button>
-</div>
       </div>
     </div>
 
     <!-- ═══════════════ MEMBER CONTROL ═══════════════ -->
     <div class="dash-section" id="section-users">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
         <h1 class="section-title" style="margin:0;">Member Control</h1>
         <input type="text" id="userSearch" placeholder="Search by name, email..." style="max-width:300px;" oninput="filterUsers()" />
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>Click <strong>Edit</strong> on any member to update their speech project, pathway level, assigned mentor, or toggle active/inactive status.
+        <strong>Inactive members</strong> are hidden from all dropdowns and the leaderboard, but their historical attendance is preserved.</span>
       </div>
       <div class="card" style="padding:0;overflow-x:auto;">
         <table>
@@ -252,6 +262,11 @@
     <div class="dash-section" id="section-attendance">
       <h1 class="section-title">Club Attendance</h1>
       <p class="section-sub">Select a meeting event and mark member attendance</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>Pick the event, check off everyone who attended, then click <strong>Save Meeting Attendance</strong>.
+        Each member gets +1 attendance point. Attendance is also visible on each member's personal dashboard.</span>
+      </div>
       <div class="card" style="max-width:960px;">
         <div class="admin-grid-2">
           <div style="display:flex;flex-direction:column;gap:1.25rem;">
@@ -288,6 +303,12 @@
     <div class="dash-section" id="section-roles">
       <h1 class="section-title">Meeting Role Assignments</h1>
       <p class="section-sub">Assign roles to members. Selections add badges to their profile.</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>Select the event, assign each role to a member, then click <strong>Save</strong>.
+        Saving auto-increments the speech project for anyone assigned as a <strong>Prepared Speaker</strong>.
+        Points are calculated automatically in the leaderboard based on roles saved here.</span>
+      </div>
       <div class="card" style="max-width:960px;">
         <div class="form-group" style="max-width:500px;margin-bottom:2rem;">
           <label class="form-label">Select Event</label>
@@ -306,6 +327,11 @@
     <div class="dash-section" id="section-voting">
       <h1 class="section-title">Voting Manager</h1>
       <p class="section-sub">Create anonymous post-meeting voting sessions and view results</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>After a meet, create a voting session for that event. Candidates are auto-filled from role assignments.
+        Members vote anonymously from their dashboards. View results here and click <strong>Award Badge</strong> to permanently mark the winners on their profiles.</span>
+      </div>
 
       <!-- Create session -->
       <div class="card" style="max-width:760px;margin-bottom:2rem;">
@@ -369,13 +395,36 @@
         </div>
         <div id="pathwayProjectsList"><p style="color:var(--text-mid);">Select a pathway above.</p></div>
       </div>
+
+      <!-- Role Documentation Links -->
+      <div class="card" style="margin-top:1.5rem;border:1.5px solid rgba(255,87,34,0.15);">
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;">
+          <i class="fa-solid fa-book-open" style="color:var(--orange);"></i> Role Documentation Links
+        </h3>
+        <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.5rem;">
+          Add a guide/documentation link for each meeting role. These appear in the member dashboard's Point Guide so members can understand what each role involves before volunteering.
+        </p>
+        <div id="roleDocsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;">
+          <p style="color:var(--text-mid);">Loading role docs...</p>
+        </div>
+        <button class="btn-primary" onclick="saveRoleDocs()" style="padding:0.9rem 2rem;border-radius:100px;">
+          Save Role Documentation Links &rarr;
+        </button>
+        <div id="roleDocsStatus" style="display:none;margin-top:1rem;font-size:0.88rem;font-weight:600;padding:0.75rem;border-radius:var(--radius-sm);"></div>
+      </div>
     </div>
 
     <!-- ═══════════════ EVENTS ═══════════════ -->
     <div class="dash-section" id="section-events">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
         <h1 class="section-title" style="margin:0;">Event Manager</h1>
         <button class="btn-primary" onclick="toggleEventForm()" id="toggleEventBtn"><i class="fa-solid fa-plus"></i> Add Event</button>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span>Events appear on the public homepage and in all member dropdowns.
+        Use <strong>Go Live</strong> to mark an event as currently happening — this shows a live banner on every member's dashboard.
+        Add a <strong>Gallery link</strong> for photos and a <strong>Documentation link</strong> for the event's agenda or running notes.</span>
       </div>
 
       <!-- Add/Edit form -->
@@ -411,6 +460,13 @@
             <input type="url" id="evGalleryLink" placeholder="https://photos.google.com/..." />
           </div>
 
+          <!-- Documentation link per event -->
+          <div class="form-group">
+            <label class="form-label">Event Documentation Link <span style="font-size:0.68rem;font-weight:400;color:var(--text-mid);">(agenda, running sheet, notes etc.)</span></label>
+            <input type="url" id="evDocLink" placeholder="https://drive.google.com/..." />
+            <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.35rem;">Paste a Drive or Notion link with the event's agenda, roles documentation, or any working notes for this particular meet.</p>
+          </div>
+
           <!-- req 5: Video links per event -->
           <div>
             <label class="form-label" style="margin-bottom:0.75rem;">Event Video Links</label>
@@ -434,11 +490,12 @@
             <th style="padding-left:1.5rem;">Event Details</th>
             <th>Status</th>
             <th>Gallery</th>
+            <th>Docs</th>
             <th>Videos</th>
             <th style="text-align:right;padding-right:1.5rem;">Actions</th>
           </tr></thead>
           <tbody id="adminEventsTableBody">
-            <tr><td colspan="5" style="padding:3rem;text-align:center;color:var(--text-mid);">Loading events...</td></tr>
+            <tr><td colspan="6" style="padding:3rem;text-align:center;color:var(--text-mid);">Loading events...</td></tr>
           </tbody>
         </table>
       </div>
@@ -548,6 +605,11 @@
     <div class="dash-section" id="section-notifications">
       <h1 class="section-title">Send Notification</h1>
       <p class="section-sub">Broadcast to all members, or send a personal message to a specific member</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--text-light);margin-top:2px;flex-shrink:0;"></i>
+        <span><strong>Club Announcement</strong> — visible to all members in their Notifications tab. Use for meet schedules, reminders, or updates.
+        <strong>Personal Message</strong> — shows as a pop-up modal on that specific member's next login. Use for individual feedback or warnings.</span>
+      </div>
 
       <div class="admin-grid-2">
         <!-- Common notification -->
@@ -681,47 +743,37 @@
 <div class="modal-overlay" id="pathwayModal">
   <div class="modal-card" style="max-width:600px;">
     <button class="modal-close" onclick="closePathwayModal()">&times;</button>
-
-    <h2 style="margin-top:0;font-size:1.4rem;" id="pathwayModalTitle">
-      Edit Project
-    </h2>
-
+    <h2 style="margin-top:0;font-size:1.4rem;" id="pathwayModalTitle">Edit Project</h2>
     <input type="hidden" id="pmPathwayKey" />
     <input type="hidden" id="pmProjectIndex" />
-
     <div style="display:flex;flex-direction:column;gap:1.1rem;">
-
       <div class="form-group">
         <label class="form-label">Project Name</label>
         <input type="text" id="pmName" placeholder="e.g. The Ice Breaker" />
       </div>
-
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="pmDesc" rows="3" placeholder="What this project is about..."></textarea>
+      </div>
       <div class="form-group">
         <label class="form-label">Purpose Statement</label>
-        <textarea id="pmPurpose" rows="4" placeholder="The Icebreaker speech is your first step into..."></textarea>
+        <input type="text" id="pmPurpose" placeholder="To learn X by doing Y..." />
       </div>
-
       <div class="form-group">
         <label class="form-label">Objectives</label>
         <textarea id="pmObjectives" rows="2" placeholder="What the member will achieve..."></textarea>
       </div>
-
+      <!-- req 9: guide link per project -->
       <div class="form-group">
-        <label class="form-label" style="color:var(--orange);">Guide Link (per project)</label>
+        <label class="form-label" style="color:var(--orange);">Guide Link (per project — req 9)</label>
         <input type="url" id="pmGuideLink" placeholder="https://drive.google.com/..." />
-        <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">
-          Members will see a prominent "Open Speech Guide" button for this specific project.
-        </p>
+        <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">Members will see a prominent "Open Speech Guide" button for this specific project.</p>
       </div>
-
-      <button class="btn-primary" onclick="saveProjectEdit()" style="width:100%;padding:1rem;border-radius:100px;">
-        Save Project →
-      </button>
-
+      <button class="btn-primary" onclick="saveProjectEdit()" style="width:100%;padding:1rem;border-radius:100px;">Save Project &rarr;</button>
     </div>
   </div>
 </div>
-  
+
 <!-- ─────────────────────────────────────────────────── -->
 <script type="module">
 import { auth, db, storage } from '../js/firebase-config.js';
@@ -754,6 +806,7 @@ onAuthStateChanged(auth, async user => {
   loadVideos();
   loadSentNotifications();
   loadVotingSessions();
+  loadRoleDocs();
 });
 
 window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
@@ -800,45 +853,36 @@ function updateInsights() {
 function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
   tbody.innerHTML = allUsers.map(u => {
-    // ── Compute attendance live from events, not the stale u.attendance[] ──
-    const totalMeets  = allEventsCache.length;
-    const presentCount = allEventsCache.filter(e => e.attended?.includes(u.id)).length;
-    const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
- 
-    const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
-    const isActive   = u.isActive !== false;
- 
+    const att = u.attendance || [];
+    const pct = att.length ? Math.round(att.filter(a=>a.present).length/att.length*100) : 0;
+    const mentorName = u.mentor ? (allUsers.find(x=>x.id===u.mentor)?.name||'—') : '—';
+    const isActive = u.isActive !== false;
     return `<tr>
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${u.name}</div>
-        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
-        ${u.role === 'admin' || u.role === 'core'
-          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
-          : ''}
+        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email||''}</div>
+        ${u.role==='admin'||u.role==='core'?`<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`:''}
       </td>
-      <td>
-        <span style="font-weight:800;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;">
-          ${u.pathway || 'L1P1'}
-        </span>
-      </td>
+      <td><span style="font-weight:800;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;">${u.pathway||'L1P1'}</span></td>
       <td><span style="font-size:0.88rem;">${mentorName}</span></td>
       <td>
         <div style="font-weight:800;">${pct}%</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} meets</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${att.length} sessions</div>
       </td>
       <td>
-        <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
-        <span style="font-size:0.8rem;font-weight:700;">${isActive ? 'Active' : 'Inactive'}</span>
+        <span style="width:10px;height:10px;border-radius:50%;background:${isActive?'#4CAF50':'#f44336'};display:inline-block;margin-right:0.4rem;"></span>
+        <span style="font-size:0.8rem;font-weight:700;">${isActive?'Active':'Inactive'}</span>
       </td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
           <button class="btn-primary btn-sm" onclick="openEditModal('${u.id}')">Edit</button>
-          <button class="btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name?.replace(/'/g, "\\'")}')">Delete</button>
+          <button class="btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name?.replace(/'/g,'\\\\\'')}')" title="Delete member">Delete</button>
         </div>
       </td>
     </tr>`;
   }).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-mid);">No members found.</td></tr>';
 }
+
 window.filterUsers = () => {
   const q = document.getElementById('userSearch').value.toLowerCase();
   document.querySelectorAll('#userTableBody tr').forEach(r => {
@@ -850,16 +894,6 @@ window.deleteUser = async (uid, name) => {
   if (!confirm(`Delete member "${name}"? This cannot be undone.`)) return;
   try { await deleteDoc(doc(db,'users',uid)); await loadAllData(); alert('Member deleted.'); }
   catch(e) { alert('Delete failed: '+e.message); }
-};
-
-window.clearLeaderboard = async () => {
-  if (!confirm('Clear the leaderboard? Totals will reset to zero. No data is deleted — only the leaderboard display resets from this point forward.')) return;
-  if (!confirm('Second confirmation: proceed with leaderboard reset?')) return;
-  try {
-    await setDoc(doc(db, 'settings', 'leaderboard'), { resetAt: serverTimestamp() }, { merge: true });
-    alert('Leaderboard cleared! Only events from this point forward will count.');
-    loadMeetRoles();
-  } catch(e) { alert('Failed: ' + e.message); }
 };
 
 // ── EDIT MODAL ───────────────────────────────────────────
@@ -879,47 +913,25 @@ window.closeModal = () => document.getElementById('editModal').classList.remove(
 
 function populateMentorDropdown() {
   document.getElementById('editMentor').innerHTML =
-  '<option value="">(None)</option>' + allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    '<option value="">(None)</option>' + allUsers.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
 }
 
-//
-// When admin sets a pathway label (e.g. "L2P5") manually, we also compute
-// and write the correct speechIndex so the member dashboard stays in sync.
-//
 window.saveUserChanges = async () => {
   const uid = document.getElementById('editUid').value; if (!uid) return;
-  const btn = event.target; btn.disabled = true; btn.textContent = 'Saving...';
- 
-  const newPathway    = document.getElementById('editPathway').value || 'L1P1';
-  const newPathwayKey = document.getElementById('editPathwayKey').value || 'L1';
- 
-  // Derive speechIndex from the admin-supplied label so the dashboard is in sync.
-  // We find the LAST occurrence of the label in the full sequence
-  // (L1P4 appears twice; "L1P4" means both speeches done → higher index wins).
-  const seq = getFullSeq(newPathwayKey);
-  let newSpeechIndex = 0;
-  seq.forEach((s, i) => { if (s.label === newPathway) newSpeechIndex = i + 1; });
-  // If no match found (admin typed a valid label not in sequence for that key)
-  // fall back to 0 so the member simply shows "not started".
- 
+  const btn = event.target; btn.disabled=true; btn.textContent='Saving...';
   try {
-    await updateDoc(doc(db, 'users', uid), {
-      pathway:     newPathway,
-      pathwayKey:  newPathwayKey,
-      speechIndex: newSpeechIndex,
-      role:    document.getElementById('editRole').value    || 'user',
-      mentor:  document.getElementById('editMentor').value  || '',
-      points:  parseInt(document.getElementById('editPoints').value) || 0,
+    await updateDoc(doc(db,'users',uid), {
+      pathway: document.getElementById('editPathway').value||'L1P1',
+      pathwayKey: document.getElementById('editPathwayKey').value||'L1',
+      role: document.getElementById('editRole').value||'user',
+      mentor: document.getElementById('editMentor').value||'',
+      points: parseInt(document.getElementById('editPoints').value)||0,
       isActive: document.getElementById('editIsActive').checked,
     });
     alert('Profile updated!'); closeModal(); loadAllData();
-  } catch (e) {
-    alert('Failed: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Apply Changes →';
-  }
+  } catch(e) { alert('Failed: '+e.message); }
+  finally { btn.disabled=false; btn.textContent='Apply Changes \u2192'; }
 };
- 
 
 // ── EXCEL UPLOAD (req 8) ─────────────────────────────────
 let excelData = [];
@@ -1003,8 +1015,8 @@ window.importExcelToFirestore = async function() {
 // Member photo upload
 function populateMemberPhotoSelect() {
   const sel = document.getElementById('photoMemberSelect');
-  sel.innerHTML = '<option value="">-- Select Member --</option>' +
-    allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  sel.innerHTML = '<option value="">-- Select member --</option>' +
+    allUsers.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
 }
 
 window.previewMemberPhoto = function(input) {
@@ -1058,7 +1070,7 @@ window.filterAttList = () => {
 function renderAttendanceChecklist() {
   const list = document.getElementById('attList');
   if (!allUsers.length) { list.innerHTML='<p style="padding:2rem;text-align:center;color:var(--text-mid);">No members.</p>'; return; }
-  list.innerHTML = allUsers.filter(u => u.isActive !== false).map(u=>
+  list.innerHTML = allUsers.map(u=>
     `<label style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);cursor:pointer;">
       <input type="checkbox" id="chk-${u.id}" value="${u.id}" style="width:18px;height:18px;accent-color:var(--orange);" />
       <div><div style="font-weight:700;">${u.name}</div><div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div></div>
@@ -1113,6 +1125,7 @@ window.toggleEventForm = (show=null) => {
     document.getElementById('evDate').value='';
     document.getElementById('evDesc').value='';
     document.getElementById('evGalleryLink').value='';
+    document.getElementById('evDocLink').value='';
     document.getElementById('evVideoLinksContainer').innerHTML='';
     document.getElementById('eventFormTitle').textContent='Add New Event';
   }
@@ -1139,7 +1152,7 @@ async function loadEvents() {
     allEventsCache = []; tbody.innerHTML='';
     let optionsHtml = '<option value="">-- Choose an Event --</option>';
     if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="5" style="padding:3rem;text-align:center;color:var(--text-mid);">No events yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:3rem;text-align:center;color:var(--text-mid);">No events yet.</td></tr>';
       [roleEventSel,voteEventSel,attEventSel].forEach(s=>{if(s)s.innerHTML=optionsHtml;});
       loadMeetRoles(); renderUpcomingRoles();
       return;
@@ -1158,6 +1171,9 @@ async function loadEvents() {
       const galleryCell = e.galleryLink
         ? `<a href="${e.galleryLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>`
         : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
+      const docCell = e.docLink
+        ? `<a href="${e.docLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;color:var(--orange);border-color:var(--orange);">Docs</a>`
+        : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
       const videoCount = (e.eventVideos||[]).length;
       const videoCell = videoCount
         ? `<span style="font-weight:700;color:var(--orange);">${videoCount} link${videoCount!==1?'s':''}</span>`
@@ -1174,6 +1190,7 @@ async function loadEvents() {
             </span>
           </td>
           <td>${galleryCell}</td>
+          <td>${docCell}</td>
           <td>${videoCell}</td>
           <td style="padding-right:1.5rem;">
             <div class="action-row">
@@ -1190,7 +1207,7 @@ async function loadEvents() {
     loadMeetRoles(); renderUpcomingRoles();
     updateInsights();
   } catch(e) {
-    tbody.innerHTML=`<tr><td colspan="5" style="padding:3rem;text-align:center;color:red;">Failed to load events.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="6" style="padding:3rem;text-align:center;color:red;">Failed to load events.</td></tr>`;
   }
 }
 
@@ -1207,6 +1224,7 @@ window.editEvent = async (id) => {
     document.getElementById('evDesc').value = e.description||'';
     document.getElementById('evType').value = e.type||'upcoming';
     document.getElementById('evGalleryLink').value = e.galleryLink||'';
+    document.getElementById('evDocLink').value = e.docLink||'';
     // Re-populate video links
     const videoContainer = document.getElementById('evVideoLinksContainer');
     videoContainer.innerHTML = '';
@@ -1243,6 +1261,7 @@ window.saveEvent = async () => {
       title, date:new Date(date), description:document.getElementById('evDesc').value.trim(),
       type:document.getElementById('evType').value,
       galleryLink: document.getElementById('evGalleryLink').value.trim(),
+      docLink: document.getElementById('evDocLink').value.trim(),
       eventVideos,
       updated:serverTimestamp()
     };
@@ -1258,134 +1277,22 @@ window.toggleEventActive = async (id,active) => {
   try { await updateDoc(doc(db,'events',id),{isActive:active}); loadEvents(); }
   catch(e) { alert(e.message); }
 };
-  
-//
-// Before deleting the event document, this:
-//   a) finds every member who gave a prepared speech in this event
-//   b) decrements their speechIndex by 1 (each speaker was incremented once
-//      when roles were saved — the Set in saveMeetRoles ensures that)
-//   c) re-derives their pathway label from the new index
-//   d) removes this event's attendance from the event document
-//      (the per-user u.attendance[] array entries and leaderboard counts are
-//       live-computed from allEventsCache, so removing the event doc is enough)
-//
 window.deleteEvent = async (id) => {
-  if (!confirm('Delete this event? This will also revert speech progress for any speakers assigned in it.')) return;
- 
-  try {
-    // ── Fetch the event to inspect its roles ────────────────────────────────
-    const evSnap = await getDoc(doc(db, 'events', id));
-    if (!evSnap.exists()) { await deleteDoc(doc(db, 'events', id)); loadEvents(); return; }
-    const evData = evSnap.data();
-    const roles  = evData.roles || {};
- 
-    // ── Collect unique speaker UIDs ─────────────────────────────────────────
-    const speakerUids = new Set();
-    for (const [rk, uid] of Object.entries(roles)) {
-      if (rk.startsWith('speaker')) speakerUids.add(uid);
-    }
- 
-    // ── Revert speechIndex / pathway for each speaker ───────────────────────
-    for (const uid of speakerUids) {
-      try {
-        const uSnap = await getDoc(doc(db, 'users', uid));
-        if (!uSnap.exists()) continue;
-        const u = { id: uid, ...uSnap.data() };
- 
-        // Current index (use stored value if present, else derive from label)
-        const curIdx = typeof u.speechIndex === 'number' ? u.speechIndex : getSpeechIdx(u);
-        const newIdx = Math.max(0, curIdx - 1);
- 
-        // Derive pathway label for the new index
-        const seq    = getFullSeq(u.pathwayKey || 'L1');
-        const newItem = newIdx > 0 ? seq[newIdx - 1] : null;
- 
-        await updateDoc(doc(db, 'users', uid), {
-          speechIndex: newIdx,
-          // If newIdx is 0, keep whatever key they had but blank the label
-          pathway:    newItem ? newItem.label : '',
-          pathwayKey: newItem ? newItem.key   : (u.pathwayKey || 'L1'),
-        });
-      } catch (err) {
-        console.warn('Could not revert speech index for uid', uid, err);
-      }
-    }
- 
-    // ── Also revert per-user attendance[] entries for this event ────────────
-    // u.attendance is an array of {date, present} objects pushed per-event.
-    // We need to remove the entry whose date matches this event's date.
-    // (Leaderboard attendance is computed live from event.attended[], so
-    //  deleting the event doc covers that automatically.)
-    if (evData.attended?.length && evData.date) {
-      let eventDateStr = '';
-      try {
-        const d = evData.date.toDate ? evData.date.toDate() : new Date(evData.date);
-        eventDateStr = d.toLocaleDateString('en-IN');
-      } catch (_) {}
- 
-      if (eventDateStr) {
-        for (const attendedUid of evData.attended) {
-          try {
-            const uSnap = await getDoc(doc(db, 'users', attendedUid));
-            if (!uSnap.exists()) continue;
-            const attendance = uSnap.data().attendance || [];
-            // Remove the entry that matches this event's date
-            const filtered = attendance.filter(a => a.date !== eventDateStr);
-            if (filtered.length !== attendance.length) {
-              await updateDoc(doc(db, 'users', attendedUid), { attendance: filtered });
-            }
-          } catch (err) {
-            console.warn('Could not revert attendance for uid', attendedUid, err);
-          }
-        }
-      }
-    }
- 
-    // ── Finally delete the event document itself ─────────────────────────────
-    await deleteDoc(doc(db, 'events', id));
-    loadEvents();
-    loadAllData();
-  } catch (e) {
-    alert('Delete failed: ' + e.message);
-  }
+  if (!confirm('Delete this event?')) return;
+  try { await deleteDoc(doc(db,'events',id)); loadEvents(); }
+  catch(e) { alert(e.message); }
 };
- 
-
-// ── SPEECH SEQUENCE (Req 1) ──────────────────────────────
-const SPEECH_SEQUENCE = [
-  {label:'L1P1',key:'L1'},{label:'L1P2',key:'L1'},{label:'L1P3',key:'L1'},
-  {label:'L1P4',key:'L1'},{label:'L1P4',key:'L1'}, // L1P4 counts twice
-  {label:'L1P5',key:'L1'},{label:'L1P6',key:'L1'},
-  {label:'L2P1',key:'L2'},{label:'L2P2',key:'L2'},{label:'L2P3',key:'L2'},
-  {label:'L2P4',key:'L2'},{label:'L2P5',key:'L2'},
-];
-function getFullSeq(pKey) {
-  const l3 = pKey==='L3H'
-    ? [{label:'L3HP1',key:'L3H'},{label:'L3HP2',key:'L3H'},{label:'L3HP3',key:'L3H'},{label:'L3HP4',key:'L3H'}]
-    : [{label:'L3KP1',key:'L3K'},{label:'L3KP2',key:'L3K'},{label:'L3KP3',key:'L3K'},{label:'L3KP4',key:'L3K'}];
-  return [...SPEECH_SEQUENCE, ...l3];
-}
-function getSpeechIdx(u) {
-  if (typeof u.speechIndex === 'number') return u.speechIndex;
-  const pway = u.pathway || '';
-  const seq = getFullSeq(u.pathwayKey || 'L1');
-  let idx = 0;
-  seq.forEach((s,i) => { if (s.label === pway) idx = i + 1; });
-  return idx;
-}
 
 // ── ROLE ASSIGNMENTS ─────────────────────────────────────
 const ROLE_KEYS = [
   {id:'hom1',label:'HOM 1'},{id:'hom2',label:'HOM 2'},{id:'ttm',label:'TTM'},
   {id:'tte',label:'TTE'},{id:'ge',label:'GE'},{id:'timer',label:'Timer'},
-  {id:'momTaker',label:'MOM Taker'},{id:'momPres',label:'MOM Presenter'},
-  {id:'listener',label:'Listener'},{id:'grammarian',label:'Grammarian'}
+  {id:'momTaker',label:'MOM Taker'},{id:'momPres',label:'MOM Presenter'}
 ];
 function renderRoleDropdowns() {
   const container = document.getElementById('rolesSelectorsContainer');
   let opts = '<option value="">-- Unassigned --</option>';
-  allUsers.filter(u => u.isActive !== false).forEach(u => { opts += `<option value="${u.id}">${u.name}</option>`; });
- 
+  allUsers.forEach(u => { opts += `<option value="${u.id}">${u.name}</option>`; });
   let html = '<div class="roles-grid" style="margin-bottom:1.5rem;">';
   ROLE_KEYS.forEach(r => {
     html += `<div class="form-group">
@@ -1394,22 +1301,18 @@ function renderRoleDropdowns() {
     </div>`;
   });
   html += '</div>';
- 
-  const buildRepeater = (title, prefix, count, color) => {
-    let block = `<div style="margin-bottom:1.5rem;">
-      <h4 style="margin:0 0 1rem;color:${color};font-weight:800;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;">${title}</h4>
-      <div class="roles-grid">`;
-    for (let i = 1; i <= count; i++) {
-      block += `<div class="form-group"><label class="form-label">#${i}</label>
-        <select id="role_${prefix}${i}" class="role-select" data-key="${prefix}${i}">${opts}</select>
+  const buildRepeater = (title,prefix,count,color) => {
+    let block=`<div style="margin-bottom:1.5rem;"><h4 style="margin:0 0 1rem;color:${color};font-weight:800;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;">${title}</h4><div class="roles-grid">`;
+    for(let i=1;i<=count;i++) {
+      block+=`<div class="form-group"><label class="form-label">#${i}</label>
+        <select id="role_${prefix}${i}" class="role-select" data-key="${prefix}${i}" style="font-size:0.85rem;">${opts}</select>
       </div>`;
     }
-    return block + '</div></div>';
+    return block+'</div></div>';
   };
- 
-  html += buildRepeater('Prepared Speakers',      'speaker',   7,  'var(--orange)');
-  html += buildRepeater('Evaluators',             'evaluator', 7,  '#2196F3');
-  html += buildRepeater('Table Topics Speakers',  'tt',        15, '#9C27B0'); // ← was 7, now 15
+  html += buildRepeater('Prepared Speakers','speaker',7,'var(--orange)');
+  html += buildRepeater('Evaluators','evaluator',7,'#2196F3');
+  html += buildRepeater('Table Topics Speakers','tt',7,'#9C27B0');
   container.innerHTML = html;
 }
 
@@ -1453,109 +1356,56 @@ window.saveMeetRoles = async () => {
     for (const [uid,rolesList] of Object.entries(userUpdates)) {
       for (const r of rolesList) await updateDoc(doc(db,'users',uid),{roleBadges:arrayUnion(r)});
     }
-    // Auto-increment pathway for speakers (Req 1)
-    const speakerUids = new Set();
-    document.querySelectorAll('.role-select').forEach(sel => {
-      if (sel.value && sel.getAttribute('data-key').startsWith('speaker')) speakerUids.add(sel.value);
-    });
-    for (const uid of speakerUids) {
-      const u = allUsers.find(x => x.id === uid);
-      if (!u) continue;
-      const curIdx = getSpeechIdx(u);
-      const seq = getFullSeq(u.pathwayKey || 'L1');
-      const nextIdx = curIdx + 1;
-      if (nextIdx > seq.length) continue;
-      const newItem = seq[nextIdx - 1];
-      await updateDoc(doc(db,'users',uid), {speechIndex:nextIdx, pathway:newItem.label, pathwayKey:newItem.key});
-    }
     alert('Role Assignments Saved!'); loadEvents(); loadAllData();
   } catch(e) { alert('Error: '+e.message); }
   finally { btn.textContent='Save Role Assignments \u2192'; btn.disabled=false; }
 };
 
 // ── MATRIX ───────────────────────────────────────────────
-const MATRIX_HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
-
-async function loadMeetRoles() {
-  document.getElementById('roleTableHeader').innerHTML = MATRIX_HEADERS.map((h, i) =>
-    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;
-      ${i === 0 ? 'text-align:left;' : 'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
+const MATRIX_HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Attendance','MOM','Points','Roles'];
+function loadMeetRoles() {
+  document.getElementById('roleTableHeader').innerHTML = MATRIX_HEADERS.map((h,i) =>
+    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;${i===0?'text-align:left;':'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
   ).join('');
-
   const tbody = document.getElementById('roleTableBody');
-  rolesDataList = []; tbody.innerHTML = '';
-  const f = v => v === 0 ? '' : v;
-  const activeUsers = allUsers.filter(u => u.isActive !== false);
-
-  if (!activeUsers.length) {
-    tbody.innerHTML = `<tr><td colspan="${MATRIX_HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No active members.</td></tr>`;
-    return;
-  }
-
-  // Fetch leaderboard reset timestamp
-  let resetAt = null;
-  try {
-    const rSnap = await getDoc(doc(db, 'settings', 'leaderboard'));
-    if (rSnap.exists() && rSnap.data().resetAt) resetAt = rSnap.data().resetAt.toDate();
-  } catch(_) {}
-
-  const filteredEvents = resetAt
-    ? allEventsCache.filter(e => {
-        try { return (e.date?.toDate ? e.date.toDate() : new Date(e.date)) > resetAt; } catch(_) { return true; }
-      })
-    : allEventsCache;
-
-  const rows = activeUsers.map(u => {
-    let c = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, listener:0, grammarian:0, attendance:0, mom:0 };
-    filteredEvents.forEach(e => {
-      const rm = e.roles || {};
-      for (const [rk, uid] of Object.entries(rm)) {
-        if (uid !== u.id) continue;
-        if      (rk.startsWith('hom'))                              c.hom++;
-        else if (rk.startsWith('speaker'))                          c.speaker++;
-        else if (rk.startsWith('evaluator'))                        c.evaluator++;
-        else if (rk === 'ttm')                                      c.ttm++;
-        else if (rk === 'tte')                                      c.tte++;
-        else if (rk === 'ge')                                       c.ge++;
-        else if (rk === 'timer')                                    c.timer++;
-        else if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte') c.tt++;
-        else if (rk === 'momTaker' || rk === 'momPres')             c.mom++;
-        else if (rk === 'listener')                                 c.listener++;
-        else if (rk === 'grammarian')                               c.grammarian++;
+  rolesDataList = []; tbody.innerHTML='';
+  if (!allUsers.length) { tbody.innerHTML=`<tr><td colspan="${MATRIX_HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No members.</td></tr>`; return; }
+  [...allUsers].sort((a,b)=>(a.name||'').localeCompare(b.name||'')).forEach(u => {
+    let c={hom:0,speaker:0,evaluator:0,ttm:0,tte:0,ge:0,timer:0,tt:0,attendance:0,mom:0};
+    allEventsCache.forEach(e => {
+      const rm=e.roles||{};
+      for (const [rk,uid] of Object.entries(rm)) {
+        if (uid!==u.id) continue;
+        if (rk.startsWith('hom')) c.hom++;
+        else if (rk.startsWith('speaker')) c.speaker++;
+        else if (rk.startsWith('evaluator')) c.evaluator++;
+        else if (rk==='ttm') c.ttm++;
+        else if (rk==='tte') c.tte++;
+        else if (rk==='ge') c.ge++;
+        else if (rk==='timer') c.timer++;
+        else if (rk.startsWith('tt')&&rk!=='ttm'&&rk!=='tte') c.tt++;
+        else if (rk==='momTaker'||rk==='momPres') c.mom++;
       }
       if (e.attended?.includes(u.id)) c.attendance++;
     });
-
-    const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
-                        c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
-                        c.attendance*1 + c.mom*4;
-
-    // speaker and tt excluded from Roles count (same as Table Topics)
-    const totalRoles = c.hom + c.evaluator + c.ttm + c.tte +
-                       c.ge  + c.timer + c.listener + c.grammarian + c.mom;
-
-    return { name: u.name, hom: f(c.hom), speaker: f(c.speaker), evaluator: f(c.evaluator),
-             ttm: f(c.ttm), tte: f(c.tte), ge: f(c.ge), timer: f(c.timer), tt: f(c.tt),
-             listener: f(c.listener), grammarian: f(c.grammarian), attendance: f(c.attendance),
-             mom: f(c.mom), totalRoles: f(totalRoles), _pts: totalPoints };
+    const totalRoles=c.hom+c.speaker+c.evaluator+c.ttm+c.tte+c.ge+c.timer+c.tt+c.mom;
+    const totalPoints=c.hom*10+c.speaker*7+c.ttm*5+c.evaluator*3+c.tte*3+c.ge*5+c.timer*3+c.tt*2+c.attendance*1+c.mom*4;
+    const f=v=>v===0?'':v;
+    const row={name:u.name,hom:f(c.hom),speaker:f(c.speaker),evaluator:f(c.evaluator),ttm:f(c.ttm),tte:f(c.tte),ge:f(c.ge),timer:f(c.timer),tt:f(c.tt),attendance:f(c.attendance),mom:f(c.mom),points:f(totalPoints),totalRoles:f(totalRoles)};
+    rolesDataList.push(row);
+    tbody.innerHTML+=`<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:0.9rem;font-weight:700;">${row.name}</td>
+      ${[row.hom,row.speaker,row.evaluator,row.ttm,row.tte,row.ge,row.timer,row.tt,row.attendance,row.mom,row.points,row.totalRoles].map(v=>`<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
+    </tr>`;
   });
-
-  rows.sort((a, b) => b._pts - a._pts);
-  rolesDataList = rows.map(r => ({ ...r, points: r._pts || '' }));
-
-  tbody.innerHTML = rows.map(r => `<tr style="border-bottom:1px solid var(--border);">
-    <td style="padding:0.9rem;font-weight:700;">${r.name}</td>
-    ${[r.hom, r.speaker, r.evaluator, r.ttm, r.tte, r.ge, r.timer, r.tt,
-       r.listener, r.grammarian, r.attendance, r.mom, r._pts || '', r.totalRoles]
-      .map(v => `<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
-  </tr>`).join('');
 }
 
 window.exportMatrixCSV = () => {
   if (!rolesDataList.length) { alert('No data to export.'); return; }
   let csv = MATRIX_HEADERS.join(',')+'\n';
   rolesDataList.forEach(r => {
-  csv += [`"${r.name}"`,r.hom,r.speaker,r.evaluator,r.ttm,r.tte,r.ge,r.timer,r.tt,r.listener,r.grammarian,r.attendance,r.mom,r._pts||'',r.totalRoles].join(',')+'\n';  });
+    csv += [`"${r.name}"`,r.hom,r.speaker,r.evaluator,r.ttm,r.tte,r.ge,r.timer,r.tt,r.attendance,r.mom,r.points,r.totalRoles].join(',')+'\n';
+  });
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1967,59 +1817,56 @@ window.selectPathway = async (key, btn) => {
 };
 
 window.editProject = (key, idx) => {
-  const data = pathwayDataCache[key]; if (!data) return;
-  const proj = data.projects?.[idx]; if (!proj) return;
-  document.getElementById('pmPathwayKey').value    = key;
-  document.getElementById('pmProjectIndex').value  = idx;
-  document.getElementById('pathwayModalTitle').textContent = `Edit Project ${idx + 1}`;
-  document.getElementById('pmName').value      = typeof proj === 'string' ? proj : (proj.name || '');
-  document.getElementById('pmPurpose').value   = typeof proj === 'object' ? (proj.purpose || proj.description || '') : '';
-  document.getElementById('pmObjectives').value = typeof proj === 'object' ? (proj.objectives || '') : '';
-  document.getElementById('pmGuideLink').value  = typeof proj === 'object' ? (proj.guideLink || '') : '';
+  const data=pathwayDataCache[key]; if (!data) return;
+  const proj=data.projects?.[idx];
+  if (!proj) return;
+  document.getElementById('pmPathwayKey').value=key;
+  document.getElementById('pmProjectIndex').value=idx;
+  document.getElementById('pathwayModalTitle').textContent=`Edit Project ${idx+1}`;
+  document.getElementById('pmName').value=typeof proj==='string'?proj:(proj.name||'');
+  document.getElementById('pmDesc').value=typeof proj==='object'?(proj.description||proj.purpose||''):'';
+  document.getElementById('pmPurpose').value=typeof proj==='object'?(proj.purpose||''):'';
+  document.getElementById('pmObjectives').value=typeof proj==='object'?(proj.objectives||''):'';
+  document.getElementById('pmGuideLink').value=typeof proj==='object'?(proj.guideLink||''):'';
   document.getElementById('pathwayModal').classList.add('open');
 };
- 
+
 window.addNewProject = (key) => {
   if (!pathwayDataCache[key]) return;
-  const projects = pathwayDataCache[key].projects || [];
-  document.getElementById('pmPathwayKey').value   = key;
-  document.getElementById('pmProjectIndex').value = projects.length;
-  document.getElementById('pathwayModalTitle').textContent = 'Add New Project';
-  ['pmName','pmPurpose','pmObjectives','pmGuideLink'].forEach(id => document.getElementById(id).value = '');
+  const projects=pathwayDataCache[key].projects||[];
+  document.getElementById('pmPathwayKey').value=key;
+  document.getElementById('pmProjectIndex').value=projects.length; // new
+  document.getElementById('pathwayModalTitle').textContent='Add New Project';
+  ['pmName','pmDesc','pmPurpose','pmObjectives','pmGuideLink'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pathwayModal').classList.add('open');
 };
- 
+
 window.closePathwayModal = () => document.getElementById('pathwayModal').classList.remove('open');
 
 window.saveProjectEdit = async () => {
-  const key = document.getElementById('pmPathwayKey').value;
-  const idx = parseInt(document.getElementById('pmProjectIndex').value);
-  const name = document.getElementById('pmName').value.trim();
+  const key=document.getElementById('pmPathwayKey').value;
+  const idx=parseInt(document.getElementById('pmProjectIndex').value);
+  const name=document.getElementById('pmName').value.trim();
   if (!name) { alert('Project name is required.'); return; }
-  const btn = document.querySelector('[onclick="saveProjectEdit()"]');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  const btn=document.querySelector('[onclick="saveProjectEdit()"]');
+  btn.disabled=true; btn.textContent='Saving...';
   try {
-    const snap = await getDoc(doc(db, 'pathways', key));
-    const data = snap.exists() ? snap.data() : { name: key, projects: [] };
-    const projects = [...(data.projects || [])];
-    const projObj = {
-      name,
-      // Store in both fields so old readers that use .description still work
-      description: document.getElementById('pmPurpose').value.trim(),
-      purpose:     document.getElementById('pmPurpose').value.trim(),
-      objectives:  document.getElementById('pmObjectives').value.trim(),
-      guideLink:   document.getElementById('pmGuideLink').value.trim(),
-    };
-    if (idx < projects.length) projects[idx] = projObj;
+    const snap=await getDoc(doc(db,'pathways',key));
+    const data=snap.exists()?snap.data():{name:key,projects:[]};
+    const projects=[...(data.projects||[])];
+    const projObj={name,description:document.getElementById('pmDesc').value.trim(),purpose:document.getElementById('pmPurpose').value.trim(),objectives:document.getElementById('pmObjectives').value.trim(),guideLink:document.getElementById('pmGuideLink').value.trim()};
+    if (idx<projects.length) projects[idx]=projObj;
     else projects.push(projObj);
-    await setDoc(doc(db, 'pathways', key), { ...data, projects }, { merge: true });
+    await setDoc(doc(db,'pathways',key),{...data,projects},{merge:true});
     alert('Project saved!'); closePathwayModal();
-    pathwayDataCache[key] = { ...data, projects };
-    const btn2 = document.querySelector('.filter-btn.active');
-    if (btn2) { const k = btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k, btn2); }
-  } catch (e) { alert('Error: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Save Project →'; }
+    pathwayDataCache[key]={...data,projects};
+    // Re-render the active pathway
+    const btn2=document.querySelector('.filter-btn.active');
+    if (btn2) { const k=btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k,btn2); }
+  } catch(e) { alert('Error: '+e.message); }
+  finally { btn.disabled=false; btn.textContent='Save Project \u2192'; }
 };
+
 window.deleteProject = async (key, idx) => {
   if (!confirm('Delete this project?')) return;
   try {
@@ -2033,6 +1880,64 @@ window.deleteProject = async (key, idx) => {
     const btn2=document.querySelector('.filter-btn.active');
     if (btn2) { const k=btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k,btn2); }
   } catch(e) { alert('Error: '+e.message); }
+};
+
+// ── ROLE DOCUMENTATION ───────────────────────────────────
+const ROLE_DOC_KEYS = [
+  {id:'hom',   label:'HOM (Host of the Meeting)',  pts:10},
+  {id:'ttm',   label:'TTM (Table Topics Master)',  pts:5},
+  {id:'tte',   label:'TTE (Table Topics Evaluator)',pts:3},
+  {id:'ge',    label:'GE (General Evaluator)',     pts:5},
+  {id:'timer', label:'Timer',                      pts:3},
+  {id:'evaluator',label:'Evaluator',               pts:3},
+  {id:'tt',    label:'Table Topic Speaker',        pts:2},
+  {id:'mom',   label:'MOM Taker / Presenter',      pts:4},
+  {id:'listener',  label:'Listener',               pts:3},
+  {id:'grammarian',label:'Grammarian',             pts:3},
+];
+
+let roleDocsCache = {};
+
+async function loadRoleDocs() {
+  const container = document.getElementById('roleDocsList');
+  if (!container) return;
+  try {
+    const snap = await getDoc(doc(db,'config','roleGuides'));
+    roleDocsCache = snap.exists() ? snap.data() : {};
+  } catch(e) { roleDocsCache = {}; }
+  container.innerHTML = ROLE_DOC_KEYS.map(r => `
+    <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;">
+      <label class="form-label" style="color:var(--orange);">${r.label}</label>
+      <div style="font-size:0.7rem;color:var(--text-light);margin-bottom:0.5rem;font-weight:700;">${r.pts} pts · Leaderboard role</div>
+      <input type="url" id="rdoc_${r.id}" placeholder="https://drive.google.com/... (optional)"
+        value="${roleDocsCache[r.id]||''}"
+        style="font-size:0.82rem;" />
+    </div>`).join('');
+}
+
+window.saveRoleDocs = async () => {
+  const status = document.getElementById('roleDocsStatus');
+  try {
+    const data = {};
+    ROLE_DOC_KEYS.forEach(r => {
+      const v = document.getElementById('rdoc_'+r.id)?.value.trim();
+      if (v) data[r.id] = v;
+    });
+    await setDoc(doc(db,'config','roleGuides'), data, {merge:true});
+    status.textContent = 'Role documentation links saved!';
+    status.style.background = 'rgba(76,175,80,0.08)';
+    status.style.color = '#2e7d32';
+    status.style.border = '1px solid rgba(76,175,80,0.25)';
+    status.style.display = 'block';
+    roleDocsCache = data;
+    setTimeout(()=>status.style.display='none', 3000);
+  } catch(e) {
+    status.textContent = 'Error: '+e.message;
+    status.style.background = 'rgba(244,67,54,0.08)';
+    status.style.color = '#c62828';
+    status.style.border = '1px solid rgba(244,67,54,0.25)';
+    status.style.display = 'block';
+  }
 };
 
 // Close modals on overlay click
