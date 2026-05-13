@@ -588,11 +588,17 @@ async function renderProgress() {
       L3H: [{label:'L3HP1',s:13,e:13},{label:'L3HP2',s:14,e:14},{label:'L3HP3',s:15,e:15}]
     };
 
-    // Which levels to show (all levels up to and including current)
-    const levelsToShow = ['L1'];
-    if (['L2','L3K','L3H'].includes(currentPathwayKey)) levelsToShow.push('L2');
-    if (['L3K','L3H'].includes(currentPathwayKey)) levelsToShow.push(currentPathwayKey);
+    // Derive effective level from speechIndex (handles stale pathwayKey in Firestore)
+    let effectiveKey = currentPathwayKey;
+    if      (speechIndex > 12 && !effectiveKey.startsWith('L3')) effectiveKey = 'L3K';
+    else if (speechIndex > 6  && effectiveKey === 'L1')          effectiveKey = 'L2';
 
+    // Show all levels from L1 up to where the member currently is
+    const levelsToShow = ['L1'];
+    if (speechIndex > 6  || ['L2','L3K','L3H'].includes(effectiveKey)) levelsToShow.push('L2');
+    if (speechIndex > 12 || ['L3K','L3H'].includes(effectiveKey)) {
+      levelsToShow.push(effectiveKey.startsWith('L3') ? effectiveKey : 'L3K');
+    }
     // Load Firestore pathway docs for project names/descriptions/guide links
     const pathwayDocs = {};
     for (const k of levelsToShow) {
@@ -610,7 +616,7 @@ async function renderProgress() {
       L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency',
       L3K:'Level 3 — Keynote',   L3H:'Level 3 — Humorous'
     };
-    document.getElementById('pathwayTitle').textContent = pathwayNames[currentPathwayKey] || 'Curriculum';
+    document.getElementById('pathwayTitle').textContent = 'Curriculum Progress';
     document.getElementById('pathwayBadge').textContent = userData.pathway || currentPathwayKey;
     document.getElementById('pathwayBar').style.width = Math.round(Math.min(speechIndex/totalSlots,1)*100)+'%';
     document.getElementById('progressDone').textContent = speechIndex + ' speeches done';
