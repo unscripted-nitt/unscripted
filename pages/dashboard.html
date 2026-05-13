@@ -1018,12 +1018,11 @@ async function loadGallery() {
 // ── NOTIFICATIONS (req 4) ─────────────────────────────────
 async function loadNotifications() {
   try {
-    // Personal notifications
     const pSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','personal'), where('targetUid','==',currentUid),
-      orderBy('createdAt','desc')));
+      where('type','==','personal'), where('targetUid','==',currentUid)));
     const personalNotifs = [];
     pSnap.forEach(d => personalNotifs.push({id:d.id,...d.data()}));
+    personalNotifs.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
 
     const pList = document.getElementById('personalNotifsList');
     const pCard = document.getElementById('personalNotifsCard');
@@ -1037,11 +1036,12 @@ async function loadNotifications() {
         </div>`).join('');
     }
 
-    // Common notifications
     const cSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','common'), orderBy('createdAt','desc')));
+      where('type','==','common')));
     const commonNotifs = [];
     cSnap.forEach(d => commonNotifs.push({id:d.id,...d.data()}));
+    commonNotifs.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+
     const cList = document.getElementById('commonNotifsList');
     if (commonNotifs.length) {
       cList.innerHTML = commonNotifs.map(n => `
@@ -1054,7 +1054,6 @@ async function loadNotifications() {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
     }
 
-    // Update badges
     const unread = personalNotifs.filter(n=>!n.read).length;
     const notifCount = document.getElementById('notifCount');
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
@@ -1070,20 +1069,20 @@ async function checkPersonalNotification() {
   try {
     const snap = await getDocs(query(collection(db,'notifications'),
       where('type','==','personal'), where('targetUid','==',currentUid),
-      where('read','==',false), orderBy('createdAt','desc'), limit(1)));
+      where('read','==',false)));
     if (snap.empty) return;
-    const n = snap.docs[0].data();
-    const nId = snap.docs[0].id;
+    const unread = [];
+    snap.forEach(d => unread.push({id:d.id,...d.data()}));
+    unread.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+    const n = unread[0];
     document.getElementById('pnModalTitle').textContent = n.title;
     document.getElementById('pnModalBody').textContent = n.body;
     document.getElementById('pnModalTime').textContent = formatTime(n.createdAt);
     document.getElementById('personalNotifModal').classList.add('open');
-
-    // Mark as read
-    await updateDoc(doc(db,'notifications',nId), {read:true});
+    await updateDoc(doc(db,'notifications',n.id), {read:true});
   } catch(e) { console.warn('Personal notif check error',e); }
 }
-
+  
 window.dismissPersonalNotif = () => {
   document.getElementById('personalNotifModal').classList.remove('open');
 };
