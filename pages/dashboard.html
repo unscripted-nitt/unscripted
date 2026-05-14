@@ -587,7 +587,7 @@ window.showSection = function(id) {
   document.querySelectorAll('.dash-nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.mob-nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll(`[onclick="showSection('${id}')"]`).forEach(el => el.classList.add('active'));
-  if (id === 'analysis' && !chartsRendered && userData) { renderCharts(userData); chartsRendered = true; }
+  if (id === 'analysis' && !chartsRendered && userData) { loadAndRenderAnalysis(); chartsRendered = true; }
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
 };
 
@@ -1397,9 +1397,13 @@ async function loadVoting() {
     const sessionId = session.id;
 
     // Check if already voted
-    const myVoteSnap = await getDocs(query(collection(db,'votes'),
-      where('sessionId','==',sessionId), where('voterUid','==',currentUid)));
-    if (!myVoteSnap.empty) {
+    // Check if already voted using voteRecords (votes themselves are anonymous)
+    let alreadyVoted = false;
+    try {
+      const myVoteDoc = await getDoc(doc(db,'voteRecords',currentUid+'_'+sessionId));
+      alreadyVoted = myVoteDoc.exists();
+    } catch(_) {}
+    if (alreadyVoted) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
         <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
         <h3 style="font-family:var(--font-body);color:#2e7d32;">You Have Already Voted</h3>
@@ -1459,39 +1463,134 @@ window.submitVote = async function(sessionId) {
 };
 
 // ── ANALYSIS CHARTS ───────────────────────────────────────
-function renderCharts(data) {
-  const skills = data.skills || {};
+async function loadAndRenderAnalysis() {
+  // Load feedback where this user is the speaker
+  let feedbacks = [];
   try {
-    new Chart(document.getElementById('radarChart'), {
+    const snap = await getDocs(query(collection(db,'feedback'), where('speakerUid','==',currentUid)));
+    snap.forEach(d => feedbacks.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('Feedback load error',e); }
+
+  // Compute per-category averages across all feedback received
+  const avgScores = FB_CATEGORIES.map((_,i) => {
+    const vals = feedbacks.map(f => Number(f.ratings?.[i])||0).filter(v => v > 0);
+    return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+  });
+
+  // Get events where this user gave a prepared speech, sorted by date
+  const speechEvents = [];
+  [...allEventsCache].sort((a,b) => {
+    try { return (a.date?.toDate?a.date.toDate():new Date(a.date)) - (b.date?.toDate?b.date.toDate():new Date(b.date)); }
+    catch(_){ return 0; }
+  }).forEach(e => {
+    const roles = e.roles || {};
+    for (const [rk, uid] of Object.entries(roles)) {
+      if (rk.startsWith('speaker') && uid === currentUid) {
+        let dateStr = '';
+        if (e.date) {
+          try {
+            const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
+            dateStr = d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+          } catch(_) {}
+        }
+        speechEvents.push({ title: e.title, date: dateStr });
+        break;
+      }
+    }
+  });
+
+  renderCharts(avgScores, speechEvents, feedbacks);
+}
+
+function renderCharts(avgScores, speechEvents, feedbacks) {
+  // Destroy old charts to avoid duplication on re-render
+  ['radarChart','progressChart'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el._chartInstance) { el._chartInstance.destroy(); el._chartInstance = null; }
+  });
+
+  try {
+    const radarEl = document.getElementById('radarChart');
+    radarEl._chartInstance = new Chart(radarEl, {
       type:'radar',
       data:{
         labels:['Content','Clarity','Fluency','Expression','Pace','Creativity','Organization','X-Factor'],
-        datasets:[{label:'Avg Score',data:FB_CATEGORIES.map((_,i)=>skills['fb_'+i]||3),fill:true,
+        datasets:[{label:'Avg Score',
+          data: avgScores.map(v => parseFloat(v.toFixed(2))),
+          fill:true,
           backgroundColor:'rgba(255,87,34,0.12)',borderColor:'var(--orange)',
           pointBackgroundColor:'var(--orange)',pointBorderColor:'#fff',pointBorderWidth:2}]
       },
       options:{scales:{r:{min:0,max:5,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.12)'}}},plugins:{legend:{display:false}}}
     });
-    const done = (data.speeches||[]).filter(s=>s.status==='done');
-    new Chart(document.getElementById('progressChart'), {
+
+    const progressEl = document.getElementById('progressChart');
+    progressEl._chartInstance = new Chart(progressEl, {
       type:'line',
       data:{
-        labels: done.map((_,i)=>`Speech ${i+1}`),
-        datasets:[{label:'Speeches Done',data:done.map((_,i)=>i+1),borderColor:'var(--orange)',
+        labels: speechEvents.length ? speechEvents.map(e => e.date||e.title) : ['(no speeches yet)'],
+        datasets:[{label:'Speeches Done',
+          data: speechEvents.length ? speechEvents.map((_,i)=>i+1) : [0],
+          borderColor:'var(--orange)',
           backgroundColor:'rgba(255,87,34,0.07)',fill:true,tension:0.4,
           pointRadius:5,pointBackgroundColor:'var(--orange)',pointBorderColor:'#fff',pointBorderWidth:2}]
       },
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.08)'}},x:{grid:{color:'rgba(128,128,128,0.08)'}}}}
+      options:{
+        plugins:{legend:{display:false},tooltip:{callbacks:{title:ctx=>speechEvents[ctx[0].dataIndex]?.title||''}}},
+        scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.08)'}},x:{grid:{color:'rgba(128,128,128,0.08)'}}}
+      }
     });
-  } catch(e) { console.warn('Chart error',e); }
+  } catch(e) { console.warn('Chart render error',e); }
 
+  // Skill bars
   const sb = document.getElementById('skillBars');
-  const skillData = FB_CATEGORIES.map((cat,i) => ({label:cat,value:parseFloat(skills['fb_'+i]||3)}));
-  sb.innerHTML = skillData.map(s => `
-    <div class="chart-bar-wrap">
-      <div class="chart-label"><span>${s.label}</span><span>${s.value.toFixed(1)}/5</span></div>
-      <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${s.value/5*100}%"></div></div>
-    </div>`).join('');
+  sb.innerHTML = FB_CATEGORIES.map((cat,i) => {
+    const v = avgScores[i] || 0;
+    return `<div class="chart-bar-wrap">
+      <div class="chart-label"><span>${cat}</span><span>${v ? v.toFixed(1)+'/5' : 'No data'}</span></div>
+      <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${v/5*100}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Feedback received — grouped by event
+  const myFeedbackList = document.getElementById('myFeedbackList');
+  if (!feedbacks.length) {
+    myFeedbackList.innerHTML = '<p style="color:var(--text-mid);">No feedback received yet. Feedback will appear here once members rate your speeches.</p>';
+    return;
+  }
+  const byEvent = {};
+  feedbacks.forEach(f => {
+    const ev = allEventsCache.find(e=>e.id===f.eventId);
+    const key = ev?.title || f.eventId || 'Unknown Meet';
+    if (!byEvent[key]) byEvent[key] = [];
+    byEvent[key].push(f);
+  });
+  myFeedbackList.innerHTML = Object.entries(byEvent).map(([evTitle, fbs]) => {
+    const perFeedback = fbs.map(f => {
+      const vals = Object.values(f.ratings||{}).map(Number).filter(v=>v>0);
+      return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    }).filter(v=>v>0);
+    const avg = perFeedback.length ? (perFeedback.reduce((a,b)=>a+b,0)/perFeedback.length).toFixed(1) : '—';
+    const catAvgs = FB_CATEGORIES.map((_,i) => {
+      const vals = fbs.map(f=>Number(f.ratings?.[i])||0).filter(v=>v>0);
+      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+    });
+    const comments = fbs.filter(f=>f.comment?.trim());
+    return `<div style="padding:1.1rem 1.25rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+        <strong style="font-size:0.95rem;">${evTitle}</strong>
+        <span style="font-size:1.2rem;font-weight:800;color:var(--orange);">${avg}<span style="font-size:0.75rem;font-weight:600;color:var(--text-light);">/5</span></span>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-light);margin-bottom:0.75rem;">${fbs.length} response${fbs.length!==1?'s':''}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.4rem;margin-bottom:${comments.length?'0.75rem':'0'};">
+        ${FB_CATEGORIES.map((cat,i)=>`<div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-mid);">${cat}</span>
+          <span style="font-weight:700;color:${catAvgs[i]==='—'?'var(--text-light)':'var(--text)'};">${catAvgs[i]}</span>
+        </div>`).join('')}
+      </div>
+      ${comments.map(f=>`<div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);margin-top:0.5rem;font-size:0.85rem;color:var(--text-mid);font-style:italic;">"${f.comment}"</div>`).join('')}
+    </div>`;
+  }).join('');
 }
 
 // ── SPEECH MODAL (req 9: guide link per project) ──────────
