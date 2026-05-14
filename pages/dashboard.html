@@ -1006,10 +1006,11 @@ async function loadLeaderboard() {
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
-    let present = 0;
     const cells = allEventsCache.filter(e => e.type === 'past' || !e.isActive).slice(0,30);
-    const totalMeets = cells.length;
-    cells.forEach(e => { if (e.attended?.includes(currentUid)) present++; });
+    // Exclude ineligible events from totals
+    const eligibleCells = cells.filter(e => !(e.ineligible||[]).includes(currentUid));
+    const totalMeets = eligibleCells.length;
+    const present    = eligibleCells.filter(e => e.attended?.includes(currentUid)).length;
     const pct = totalMeets ? Math.round(present/totalMeets*100) : 0;
     document.getElementById('attPresent').textContent = present;
     document.getElementById('attTotal').textContent = totalMeets;
@@ -1017,13 +1018,21 @@ function loadAttendance() {
     const cal = document.getElementById('attCalendar');
     if (!cells.length) { cal.innerHTML = '<p style="color:var(--text-mid);">No meetings recorded yet.</p>'; return; }
     cal.innerHTML = cells.map(e => {
-      const isPresent = e.attended?.includes(currentUid);
+      const isIneligible = (e.ineligible||[]).includes(currentUid);
+      const isPresent    = e.attended?.includes(currentUid);
       let dateStr = '?';
       if (e.date) {
         try {
           const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
           dateStr = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
         } catch(_){}
+      }
+      if (isIneligible) {
+        return `<div class="att-cell" title="${e.title||''} (Ineligible)"
+          style="background:var(--surface2);border:1px dashed var(--border);opacity:0.5;">
+          <div class="day-num" style="color:var(--text-light);">—</div>
+          <div style="font-size:0.6rem;color:var(--text-light);">${dateStr}</div>
+        </div>`;
       }
       return `<div class="att-cell ${isPresent?'att-present':'att-absent'}" title="${e.title||''}">
         <div class="day-num">${isPresent?'P':'A'}</div>
