@@ -888,8 +888,8 @@ async function loadAchievements() {
         cond: () => presentCount >= 5 },
       { id:'lvl2', name:'Level 2', desc:'Started Level 2 pathway', icon:'fa-layer-group',
         cond: (u) => speechIdx > 6 || ['L2','L3K','L3H'].includes(u.pathwayKey||'') },
-      { id:'mentor', name:'Mentor', desc:'Serving as a mentor', icon:'fa-hands-helping',
-        cond: (u) => u.role === 'mentor' || u.role === 'core' },
+      { id:'mentor', name:'Mentor', desc:'You have a mentee assigned to you', icon:'fa-hands-helping',
+        cond: () => allUsersCache.some(u => u.mentor === currentUid) },
     ];
     badgesGrid.innerHTML = allBadges.map(b => {
       const earned = b.cond(userData);
