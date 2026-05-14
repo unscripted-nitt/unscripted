@@ -692,10 +692,6 @@
         <select id="editMentor"></select>
       </div>
       <div class="form-group">
-        <label class="form-label">Overall Points</label>
-        <input type="number" id="editPoints" placeholder="0" min="0" />
-      </div>
-      <div class="form-group">
         <label class="form-label">System Role</label>
         <select id="editRole">
           <option value="user">Club Member</option>
@@ -847,12 +843,28 @@ async function loadAllData() {
 
 // ── INSIGHTS ─────────────────────────────────────────────
 function updateInsights() {
-  document.getElementById('insightTotalUsers').textContent = allUsers.length;
-  document.getElementById('insightSpeeches').textContent =
-    allUsers.reduce((acc,u) => acc + (u.speeches?.filter(s=>s.status==='done').length||0), 0);
-  const totalP = allUsers.reduce((a,u)=>a+(u.attendance?.filter(x=>x.present).length||0),0);
-  const totalM = allUsers.reduce((a,u)=>a+(u.attendance?.length||0),0);
-  document.getElementById('insightAvgAtt').textContent = totalM ? Math.round(totalP/totalM*100)+'%' : '0%';
+  const activeUsers = allUsers.filter(u => u.isActive !== false);
+  const activeIds   = new Set(activeUsers.map(u => u.id));
+
+  // Total Members — active only
+  document.getElementById('insightTotalUsers').textContent = activeUsers.length;
+
+  // Speeches Delivered — count speaker role slots filled across all events
+  const speechesDelivered = allEventsCache.reduce((acc, e) => {
+    const roles = e.roles || {};
+    return acc + Object.keys(roles).filter(rk => rk.startsWith('speaker') && roles[rk]).length;
+  }, 0);
+  document.getElementById('insightSpeeches').textContent = speechesDelivered;
+
+  // Avg Attendance — active members only, computed from event.attended arrays
+  let totalPresent = 0, totalPossible = 0;
+  allEventsCache.forEach(e => {
+    totalPresent  += (e.attended || []).filter(uid => activeIds.has(uid)).length;
+    totalPossible += activeUsers.length;
+  });
+  document.getElementById('insightAvgAtt').textContent =
+    totalPossible ? Math.round(totalPresent / totalPossible * 100) + '%' : '0%';
+
   document.getElementById('insightEvents').textContent = allEventsCache.length;
 }
 
@@ -931,7 +943,6 @@ window.openEditModal = (uid) => {
   document.getElementById('editPathwayKey').value = u.pathwayKey||'L1';
   document.getElementById('editRole').value = u.role||'user';
   document.getElementById('editMentor').value = u.mentor||'';
-  document.getElementById('editPoints').value = u.points||0;
   document.getElementById('editIsActive').checked = u.isActive !== false;
   document.getElementById('editModal').classList.add('open');
 };
@@ -969,7 +980,6 @@ window.saveUserChanges = async () => {
       speechIndex: newSpeechIndex,
       role:    document.getElementById('editRole').value    || 'user',
       mentor:  document.getElementById('editMentor').value  || '',
-      points:  parseInt(document.getElementById('editPoints').value) || 0,
       isActive: document.getElementById('editIsActive').checked,
     });
     alert('Profile updated!'); closeModal(); loadAllData();
