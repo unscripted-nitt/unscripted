@@ -670,11 +670,9 @@ async function renderProgress() {
  
     // ── Which levels to show ────────────────────────────────
     const hasChosenL3 = ['L3K','L3H'].includes(currentPathwayKey);
-    const levelsToShow = ['L1'];
-    if (speechIndex > 6 || ['L2','L3K','L3H'].includes(currentPathwayKey))
-      levelsToShow.push('L2');
-    if (hasChosenL3)
-      levelsToShow.push(currentPathwayKey);
+    const levelsToShow = ['L1', 'L2'];
+if (hasChosenL3)
+  levelsToShow.push(currentPathwayKey);
  
     // ── Load Firestore pathway docs ─────────────────────────
     // Always load L3K + L3H so the picker can show descriptions even before choice
@@ -749,8 +747,8 @@ async function renderProgress() {
  
     // ── L3 Elective Picker (shown when L2 exists and no L3 chosen yet) ──
     if (levelsToShow.includes('L2') && !hasChosenL3) {
-      const l3kName = pathwayDocs['L3K']?.name || 'Level 3 — Keynote';
-      const l3hName = pathwayDocs['L3H']?.name || 'Level 3 — Humorous';
+      const l3kName = (pathwayDocs['L3K']?.name || 'Level 3 — Keynote').replace(/\b3a\b/gi, 'L3K');
+      const l3hName = (pathwayDocs['L3H']?.name || 'Level 3 — Humorous').replace(/\b3b\b/gi, 'L3H');
       const l3kDesc = pathwayDocs['L3K']?.description || 'TED-style delivery, signature talks, leadership narratives.';
       const l3hDesc = pathwayDocs['L3H']?.description || 'Comedic timing, wit, punchlines, and entertaining speaking.';
       const l3kProjects = (pathwayDocs['L3K']?.projects || []).length || 4;
