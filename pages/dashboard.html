@@ -636,10 +636,10 @@ async function renderProgress() {
     // ── Stat cards ─────────────────────────────────────────
     document.getElementById('statSpeeches').textContent = speechIndex;
     document.getElementById('statLevel').textContent = userData.pathway || 'Not started';
-    const totalMeets   = allEventsCache.length;
-    const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
+    const eligibleMeets = allEventsCache.filter(e => !(e.ineligible || []).includes(currentUid));
+    const presentCount  = eligibleMeets.filter(e => (e.attended || []).includes(currentUid)).length;
     document.getElementById('statAttPct').textContent =
-      totalMeets ? Math.round(presentCount / totalMeets * 100) + '%' : '0%';
+      eligibleMeets.length ? Math.round(presentCount / eligibleMeets.length * 100) + '%' : '0%';
  
     // ── Project-to-speech-slot mapping ─────────────────────
     const PROJ_RANGES = {
@@ -1006,33 +1006,50 @@ async function loadLeaderboard() {
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
-    let present = 0;
-    const cells = allEventsCache.filter(e => e.type === 'past' || !e.isActive).slice(0,30);
-    const totalMeets = cells.length;
-    cells.forEach(e => { if (e.attended?.includes(currentUid)) present++; });
-    const pct = totalMeets ? Math.round(present/totalMeets*100) : 0;
+    const cells = allEventsCache.filter(e => e.type === 'past' || !e.isActive).slice(0, 30);
+ 
+    let present = 0, eligible = 0;
+    cells.forEach(e => {
+      const isIneligible = (e.ineligible || []).includes(currentUid);
+      if (!isIneligible) {
+        eligible++;
+        if ((e.attended || []).includes(currentUid)) present++;
+      }
+    });
+ 
+    const pct = eligible ? Math.round(present / eligible * 100) : 0;
     document.getElementById('attPresent').textContent = present;
-    document.getElementById('attTotal').textContent = totalMeets;
-    document.getElementById('attPct').textContent = pct + '%';
+    document.getElementById('attTotal').textContent   = eligible + ' eligible';
+    document.getElementById('attPct').textContent     = pct + '%';
+ 
     const cal = document.getElementById('attCalendar');
     if (!cells.length) { cal.innerHTML = '<p style="color:var(--text-mid);">No meetings recorded yet.</p>'; return; }
+ 
     cal.innerHTML = cells.map(e => {
-      const isPresent = e.attended?.includes(currentUid);
+      const isIneligible = (e.ineligible || []).includes(currentUid);
+      const isPresent    = !isIneligible && (e.attended || []).includes(currentUid);
       let dateStr = '?';
       if (e.date) {
         try {
           const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
-          dateStr = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
-        } catch(_){}
+          dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+        } catch(_) {}
       }
-      return `<div class="att-cell ${isPresent?'att-present':'att-absent'}" title="${e.title||''}">
-        <div class="day-num">${isPresent?'P':'A'}</div>
+      // Three visual states: green (present), red (absent), grey (ineligible)
+      const cellClass = isIneligible ? 'att-ineligible' : (isPresent ? 'att-present' : 'att-absent');
+      const label     = isIneligible ? '—' : (isPresent ? 'P' : 'A');
+      const title     = isIneligible
+        ? `${e.title || ''} (not counted)`
+        : (e.title || '');
+ 
+      return `<div class="att-cell ${cellClass}" title="${title}"
+        style="${isIneligible ? 'opacity:0.45;background:var(--surface2);border-color:var(--border);' : ''}">
+        <div class="day-num">${label}</div>
         <div style="font-size:0.6rem;">${dateStr}</div>
       </div>`;
     }).join('');
-  } catch(e) { console.warn('Attendance error',e); }
+  } catch(e) { console.warn('Attendance error', e); }
 }
-
 // ── MENTORSHIP ────────────────────────────────────────────
 async function loadMentorship() {
   try {
