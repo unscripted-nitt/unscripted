@@ -876,12 +876,20 @@ async function loadAchievements() {
   const winGrid    = document.getElementById('winBadgesGrid');
   const winCard    = document.getElementById('winBadgesCard');
   try {
+    const speechIdx    = getDashSpeechIdx(userData);
+    const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
+
     const allBadges = [
-      { id:'first_speech', name:'First Speech', desc:'Delivered your first speech', icon:'fa-microphone', cond: (u) => (u.speeches||[]).filter(s=>s.status==='done').length >= 1 },
-      { id:'five_speeches',name:'Orator',       desc:'5 speeches completed', icon:'fa-star', cond: (u) => (u.speeches||[]).filter(s=>s.status==='done').length >= 5 },
-      { id:'attendance_5',name:'Consistent',    desc:'Attended 5 meetings', icon:'fa-calendar-check', cond: (u) => (u.attendance||[]).filter(a=>a.present).length >= 5 },
-      { id:'lvl2',        name:'Level 2',       desc:'Started Level 2 pathway', icon:'fa-layer-group', cond: (u) => ['L2','L3K','L3H'].includes(u.pathwayKey||'') },
-      { id:'mentor',      name:'Mentor',        desc:'Serving as a mentor', icon:'fa-hands-helping', cond: (u) => u.role === 'mentor' || u.role === 'core' },
+      { id:'first_speech', name:'First Speech', desc:'Delivered your first speech', icon:'fa-microphone',
+        cond: () => speechIdx >= 1 },
+      { id:'five_speeches', name:'Orator', desc:'5 speeches completed', icon:'fa-star',
+        cond: () => speechIdx >= 5 },
+      { id:'attendance_5', name:'Consistent', desc:'Attended 5 meetings', icon:'fa-calendar-check',
+        cond: () => presentCount >= 5 },
+      { id:'lvl2', name:'Level 2', desc:'Started Level 2 pathway', icon:'fa-layer-group',
+        cond: (u) => speechIdx > 6 || ['L2','L3K','L3H'].includes(u.pathwayKey||'') },
+      { id:'mentor', name:'Mentor', desc:'Serving as a mentor', icon:'fa-hands-helping',
+        cond: (u) => u.role === 'mentor' || u.role === 'core' },
     ];
     badgesGrid.innerHTML = allBadges.map(b => {
       const earned = b.cond(userData);
