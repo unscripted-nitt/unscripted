@@ -679,15 +679,6 @@
         <input type="text" id="editPathway" placeholder="L1P1" />
       </div>
       <div class="form-group">
-        <label class="form-label">Pathway Key</label>
-        <select id="editPathwayKey">
-          <option value="L1">Level 1 — Foundation</option>
-          <option value="L2">Level 2 — Proficiency</option>
-          <option value="L3K">Level 3 — Keynote</option>
-          <option value="L3H">Level 3 — Humorous</option>
-        </select>
-      </div>
-      <div class="form-group">
         <label class="form-label">Assigned Mentor</label>
         <select id="editMentor"></select>
       </div>
@@ -940,7 +931,6 @@ window.openEditModal = (uid) => {
   document.getElementById('editUid').value = uid;
   document.getElementById('editUserName').textContent = u.name;
   document.getElementById('editPathway').value = u.pathway||'L1P1';
-  document.getElementById('editPathwayKey').value = u.pathwayKey||'L1';
   document.getElementById('editRole').value = u.role||'user';
   document.getElementById('editMentor').value = u.mentor||'';
   document.getElementById('editIsActive').checked = u.isActive !== false;
@@ -962,7 +952,11 @@ window.saveUserChanges = async () => {
   const btn = event.target; btn.disabled = true; btn.textContent = 'Saving...';
  
   const newPathway    = document.getElementById('editPathway').value || 'L1P1';
-  const newPathwayKey = document.getElementById('editPathwayKey').value || 'L1';
+  // Derive pathwayKey automatically from the pathway label
+  const newPathwayKey = newPathway.startsWith('L3H') ? 'L3H'
+                      : newPathway.startsWith('L3K') ? 'L3K'
+                      : newPathway.startsWith('L2')  ? 'L2'
+                      : 'L1';
  
   // Derive speechIndex from the admin-supplied label so the dashboard is in sync.
   // We find the LAST occurrence of the label in the full sequence
