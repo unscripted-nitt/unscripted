@@ -273,7 +273,7 @@
           <div style="display:flex;flex-direction:column;gap:1.25rem;">
             <div class="form-group">
               <label class="form-label">Meeting Event</label>
-              <select id="attEventSelect" onchange="loadExistingAttendanceState()"><option value="">-- Choose an Event --</option></select>
+              <select id="attEventSelect"><option value="">-- Choose an Event --</option></select>
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
               <button class="btn-success" style="flex:1;min-width:100px;" onclick="setAllAttendance(true)">All Present</button>
@@ -1109,12 +1109,7 @@ window.uploadMemberPhoto = async function() {
 
 // ── ATTENDANCE ────────────────────────────────────────────
 window.setAllAttendance = (val) => {
-  allUsers.filter(u => u.isActive !== false).forEach(u => {
-    const chk    = document.getElementById('chk-'+u.id);
-    const inelig = document.getElementById('inelig-'+u.id);
-    if (chk)    chk.checked    = val;
-    if (inelig) inelig.checked = false;
-  });
+  document.querySelectorAll('#attList input[type="checkbox"]').forEach(c=>c.checked=val);
 };
 window.filterAttList = () => {
   const q = document.getElementById('attSearch').value.toLowerCase();
@@ -1126,37 +1121,11 @@ function renderAttendanceChecklist() {
   const list = document.getElementById('attList');
   if (!allUsers.length) { list.innerHTML='<p style="padding:2rem;text-align:center;color:var(--text-mid);">No members.</p>'; return; }
   list.innerHTML = allUsers.filter(u => u.isActive !== false).map(u=>
-    `<div style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);">
-      <input type="checkbox" id="chk-${u.id}" value="${u.id}"
-        style="width:18px;height:18px;accent-color:var(--orange);flex-shrink:0;"
-        onchange="if(this.checked)document.getElementById('inelig-${u.id}').checked=false;" />
-      <div style="flex:1;">
-        <div style="font-weight:700;">${u.name}</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div>
-      </div>
-      <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;flex-shrink:0;">
-        <input type="checkbox" id="inelig-${u.id}"
-          style="width:15px;height:15px;accent-color:#9E9E9E;"
-          onchange="if(this.checked)document.getElementById('chk-${u.id}').checked=false;" />
-        <span style="font-size:0.72rem;font-weight:700;color:var(--text-light);">Ineligible</span>
-      </label>
-    </div>`
+    `<label style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);cursor:pointer;">
+      <input type="checkbox" id="chk-${u.id}" value="${u.id}" style="width:18px;height:18px;accent-color:var(--orange);" />
+      <div><div style="font-weight:700;">${u.name}</div><div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div></div>
+    </label>`
   ).join('');
-}
-
-async function loadExistingAttendanceState() {
-  const eventId = document.getElementById('attEventSelect').value;
-  if (!eventId) return;
-  const ev = allEventsCache.find(e => e.id === eventId);
-  if (!ev) return;
-  const attended   = ev.attended   || [];
-  const ineligible = ev.ineligible || [];
-  allUsers.filter(u => u.isActive !== false).forEach(u => {
-    const chk    = document.getElementById('chk-'+u.id);
-    const inelig = document.getElementById('inelig-'+u.id);
-    if (chk)    chk.checked    = attended.includes(u.id);
-    if (inelig) inelig.checked = ineligible.includes(u.id);
-  });
 }
 window.submitAttendanceChecklist = async () => {
   const eventId = document.getElementById('attEventSelect').value;
@@ -1166,17 +1135,13 @@ window.submitAttendanceChecklist = async () => {
   const btn = document.querySelector('[onclick="submitAttendanceChecklist()"]');
   const origText = btn.textContent; btn.disabled=true; btn.textContent='Saving...';
   try {
-    let pCount=0; const attendedUids=[], ineligibleUids=[];
+    let pCount=0; const attendedUids=[];
     for (const user of allUsers) {
-      const isPresent    = document.getElementById('chk-'+user.id)?.checked    || false;
-      const isIneligible = document.getElementById('inelig-'+user.id)?.checked || false;
-      if (isPresent)    { pCount++; attendedUids.push(user.id); }
-      if (isIneligible) { ineligibleUids.push(user.id); }
-      if (!isIneligible) {
-        await updateDoc(doc(db,'users',user.id), {attendance:arrayUnion({date:dateStr,present:isPresent})});
-      }
+      const isPresent = document.getElementById('chk-'+user.id)?.checked||false;
+      if (isPresent) { pCount++; attendedUids.push(user.id); }
+      await updateDoc(doc(db,'users',user.id), {attendance:arrayUnion({date:dateStr,present:isPresent})});
     }
-    await updateDoc(doc(db,'events',eventId), {attended:attendedUids, ineligible:ineligibleUids});
+    await updateDoc(doc(db,'events',eventId), {attended:attendedUids});
     alert(`Saved! ${pCount} present for ${eventData?.title||'event'}.`);
     document.querySelectorAll('#attList input').forEach(c=>c.checked=false);
     loadAllData();
