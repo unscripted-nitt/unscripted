@@ -1912,8 +1912,11 @@ window.populateVoteCandidates = async () => {
   document.getElementById('vcEvaluators').value = getSpeakerNames('evaluator').join('\n');
   document.getElementById('vcTableTopics').value = getSpeakerNames('tt').join('\n');
   // Role players: all assigned roles
+  // Role players: exclude speakers and table topic speakers (they have their own voting categories)
   const rolePlayers = [];
   for (const [rk,uid] of Object.entries(roles)) {
+    if (rk.startsWith('speaker')) continue;
+    if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte') continue;
     const u=allUsers.find(u=>u.id===uid);
     if (u) { const found=ROLE_KEYS.find(r=>r.id===rk)||{label:rk}; rolePlayers.push(`${u.name} (${found.label})`); }
   }
@@ -1996,8 +1999,9 @@ let _currentVoteSession=null;
 window.viewVoteResults = async (sid) => {
   const sSnap=await getDoc(doc(db,'votingSessions',sid)); if (!sSnap.exists()) return;
   const sData=sSnap.data(); _currentVoteSession={id:sid,...sData};
-  const vSnap=await getDocs(query(collection(db,'votes'),where('sessionId','==',sid)));
-  const votes=[]; vSnap.forEach(d=>votes.push(d.data()));
+  // Fetch all votes and filter client-side to avoid needing a composite Firestore index
+  const vSnap=await getDocs(collection(db,'votes'));
+  const votes=[]; vSnap.forEach(d=>{ const v=d.data(); if(v.sessionId===sid) votes.push(v); });
   document.getElementById('voteResultsTitle').textContent=`Results — ${sData.meetTitle}`;
   document.getElementById('voteResultsCount').textContent=`${votes.length} anonymous vote${votes.length!==1?'s':''} received`;
   const categories=[
