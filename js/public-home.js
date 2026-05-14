@@ -103,7 +103,7 @@ async function loadPathwaysPreview() {
     order.forEach((id, i) => {
       const p = data[id]; if (!p) return;
       const labels = ['Beginner','Intermediate','Advanced','Advanced'];
-      const nums   = ['01','02','3a','3b'];
+      const nums = ['01','02','L3K','L3H'];
       const card   = document.createElement('div');
       card.className = 'pathway-card fade-up';
       card.style.transitionDelay = (i * 0.1) + 's';
