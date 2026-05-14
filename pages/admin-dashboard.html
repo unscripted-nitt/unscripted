@@ -273,7 +273,7 @@
           <div style="display:flex;flex-direction:column;gap:1.25rem;">
             <div class="form-group">
               <label class="form-label">Meeting Event</label>
-              <select id="attEventSelect"><option value="">-- Choose an Event --</option></select>
+              <select id="attEventSelect" onchange="loadAttendanceStateForEvent()"><option value="">-- Choose an Event --</option></select>
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
               <button class="btn-success" style="flex:1;min-width:100px;" onclick="setAllAttendance(true)">All Present</button>
@@ -861,9 +861,10 @@ function updateInsights() {
 function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
   tbody.innerHTML = allUsers.map(u => {
-    // ── Compute attendance live from events, not the stale u.attendance[] ──
-    const totalMeets  = allEventsCache.length;
-    const presentCount = allEventsCache.filter(e => e.attended?.includes(u.id)).length;
+    // Eligible = events where this member is NOT ineligible
+    const eligibleEvents = allEventsCache.filter(e => !(e.ineligible || []).includes(u.id));
+    const totalMeets     = eligibleEvents.length;
+    const presentCount   = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
     const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
  
     const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
@@ -885,7 +886,7 @@ function renderUserTable() {
       <td><span style="font-size:0.88rem;">${mentorName}</span></td>
       <td>
         <div style="font-weight:800;">${pct}%</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} meets</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} eligible meets</div>
       </td>
       <td>
         <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
@@ -900,6 +901,7 @@ function renderUserTable() {
     </tr>`;
   }).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-mid);">No members found.</td></tr>';
 }
+ 
 window.filterUsers = () => {
   const q = document.getElementById('userSearch').value.toLowerCase();
   document.querySelectorAll('#userTableBody tr').forEach(r => {
@@ -1108,46 +1110,111 @@ window.uploadMemberPhoto = async function() {
 };
 
 // ── ATTENDANCE ────────────────────────────────────────────
-window.setAllAttendance = (val) => {
-  document.querySelectorAll('#attList input[type="checkbox"]').forEach(c=>c.checked=val);
+// Call this to highlight the active button for a member
+window.setAttState = function(uid, val) {
+  attState[uid] = val;
+  const styles = {
+    present:    { border:'#4CAF50', bg:'rgba(76,175,80,0.1)',    color:'#4CAF50' },
+    absent:     { border:'#f44336', bg:'rgba(244,67,54,0.1)',    color:'#f44336' },
+    ineligible: { border:'#9e9e9e', bg:'rgba(158,158,158,0.15)', color:'#555'    },
+    inactive:   { border:'#ccc',    bg:'#fff',                   color:'#888'    },
+  };
+  ['present','absent','ineligible'].forEach(v => {
+    const btn = document.getElementById(`attbtn-${uid}-${v}`);
+    if (!btn) return;
+    const s = v === val ? styles[val] : styles.inactive;
+    btn.style.borderColor = s.border;
+    btn.style.background  = s.bg;
+    btn.style.color       = s.color;
+  });
 };
+
+window.setAllAttendance = (val) => {
+  // val is 'present' or 'absent' (bulk toggle doesn't set ineligible)
+  allUsers.filter(u => u.isActive !== false).forEach(u => setAttState(u.id, val));
+};
+
+window.loadAttendanceStateForEvent = function() {
+  const eventId = document.getElementById('attEventSelect').value;
+  if (!eventId) return;
+  const ev = allEventsCache.find(e => e.id === eventId);
+  if (!ev) return;
+  const attended   = ev.attended   || [];
+  const ineligible = ev.ineligible || [];
+  allUsers.filter(u => u.isActive !== false).forEach(u => {
+    if (attended.includes(u.id))        setAttState(u.id, 'present');
+    else if (ineligible.includes(u.id)) setAttState(u.id, 'ineligible');
+    else                                setAttState(u.id, 'absent');
+  });
+};
+  
 window.filterAttList = () => {
   const q = document.getElementById('attSearch').value.toLowerCase();
   document.querySelectorAll('#attList label').forEach(l => {
     l.style.display = l.textContent.toLowerCase().includes(q) ? 'flex':'none';
   });
 };
+let attState = {}; // uid → 'present' | 'absent' | 'ineligible'
+ 
 function renderAttendanceChecklist() {
   const list = document.getElementById('attList');
-  if (!allUsers.length) { list.innerHTML='<p style="padding:2rem;text-align:center;color:var(--text-mid);">No members.</p>'; return; }
-  list.innerHTML = allUsers.filter(u => u.isActive !== false).map(u=>
-    `<label style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);cursor:pointer;">
-      <input type="checkbox" id="chk-${u.id}" value="${u.id}" style="width:18px;height:18px;accent-color:var(--orange);" />
-      <div><div style="font-weight:700;">${u.name}</div><div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div></div>
-    </label>`
-  ).join('');
+  attState = {};
+  if (!allUsers.length) {
+    list.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">No members.</p>';
+    return;
+  }
+  const activeUsers = allUsers.filter(u => u.isActive !== false);
+  // Default all to absent
+  activeUsers.forEach(u => { attState[u.id] = 'absent'; });
+ 
+  list.innerHTML = activeUsers.map(u => `
+    <div id="attrow-${u.id}" style="display:flex;align-items:center;justify-content:space-between;
+      padding:0.85rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:700;">${u.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div>
+      </div>
+      <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+        <button onclick="setAttState('${u.id}','present')"
+          id="attbtn-${u.id}-present"
+          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
+                 cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">P</button>
+        <button onclick="setAttState('${u.id}','absent')"
+          id="attbtn-${u.id}-absent"
+          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #f44336;
+                 background:rgba(244,67,54,0.1);cursor:pointer;font-size:0.75rem;font-weight:800;
+                 color:#f44336;transition:0.15s;">A</button>
+        <button onclick="setAttState('${u.id}','ineligible')"
+          id="attbtn-${u.id}-ineligible"
+          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
+                 cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">—</button>
+      </div>
+    </div>`).join('');
 }
+ 
 window.submitAttendanceChecklist = async () => {
   const eventId = document.getElementById('attEventSelect').value;
   if (!eventId) { alert('Select meeting event.'); return; }
-  const eventData = allEventsCache.find(e=>e.id===eventId);
-  const dateStr = eventData?.date ? (eventData.date.toDate?eventData.date.toDate():new Date(eventData.date)).toLocaleDateString('en-IN') : 'Unknown';
+  const eventData = allEventsCache.find(e => e.id === eventId);
   const btn = document.querySelector('[onclick="submitAttendanceChecklist()"]');
-  const origText = btn.textContent; btn.disabled=true; btn.textContent='Saving...';
+  const origText = btn.textContent; btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    let pCount=0; const attendedUids=[];
-    for (const user of allUsers) {
-      const isPresent = document.getElementById('chk-'+user.id)?.checked||false;
-      if (isPresent) { pCount++; attendedUids.push(user.id); }
-      await updateDoc(doc(db,'users',user.id), {attendance:arrayUnion({date:dateStr,present:isPresent})});
+    const attendedUids   = [];
+    const ineligibleUids = [];
+    for (const [uid, state] of Object.entries(attState)) {
+      if      (state === 'present')    attendedUids.push(uid);
+      else if (state === 'ineligible') ineligibleUids.push(uid);
+      // 'absent' → not in either array
     }
-    await updateDoc(doc(db,'events',eventId), {attended:attendedUids});
-    alert(`Saved! ${pCount} present for ${eventData?.title||'event'}.`);
-    document.querySelectorAll('#attList input').forEach(c=>c.checked=false);
-    loadAllData();
-  } catch(e) { alert('Error: '+e.message); }
-  finally { btn.disabled=false; btn.textContent=origText; }
+    await updateDoc(doc(db, 'events', eventId), {
+      attended:   attendedUids,
+      ineligible: ineligibleUids,
+    });
+    alert(`Saved! ${attendedUids.length} present, ${ineligibleUids.length} ineligible for "${eventData?.title||'event'}".`);
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = origText; }
 };
+ 
 window.resetAllAttendance = async () => {
   if (!confirm('RESET all attendance for ALL members? Cannot be undone.')) return;
   if (!confirm('Second confirmation: proceed?')) return;
