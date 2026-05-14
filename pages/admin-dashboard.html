@@ -2015,7 +2015,13 @@ window.viewVoteResults = async (sid) => {
   categories.forEach(cat=>{
     const tallies={};
     cat.candidates.forEach(c=>{ tallies[c.name]=0; });
-    votes.forEach(v=>{ if (v.choices?.[cat.key]&&tallies[v.choices[cat.key]]!==undefined) tallies[v.choices[cat.key]]++; });
+    votes.forEach(v => {
+  const choiceVal = v.choices?.[cat.key];
+  if (!choiceVal) return;
+  // votes store uid (or name fallback); tallies are keyed by name — resolve the uid → name
+  const cand = cat.candidates.find(c => c.uid === choiceVal || c.name === choiceVal);
+  if (cand && tallies[cand.name] !== undefined) tallies[cand.name]++;
+});
     const sorted=Object.entries(tallies).sort((a,b)=>b[1]-a[1]);
     const topVotes=sorted[0]?.[1]||0;
     html+=`<div style="margin-bottom:1.5rem;">
