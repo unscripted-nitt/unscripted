@@ -510,10 +510,11 @@ import '../js/session.js';
 
 let userData = null;
   function getDashSpeechIdx(u) {
+  // L1P0 means "not started" — always 0, regardless of what's stored in speechIndex
+  if ((u.pathway || '') === 'L1P0' || !u.pathway) return 0;
   if (typeof u.speechIndex === 'number') return u.speechIndex;
   const pway = u.pathway || '';
   const key  = u.pathwayKey || 'L1';
-  if (pway === 'L1P0') return 0;
   const seq  = [
     'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
     'L2P1','L2P2','L2P3','L2P4','L2P5',
@@ -670,8 +671,7 @@ async function renderProgress() {
  
     // ── Stat cards ─────────────────────────────────────────
     document.getElementById('statSpeeches').textContent = speechIndex;
-    document.getElementById('statLevel').textContent = userData.pathway || 'Not started';
-    const eligibleMeets = allEventsCache.filter(e => !(e.ineligible || []).includes(currentUid));
+    document.getElementById('statLevel').textContent = (!userData.pathway || userData.pathway === 'L1P0') ? 'Not started' : userData.pathway;    const eligibleMeets = allEventsCache.filter(e => !(e.ineligible || []).includes(currentUid));
     const presentCount  = eligibleMeets.filter(e => (e.attended || []).includes(currentUid)).length;
     document.getElementById('statAttPct').textContent =
       eligibleMeets.length ? Math.round(presentCount / eligibleMeets.length * 100) + '%' : '0%';
@@ -679,25 +679,24 @@ async function renderProgress() {
     // ── Project-to-speech-slot mapping ─────────────────────
     const PROJ_RANGES = {
       L1: [
-        {label:'L1P0',s:0,e:0},   // ← NEW — active for speechIndex === 0
-        {label:'L1P1',s:1,e:1},
-        {label:'L1P2',s:2,e:2},
-        {label:'L1P3',s:3,e:3},
-        {label:'L1P4',s:4,e:5},   // counts twice
-        {label:'L1P5',s:6,e:6},
-        {label:'L1P6',s:7,e:7}
+        {label:'L1P1',s:0,e:0},
+        {label:'L1P2',s:1,e:1},
+        {label:'L1P3',s:2,e:2},
+        {label:'L1P4',s:3,e:4},   // counts twice
+        {label:'L1P5',s:5,e:5},
+        {label:'L1P6',s:6,e:6}
       ],
       L2: [
-        {label:'L2P1',s:8,e:8},  {label:'L2P2',s:9,e:9},  {label:'L2P3',s:10,e:10},
-        {label:'L2P4',s:11,e:11},{label:'L2P5',s:12,e:12}
+        {label:'L2P1',s:7,e:7},  {label:'L2P2',s:8,e:8},  {label:'L2P3',s:9,e:9},
+        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11}
       ],
       L3K: [
-        {label:'L3KP1',s:13,e:13},{label:'L3KP2',s:14,e:14},
-        {label:'L3KP3',s:15,e:15},{label:'L3KP4',s:16,e:16}
+        {label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},
+        {label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}
       ],
       L3H: [
-        {label:'L3HP1',s:13,e:13},{label:'L3HP2',s:14,e:14},
-        {label:'L3HP3',s:15,e:15},{label:'L3HP4',s:16,e:16}
+        {label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},
+        {label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}
       ]
     };
  
@@ -729,7 +728,7 @@ if (hasChosenL3)
     };
  
     document.getElementById('pathwayTitle').textContent   = 'Curriculum Progress';
-    document.getElementById('pathwayBadge').textContent   = userData.pathway || currentPathwayKey;
+    document.getElementById('pathwayBadge').textContent   = (!userData.pathway || userData.pathway === 'L1P0') ? 'L1' : userData.pathway;
     document.getElementById('pathwayBar').style.width     = Math.round(Math.min(speechIndex / totalSlots, 1) * 100) + '%';
     document.getElementById('progressDone').textContent   = speechIndex + ' speeches done';
     document.getElementById('progressTotal').textContent  = 'of ' + totalSlots + ' total';
