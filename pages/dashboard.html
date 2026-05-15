@@ -14,6 +14,9 @@
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
 <div class="dash-top-nav">
   <div style="display:flex;align-items:center;gap:1rem;">
+    <button class="hamburger-dash" onclick="toggleSidebar()" aria-label="Menu" style="background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;display:none;" id="hamburgerDash">
+      <i class="fa-solid fa-bars"></i>
+    </button>
     <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
       <img src="../icons/logo.png" alt="Unscripted" style="height:48px;width:auto;" />
     </a>
@@ -474,29 +477,24 @@
 
 <!-- ────────────────────────────────────────────────────── -->
 <!-- MOBILE BOTTOM NAV -->
-<div class="mobile-dash-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;justify-content:space-around;padding:0.4rem 0 0.6rem;">
-  <div class="mob-nav-item" onclick="showSection('progress')"><i class="fa-solid fa-chart-line" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Progress</span></div>
-  <div class="mob-nav-item" onclick="showSection('achievements')"><i class="fa-solid fa-medal" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Badges</span></div>
-  <div class="mob-nav-item" onclick="showSection('leaderboard')"><i class="fa-solid fa-trophy" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Leaders</span></div>
-  <div class="mob-nav-item" onclick="showSection('notifications')"><i class="fa-regular fa-bell" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Notifs</span></div>
-  <div class="mob-nav-item" onclick="showSection('gallery')"><i class="fa-regular fa-images" style="font-size:1.2rem;"></i><span style="font-size:0.6rem;font-weight:700;margin-top:2px;">Gallery</span></div>
-</div>
-
 <style>
-.att-ineligible {
-  background: var(--surface2) !important;
-  border-color: var(--border) !important;
-  color: var(--text-light) !important;
-  opacity: 0.5;
-}
 .mob-nav-item { display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-mid);cursor:pointer;padding:0.4rem 0.5rem; }
 .mob-nav-item.active { color:var(--orange); }
-@media (max-width:600px) { .mobile-dash-nav { display:flex !important; } .main-content { padding-bottom:5rem; } }
 @keyframes slideDown { from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);} }
 .file-badge { background:var(--orange-light);color:var(--orange);padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;transition:all 0.2s; }
 .file-badge:hover { background:var(--orange);color:#fff; }
+.att-ineligible { background:var(--surface2) !important; border-color:var(--border) !important; color:var(--text-light) !important; opacity:0.5; }
+ 
+/* On mobile: hide sidebar by default, show hamburger, add overlay */
+@media (max-width:1024px) {
+  .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
+  .sidebar.open { transform:translateX(0); }
+  .main-content { margin-left:0 !important; }
+  #hamburgerDash { display:block !important; }
+  .main-content { padding-bottom:1rem; } /* no longer need bottom padding for nav */
+}
 </style>
-
+  
 <script type="module">
 import { auth, db } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
