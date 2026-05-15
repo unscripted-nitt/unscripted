@@ -1486,8 +1486,9 @@ window.deleteEvent = async (id) => {
 
 // ── SPEECH SEQUENCE (Req 1) ──────────────────────────────
 const SPEECH_SEQUENCE = [
+  {label:'L1P0',key:'L1'},                           // ← NEW
   {label:'L1P1',key:'L1'},{label:'L1P2',key:'L1'},{label:'L1P3',key:'L1'},
-  {label:'L1P4',key:'L1'},{label:'L1P4',key:'L1'}, // L1P4 counts twice
+  {label:'L1P4',key:'L1'},{label:'L1P4',key:'L1'},   // L1P4 counts twice
   {label:'L1P5',key:'L1'},{label:'L1P6',key:'L1'},
   {label:'L2P1',key:'L2'},{label:'L2P2',key:'L2'},{label:'L2P3',key:'L2'},
   {label:'L2P4',key:'L2'},{label:'L2P5',key:'L2'},
