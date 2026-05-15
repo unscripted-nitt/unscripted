@@ -222,7 +222,7 @@
 </div>
       <div class="card" style="padding:0;">
         <div class="scroll-container" style="padding:1.5rem;">
-          <table style="min-width:1400px;" id="leaderboardTable">
+          <table style="min-width:1400px;width:auto;" id="leaderboardTable">
             <thead><tr id="leaderboardTableHeader"></tr></thead>
             <tbody id="leaderboardTableBody"></tbody>
           </table>
@@ -969,9 +969,10 @@ async function loadAchievements() {
 async function loadLeaderboard() {
   const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
   document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
-    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;
-      ${i===0?'text-align:left;':'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
-  ).join('');
+  `<th style="padding:1rem 0.75rem;${i===0
+    ? 'position:sticky;left:0;z-index:10;background:var(--surface);text-align:left;'
+    : 'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;text-align:center;'}">${h}</th>`
+).join('');
 
   try {
     // Fetch leaderboard reset timestamp (same source as admin)
