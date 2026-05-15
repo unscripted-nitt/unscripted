@@ -1299,8 +1299,8 @@ async function loadEvents() {
             <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${displayDate}</div>
           </td>
           <td>
-            <span class="badge-${isActive?'live':(isUpcoming?'upcoming':'past')}">
-              ${isActive?'Live':(isUpcoming?'Upcoming':'Past')}
+            <span class="badge-${isUpcoming?'upcoming':'past'}">
+              ${isUpcoming?'Upcoming':'Past'}
             </span>
           </td>
           <td>${galleryCell}</td>
@@ -1309,9 +1309,6 @@ async function loadEvents() {
           <td style="padding-right:1.5rem;">
             <div class="action-row">
               <button class="btn-outline btn-sm" onclick="editEvent('${id}')">Edit</button>
-              <button class="btn-outline btn-sm" onclick="toggleEventActive('${id}',${!isActive})" style="${isActive?'':'color:var(--orange);border-color:var(--orange);'}">
-                ${isActive?'Deactivate':'Go Live'}
-              </button>
               <button class="btn-danger btn-sm" onclick="deleteEvent('${id}')">Delete</button>
             </div>
           </td>
