@@ -963,7 +963,9 @@ window.saveUserChanges = async () => {
   // (L1P4 appears twice; "L1P4" means both speeches done → higher index wins).
   const seq = getFullSeq(newPathwayKey);
   let newSpeechIndex = 0;
-  seq.forEach((s, i) => { if (s.label === newPathway) newSpeechIndex = i + 1; });
+  if (newPathway !== 'L1P0') {
+    seq.forEach((s, i) => { if (s.label === newPathway) newSpeechIndex = i + 1; });
+  }
   // If no match found (admin typed a valid label not in sequence for that key)
   // fall back to 0 so the member simply shows "not started".
  
@@ -1483,7 +1485,6 @@ window.deleteEvent = async (id) => {
 
 // ── SPEECH SEQUENCE (Req 1) ──────────────────────────────
 const SPEECH_SEQUENCE = [
-  {label:'L1P0',key:'L1'},                           // ← NEW
   {label:'L1P1',key:'L1'},{label:'L1P2',key:'L1'},{label:'L1P3',key:'L1'},
   {label:'L1P4',key:'L1'},{label:'L1P4',key:'L1'},   // L1P4 counts twice
   {label:'L1P5',key:'L1'},{label:'L1P6',key:'L1'},
