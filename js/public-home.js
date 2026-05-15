@@ -13,7 +13,7 @@ async function loadEventsPreview() {
     let rendered = 0;
     snap.forEach(doc => {
       const e = doc.data();
-      if (!e.isActive) return;
+      if (e.type !== 'upcoming') return;
       rendered++;
       let dateStr = '—';
       if (e.date) {
@@ -29,9 +29,8 @@ async function loadEventsPreview() {
             `<span class="role-tag"><strong>${r.role}</strong> ${r.name}</span>`
           ).join('') + '</div>';
       }
-      const isUpcoming = e.type === 'upcoming';
-      const badgeClass = e.isActive ? 'badge-live' : (isUpcoming ? 'badge-upcoming' : 'badge-past');
-      const badgeText  = e.isActive ? 'Live Now' : (isUpcoming ? 'Upcoming' : 'Past');
+      const badgeClass = 'badge-upcoming';
+      const badgeText  = 'Upcoming';
       container.innerHTML += `
         <div class="event-card fade-up active-event">
           <div class="event-date">${dateStr}</div>
