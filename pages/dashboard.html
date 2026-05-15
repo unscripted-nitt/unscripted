@@ -379,13 +379,20 @@
       </div>
     </div>
 
-  </main>
-</div>
+  <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: EVENTS                                      -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <div class="dash-section" id="section-events-dash">
+      <h2 class="section-title">Club Events</h2>
+      <p class="section-sub">All past and upcoming meets</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+        <span>All club meets are listed here. Your assigned role (if any) is shown below the event name. Use the Gallery and Docs links to access event resources.</span>
+      </div>
+      <div id="dashEventsList"><p style="color:var(--text-mid);">Loading...</p></div>
+    </div>
 
-<div class="dash-section" id="section-events-dash">
-  <h2 class="section-title">Club Events</h2>
-  <p class="section-sub">All past and upcoming meets</p>
-  <div id="dashEventsList"><p style="color:var(--text-mid);">Loading...</p></div>
+  </main>
 </div>
 
 <!-- ── PERSONAL NOTIFICATION MODAL (req 4: first screen on login) -->
@@ -508,8 +515,8 @@ let userData = null;
   if (typeof u.speechIndex === 'number') return u.speechIndex;
   const pway = u.pathway || '';
   const key  = u.pathwayKey || 'L1';
+  if (pway === 'L1P0') return 0;
   const seq  = [
-    'L1P0',                                          // ← NEW
     'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
     'L2P1','L2P2','L2P3','L2P4','L2P5',
     key==='L3H'?'L3HP1':'L3KP1',
@@ -970,7 +977,7 @@ async function loadLeaderboard() {
   const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
   document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
   `<th style="padding:1rem 0.75rem;${i===0
-    ? 'position:sticky;left:0;z-index:10;background:var(--surface);text-align:left;'
+    ? 'text-align:left;white-space:nowrap;'
     : 'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;text-align:center;'}">${h}</th>`
 ).join('');
 
@@ -1028,7 +1035,7 @@ async function loadLeaderboard() {
     rows.forEach(({u,c,totalRoles,totalPoints}) => {
       const isMe = u.id === currentUid;
       html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}">
-        <td style="position:sticky;left:0;background:${isMe?'rgba(255,87,34,0.08)':'var(--surface)'};z-index:5;padding:0.9rem;font-weight:${isMe?'800':'700'};">${u.name||''}${isMe?' (you)':''}</td>
+        <td style="padding:0.9rem;font-weight:${isMe?'800':'700'};white-space:nowrap;">${u.name||''}${isMe?' (you)':''}</td>
         ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.listener),f(c.grammarian),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
       </tr>`;
     });
