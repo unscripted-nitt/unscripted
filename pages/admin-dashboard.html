@@ -818,6 +818,9 @@ async function loadAllData() {
   try {
     const snap = await getDocs(query(collection(db,'users'), orderBy('name','asc')));
     allUsers = []; snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
+    // Load events FIRST so allEventsCache is populated before the table renders
+    await loadEvents();
+    // Now render everything that depends on allEventsCache
     renderUserTable();
     updateInsights();
     populateMentorDropdown();
@@ -825,7 +828,6 @@ async function loadAllData() {
     renderAttendanceChecklist();
     renderRoleDropdowns();
     populateMemberPhotoSelect();
-    await loadEvents();
     loadRoleGuides();
   } catch(e) { console.warn('loadAllData error',e); }
 }
