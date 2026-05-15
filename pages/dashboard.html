@@ -72,20 +72,6 @@
   <!-- ── MAIN CONTENT ────────────────────────────────────── -->
   <main class="main-content">
 
-    <!-- Active Meet Banner -->
-    <div id="activeMeetBanner" style="display:none;margin-bottom:2rem;">
-      <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a);color:#fff;border-color:#333;border-left:4px solid var(--orange);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:0;">
-        <div style="display:flex;align-items:center;gap:1.5rem;">
-          <div class="live-indicator">LIVE</div>
-          <div>
-            <h3 id="activeMeetTitle" style="margin:0;font-size:1.2rem;color:#fff;">Weekly Meet</h3>
-            <p id="activeMeetLocation" style="margin:0;opacity:0.65;font-size:0.85rem;"></p>
-          </div>
-        </div>
-        <button class="btn-primary" style="padding:0.55rem 1.25rem;font-size:0.85rem;" onclick="showSection('attendance')">Mark Presence &rarr;</button>
-      </div>
-    </div>
-
     <!-- ──────────────────────────────────────────────────── -->
     <!-- SECTION: MY PROGRESS                                 -->
     <!-- ──────────────────────────────────────────────────── -->
@@ -521,6 +507,7 @@ let userData = null;
   const pway = u.pathway || '';
   const key  = u.pathwayKey || 'L1';
   const seq  = [
+    'L1P0',                                          // ← NEW
     'L1P1','L1P2','L1P3','L1P4','L1P4','L1P5','L1P6',
     'L2P1','L2P2','L2P3','L2P4','L2P5',
     key==='L3H'?'L3HP1':'L3KP1',
@@ -568,7 +555,6 @@ onAuthStateChanged(auth, async user => {
   loadFeedbackSectionEvents();
   loadVoting();
   loadRoleGuidesForPointsPage();
-  checkActiveMeet();
 
   // req 4: Personal notification modal on login
   await checkPersonalNotification();
@@ -623,16 +609,6 @@ async function loadAllUsers() {
   } catch(e) { console.warn('Users load error',e); }
 }
 
-// ── ACTIVE MEET BANNER ───────────────────────────────────
-function checkActiveMeet() {
-  const active = allEventsCache.find(e => e.isActive === true);
-  if (active) {
-    document.getElementById('activeMeetBanner').style.display = 'block';
-    document.getElementById('activeMeetTitle').textContent = active.title || 'Active Meet';
-    document.getElementById('activeMeetLocation').textContent = active.description || '';
-  }
-}
-
 // ── PROGRESS ─────────────────────────────────────────────
 async function renderProgress() {
   try {
@@ -650,21 +626,25 @@ async function renderProgress() {
     // ── Project-to-speech-slot mapping ─────────────────────
     const PROJ_RANGES = {
       L1: [
-        {label:'L1P1',s:0,e:0}, {label:'L1P2',s:1,e:1}, {label:'L1P3',s:2,e:2},
-        {label:'L1P4',s:3,e:4},   // counts twice
-        {label:'L1P5',s:5,e:5},   {label:'L1P6',s:6,e:6}
+        {label:'L1P0',s:0,e:0},   // ← NEW — active for speechIndex === 0
+        {label:'L1P1',s:1,e:1},
+        {label:'L1P2',s:2,e:2},
+        {label:'L1P3',s:3,e:3},
+        {label:'L1P4',s:4,e:5},   // counts twice
+        {label:'L1P5',s:6,e:6},
+        {label:'L1P6',s:7,e:7}
       ],
       L2: [
-        {label:'L2P1',s:7,e:7},  {label:'L2P2',s:8,e:8},  {label:'L2P3',s:9,e:9},
-        {label:'L2P4',s:10,e:10},{label:'L2P5',s:11,e:11}
+        {label:'L2P1',s:8,e:8},  {label:'L2P2',s:9,e:9},  {label:'L2P3',s:10,e:10},
+        {label:'L2P4',s:11,e:11},{label:'L2P5',s:12,e:12}
       ],
       L3K: [
-        {label:'L3KP1',s:12,e:12},{label:'L3KP2',s:13,e:13},
-        {label:'L3KP3',s:14,e:14},{label:'L3KP4',s:15,e:15}
+        {label:'L3KP1',s:13,e:13},{label:'L3KP2',s:14,e:14},
+        {label:'L3KP3',s:15,e:15},{label:'L3KP4',s:16,e:16}
       ],
       L3H: [
-        {label:'L3HP1',s:12,e:12},{label:'L3HP2',s:13,e:13},
-        {label:'L3HP3',s:14,e:14},{label:'L3HP4',s:15,e:15}
+        {label:'L3HP1',s:13,e:13},{label:'L3HP2',s:14,e:14},
+        {label:'L3HP3',s:15,e:15},{label:'L3HP4',s:16,e:16}
       ]
     };
  
@@ -941,7 +921,8 @@ async function loadAchievements() {
 async function loadLeaderboard() {
   const HEADERS = ['Member Name','HOM','Speaker','Evaluator','TTM','TTE','GE','Timer','Table Topic','Listener','Grammarian','Attendance','MOM','Points','Roles'];
   document.getElementById('leaderboardTableHeader').innerHTML = HEADERS.map((h,i) =>
-    `<th style="padding:1rem 0.75rem;${i===0?'':'writing-mode:vertical-lr;transform:rotate(180deg);height:130px;'}">${h}</th>`
+    `<th style="padding:1rem 0.75rem;background:var(--orange);color:#fff;white-space:nowrap;
+      ${i===0?'text-align:left;':'writing-mode:vertical-lr;transform:rotate(180deg);height:140px;text-align:center;'}">${h}</th>`
   ).join('');
 
   try {
@@ -1010,7 +991,8 @@ async function loadLeaderboard() {
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
-    const cells = allEventsCache.filter(e => e.type === 'past' || !e.isActive).slice(0, 30);
+    // Show all recorded events, not just "past" — type filter removed
+    const cells = allEventsCache.slice(0, 30);
  
     let present = 0, eligible = 0;
     cells.forEach(e => {
@@ -1039,21 +1021,21 @@ function loadAttendance() {
           dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
         } catch(_) {}
       }
-      // Three visual states: green (present), red (absent), grey (ineligible)
-      const cellClass = isIneligible ? 'att-ineligible' : (isPresent ? 'att-present' : 'att-absent');
-      const label     = isIneligible ? '—' : (isPresent ? 'P' : 'A');
-      const title     = isIneligible
-        ? `${e.title || ''} (not counted)`
-        : (e.title || '');
- 
-      return `<div class="att-cell ${cellClass}" title="${title}"
-        style="${isIneligible ? 'opacity:0.45;background:var(--surface2);border-color:var(--border);' : ''}">
+      const isUpcoming = e.type === 'upcoming' && !isIneligible && !(e.attended||[]).length;
+      const cellClass = isIneligible ? 'att-ineligible'
+                      : isUpcoming   ? 'att-upcoming'
+                      : isPresent    ? 'att-present'
+                      : 'att-absent';
+      const label = isIneligible ? '—' : isUpcoming ? '?' : isPresent ? 'P' : 'A';
+      return `<div class="att-cell ${cellClass}" title="${e.title||''}"
+        style="${isIneligible?'opacity:0.45;background:var(--surface2);border-color:var(--border);':isUpcoming?'opacity:0.5;background:var(--surface2);border-style:dashed;':''}">
         <div class="day-num">${label}</div>
         <div style="font-size:0.6rem;">${dateStr}</div>
       </div>`;
     }).join('');
   } catch(e) { console.warn('Attendance error', e); }
 }
+  
 // ── MENTORSHIP ────────────────────────────────────────────
 async function loadMentorship() {
   try {
