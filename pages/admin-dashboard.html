@@ -2218,9 +2218,17 @@ async function loadRoleGuides() {
     if (snap.exists()) existing = snap.data();
   } catch(_) {}
   container.innerHTML = ROLE_GUIDE_KEYS.map(r => `
-    <div>
-      <label class="form-label">${r.label}</label>
-      <input type="url" id="rg_${r.id}" value="${existing[r.id]||''}" placeholder="https://drive.google.com/..." style="font-size:0.82rem;" />
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem;">
+      <label class="form-label" style="margin-bottom:0.5rem;">${r.label}</label>
+      <input type="url" id="rg_${r.id}" value="${existing[r.id]||''}"
+        placeholder="Paste URL or upload a file →"
+        style="font-size:0.82rem;margin-bottom:0.4rem;" />
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <input type="file" id="rgfile_${r.id}" accept=".pdf,.doc,.docx,.pptx,.jpg,.png"
+          style="font-size:0.72rem;flex:1;cursor:pointer;"
+          onchange="uploadRoleGuideFile('${r.id}', this)" />
+        <span id="rgstatus_${r.id}" style="font-size:0.72rem;font-weight:700;white-space:nowrap;"></span>
+      </div>
     </div>`).join('');
 }
 
@@ -2236,6 +2244,27 @@ window.saveRoleGuides = async function() {
     s.textContent = 'Role guides saved!'; s.style.display='block';
     setTimeout(()=>s.style.display='none', 2500);
   } catch(e) { alert('Failed: '+e.message); }
+};
+
+window.uploadRoleGuideFile = async function(roleId, input) {
+  const file = input.files[0]; if (!file) return;
+  const status = document.getElementById('rgstatus_' + roleId);
+  status.textContent = 'Uploading...'; status.style.color = 'var(--orange)';
+  try {
+    const storageRef = ref(storage, `roleGuides/${roleId}_${Date.now()}_${file.name}`);
+    const task = uploadBytesResumable(storageRef, file);
+    await new Promise((resolve, reject) => {
+      task.on('state_changed', null, reject, resolve);
+    });
+    const url = await getDownloadURL(task.snapshot.ref);
+    document.getElementById('rg_' + roleId).value = url;
+    status.textContent = '✓ Ready to save'; status.style.color = '#4CAF50';
+  } catch(e) {
+    status.textContent = '✗ Failed'; status.style.color = '#f44336';
+    alert('Upload failed: ' + e.message);
+  } finally {
+    input.value = '';
+  }
 };
   
 // Close modals on overlay click
