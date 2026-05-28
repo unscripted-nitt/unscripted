@@ -677,6 +677,11 @@
       <div class="form-group">
         <label class="form-label">Project Shorthand (e.g. L2P4)</label>
         <input type="text" id="editPathway" placeholder="L1P1" />
+        <div class="form-group">
+  <label class="form-label">Personal Email (Recovery Only)</label>
+  <input type="email" id="editPersonalEmail" placeholder="e.g. name@gmail.com" />
+  <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">Not used for login. Stored only so admin can identify member if locked out.</p>
+</div>
       </div>
       <div class="form-group">
         <label class="form-label">Assigned Mentor</label>
@@ -876,6 +881,7 @@ function renderUserTable() {
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${u.name}</div>
         <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
+        ${u.personalEmail ? `<div style="font-size:0.68rem;color:var(--text-light);">📱 ${u.personalEmail}</div>` : ''}
         ${u.role === 'admin' || u.role === 'core'
           ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
           : ''}
@@ -937,6 +943,7 @@ window.openEditModal = (uid) => {
   document.getElementById('editMentor').value = u.mentor||'';
   document.getElementById('editIsActive').checked = u.isActive !== false;
   document.getElementById('editModal').classList.add('open');
+  document.getElementById('editPersonalEmail').value = u.personalEmail || '';
 };
 window.closeModal = () => document.getElementById('editModal').classList.remove('open');
 
@@ -979,6 +986,7 @@ window.saveUserChanges = async () => {
       role:    document.getElementById('editRole').value    || 'user',
       mentor:  document.getElementById('editMentor').value  || '',
       isActive: document.getElementById('editIsActive').checked,
+      personalEmail: document.getElementById('editPersonalEmail').value.trim(),
     });
     alert('Profile updated!'); closeModal(); loadAllData();
   } catch (e) {
@@ -1917,6 +1925,7 @@ window.populateVoteCandidates = async () => {
   const rolePlayers = [];
   for (const [rk,uid] of Object.entries(roles)) {
     if (rk.startsWith('speaker')) continue;
+    if (rk.startsWith('evaluator')) continue;
     if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte') continue;
     const u=allUsers.find(u=>u.id===uid);
     if (u) { const found=ROLE_KEYS.find(r=>r.id===rk)||{label:rk}; rolePlayers.push(`${u.name} (${found.label})`); }
@@ -2039,21 +2048,28 @@ window.viewVoteResults = async (sid) => {
         </div>`;
       }).join('')}
     </div>`;
-    if (sorted[0]&&sorted[0][1]>0) {
-      const winner=sorted[0][0];
-      const winnerUid=cat.candidates.find(c=>c.name===winner)?.uid;
-      winnerButtons.push({category:cat.label,winner,winnerUid,meetTitle:sData.meetTitle});
-    }
+    if (sorted[0] && sorted[0][1] > 0) {
+  const topCount = sorted[0][1];
+  const tiedWinners = sorted.filter(([,count]) => count === topCount);
+  const isTie = tiedWinners.length > 1;
+  tiedWinners.forEach(([winner]) => {
+    const winnerUid = cat.candidates.find(c => c.name === winner)?.uid;
+    winnerButtons.push({category: cat.label, winner, winnerUid, meetTitle: sData.meetTitle, isTie});
+  });
+}
   });
   document.getElementById('voteResultsBody').innerHTML=html;
-  document.getElementById('winnerConfirmButtons').innerHTML=winnerButtons.map((wb,i)=>
-    `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
-      <span style="font-weight:700;font-size:0.88rem;">${wb.category}: <span style="color:var(--orange);">${wb.winner}</span></span>
-      <button class="btn-success btn-sm" onclick="awardWinnerBadge('${wb.winnerUid||''}','${wb.winner}','${wb.category}','${wb.meetTitle}',this)">
-        <i class="fa-solid fa-crown"></i> Award Badge
-      </button>
-    </div>`
-  ).join('');
+  document.getElementById('winnerConfirmButtons').innerHTML = winnerButtons.map((wb) =>
+  `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+    <span style="font-weight:700;font-size:0.88rem;">
+      ${wb.category}: <span style="color:var(--orange);">${wb.winner}</span>
+      ${wb.isTie ? '<span style="font-size:0.7rem;font-weight:800;color:#e65100;margin-left:0.4rem;background:rgba(230,81,0,0.1);padding:2px 7px;border-radius:100px;">TIE</span>' : ''}
+    </span>
+    <button class="btn-success btn-sm" onclick="awardWinnerBadge('${wb.winnerUid||''}','${wb.winner}','${wb.category}','${wb.meetTitle}',this)">
+      <i class="fa-solid fa-crown"></i> Award Badge
+    </button>
+  </div>`
+).join('');
   document.getElementById('voteResultsModal').classList.add('open');
 };
 window.closeVoteResultsModal = () => document.getElementById('voteResultsModal').classList.remove('open');
