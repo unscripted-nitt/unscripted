@@ -202,12 +202,6 @@
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
       </div>
-      <div style="text-align:right;margin-top:-0.5rem;margin-bottom:1rem;">
-  <button type="button" onclick="showForgotPassword()"
-    style="background:none;border:none;color:var(--orange);font-size:0.85rem;cursor:pointer;font-weight:600;">
-    Forgot Password?
-  </button>
-</div>
 
       <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard &rarr;</button>
       <div class="error-msg" id="errorMsg"></div>
@@ -397,74 +391,6 @@ async function loadLoginRoster() {
   } catch(e) { console.warn('Roster load failed', e); }
 }
 loadLoginRoster();
-
-window.showForgotPassword = function() {
-  const emailInput = document.getElementById('email') || document.getElementById('loginEmail');
-  window._forgotEmail = emailInput?.value.trim() || '';
-  document.getElementById('forgotModal').style.display = 'flex';
-  document.getElementById('forgotStep1').style.display = 'block';
-  document.getElementById('forgotStatus').style.display = 'none';
-};
-
-window.closeForgotModal = function() {
-  document.getElementById('forgotModal').style.display = 'none';
-};
-
-window.sendReset = async function() {
-  const status = document.getElementById('forgotStatus');
-  const email  = window._forgotEmail;
-
-  if (!email) {
-    status.innerHTML = '<span style="color:#f44336;">Please enter your webmail ID in the login field first, then click Forgot Password.</span>';
-    status.style.display = 'block';
-    document.getElementById('forgotStep1').style.display = 'none';
-    return;
-  }
-
-  document.getElementById('forgotStep1').style.display = 'none';
-  status.style.display = 'block';
-  status.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--orange);"></i> Sending...';
-
-  try {
-    const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
-    const { auth } = await import('../js/firebase-config.js');
-    await sendPasswordResetEmail(auth, email);
-    status.innerHTML = `<span style="color:#2e7d32;font-weight:700;">
-      ✓ Reset link sent to ${email}.</span>
-      <br/><span style="font-size:0.82rem;color:var(--text-mid);">
-      Check your inbox, follow the link to set a new password, then return here to log in.</span>`;
-  } catch(e) {
-    const msg = e.code === 'auth/user-not-found'
-      ? 'No account found with that email.'
-      : e.code === 'auth/invalid-email'
-      ? 'Invalid email address.'
-      : e.message;
-    status.innerHTML = `<span style="color:#f44336;">${msg}</span>`;
-    setTimeout(() => {
-      document.getElementById('forgotStep1').style.display = 'block';
-    }, 3000);
-  }
-};
 </script>
-<!-- FORGOT PASSWORD MODAL -->
-<div id="forgotModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;">
-  <div style="background:var(--surface);border-radius:var(--radius);padding:2rem;max-width:420px;
-    width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.3);">
-    <h3 style="margin:0 0 0.5rem;font-family:var(--font-display);">Reset Password</h3>
-    <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.5rem;">
-      A password reset link will be sent to your registered NITT webmail.
-    </p>
-    <div id="forgotStep1">
-      <button onclick="sendReset()" class="btn-primary" style="width:100%;padding:1rem;margin-bottom:0.75rem;">
-        Send Reset Link to Webmail
-      </button>
-    </div>
-    <div id="forgotStatus" style="display:none;text-align:center;padding:1rem 0;font-size:0.9rem;"></div>
-    <button onclick="closeForgotModal()"
-      style="width:100%;background:none;border:none;color:var(--text-light);cursor:pointer;
-             font-size:0.85rem;margin-top:0.25rem;">Cancel</button>
-  </div>
-</div>
 </body>
 </html>
