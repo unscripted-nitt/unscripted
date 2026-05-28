@@ -1596,11 +1596,18 @@ window.saveMeetRoles = async () => {
       for (const r of rolesList) await updateDoc(doc(db,'users',uid),{roleBadges:arrayUnion(r)});
     }
     // Auto-increment pathway for speakers (Req 1)
+    // Auto-increment pathway for speakers (Req 1)
+    // Only increment for speakers who are NEW to this event (not already saved in a prior save)
+    const existingSpeakerUids = new Set();
+    for (const [rk, uid] of Object.entries(ev.roles || {})) {
+      if (rk.startsWith('speaker') && uid) existingSpeakerUids.add(uid);
+    }
     const speakerUids = new Set();
     document.querySelectorAll('.role-select').forEach(sel => {
       if (sel.value && sel.getAttribute('data-key').startsWith('speaker')) speakerUids.add(sel.value);
     });
     for (const uid of speakerUids) {
+      if (existingSpeakerUids.has(uid)) continue; // already incremented in a previous save, skip
       const u = allUsers.find(x => x.id === uid);
       if (!u) continue;
       const curIdx = getSpeechIdx(u);
@@ -2066,17 +2073,18 @@ window.viewVoteResults = async (sid) => {
 }
   });
   document.getElementById('voteResultsBody').innerHTML=html;
-  document.getElementById('winnerConfirmButtons').innerHTML = winnerButtons.map((wb) =>
-  `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
-    <span style="font-weight:700;font-size:0.88rem;">
-      ${wb.category}: <span style="color:var(--orange);">${wb.winner}</span>
-      ${wb.isTie ? '<span style="font-size:0.7rem;font-weight:800;color:#e65100;margin-left:0.4rem;background:rgba(230,81,0,0.1);padding:2px 7px;border-radius:100px;">TIE</span>' : ''}
-    </span>
-    <button class="btn-success btn-sm" onclick="awardWinnerBadge('${wb.winnerUid||''}','${wb.winner}','${wb.category}','${wb.meetTitle}',this)">
-      <i class="fa-solid fa-crown"></i> Award Badge
-    </button>
-  </div>`
-).join('');
+document.getElementById('winnerConfirmButtons').innerHTML=winnerButtons.map((wb,i)=>{
+    const alreadyAwarded = allUsers.find(u => u.id === wb.winnerUid)?.winBadges?.some(
+      b => b.category === wb.category && b.meet === wb.meetTitle
+    );
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+      <span style="font-weight:700;font-size:0.88rem;">${wb.category}: <span style="color:var(--orange);">${wb.winner}</span></span>
+      ${alreadyAwarded
+        ? `<span style="display:inline-flex;align-items:center;gap:0.4rem;background:#4CAF50;color:#fff;padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:700;opacity:0.75;"><i class="fa-solid fa-check"></i> Awarded</span>`
+        : `<button class="btn-success btn-sm" onclick="awardWinnerBadge('${wb.winnerUid||''}','${wb.winner}','${wb.category}','${wb.meetTitle}',this)"><i class="fa-solid fa-crown"></i> Award Badge</button>`
+      }
+    </div>`;
+  }).join('');
   document.getElementById('voteResultsModal').classList.add('open');
 };
 window.closeVoteResultsModal = () => document.getElementById('voteResultsModal').classList.remove('open');
