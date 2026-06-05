@@ -1620,8 +1620,7 @@ window.toggleEventActive = async (id,active) => {
 //       live-computed from allEventsCache, so removing the event doc is enough)
 //
 window.deleteEvent = async (id) => {
-  if (!confirm('Delete this event? This will also revert speech progress for any speakers assigned in it.')) return;
- 
+  if (!confirm('Delete this event? This will revert speaker speech progress, remove all guest tokens, and erase all feedback and votes linked to this event.')) return; 
   try {
     // ── Fetch the event to inspect its roles ────────────────────────────────
     const evSnap = await getDoc(doc(db, 'events', id));
@@ -1691,6 +1690,41 @@ window.deleteEvent = async (id) => {
       }
     }
  
+// ── Delete guest tokens for this event ──────────────────────────────────
+    try {
+      const guestSnap = await getDocs(query(collection(db,'guestTokens'), where('eventId','==',id)));
+      for (const gd of guestSnap.docs) await deleteDoc(doc(db,'guestTokens',gd.id));
+    } catch(err) { console.warn('Could not remove guest tokens:',err); }
+
+    // ── Delete all feedback for this event ───────────────────────────────────
+    try {
+      const fbSnap = await getDocs(query(collection(db,'feedback'), where('eventId','==',id)));
+      for (const fd of fbSnap.docs) await deleteDoc(doc(db,'feedback',fd.id));
+    } catch(err) { console.warn('Could not remove feedback:',err); }
+
+    // ── Delete guest experience feedback for this event ──────────────────────
+    try {
+      const gfSnap = await getDocs(query(collection(db,'guestExperienceFeedback'), where('eventId','==',id)));
+      for (const gf of gfSnap.docs) await deleteDoc(doc(db,'guestExperienceFeedback',gf.id));
+    } catch(err) { console.warn('Could not remove guest experience feedback:',err); }
+
+    // ── Delete voting sessions, votes, and voteRecords for this event ────────
+    try {
+      const vsSnap = await getDocs(query(collection(db,'votingSessions'), where('eventId','==',id)));
+      for (const vsd of vsSnap.docs) {
+        const sid = vsd.id;
+        const allVotes = await getDocs(collection(db,'votes'));
+        for (const vd of allVotes.docs) {
+          if (vd.data().sessionId === sid) await deleteDoc(doc(db,'votes',vd.id));
+        }
+        const allVR = await getDocs(collection(db,'voteRecords'));
+        for (const vrd of allVR.docs) {
+          if (vrd.data().sessionId === sid) await deleteDoc(doc(db,'voteRecords',vrd.id));
+        }
+        await deleteDoc(doc(db,'votingSessions',sid));
+      }
+    } catch(err) { console.warn('Could not remove voting data:',err); }
+
     // ── Finally delete the event document itself ─────────────────────────────
     await deleteDoc(doc(db, 'events', id));
     loadEvents();
