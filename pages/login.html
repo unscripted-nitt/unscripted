@@ -366,37 +366,6 @@ window.doLogin = async function() {
 // Enter key support
 document.addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
 
-
-<!-- ── GUEST LOGIN ──────────────────────────── -->
-<div style="text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
-  <button type="button" onclick="toggleGuestLogin()"
-    style="background:none;border:1.5px solid var(--border);color:var(--text-mid);
-           padding:0.6rem 1.5rem;border-radius:100px;cursor:pointer;font-size:0.85rem;
-           font-weight:700;transition:0.2s;"
-    onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'"
-    onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-mid)'">
-    <i class="fa-solid fa-person-walking-arrow-right"></i>&nbsp; Login as Guest
-  </button>
-</div>
-
-<div id="guestLoginSection" style="display:none;margin-top:1.5rem;padding:1.5rem;
-     border:1.5px solid rgba(255,87,34,0.3);border-radius:var(--radius);background:var(--orange-light);">
-  <h4 style="margin:0 0 0.3rem;color:var(--orange);">Guest Access</h4>
-  <p style="font-size:0.8rem;color:var(--text-mid);margin:0 0 1.1rem;">Enter the 6-digit code given by the admin.</p>
-  <div class="form-group">
-    <input type="text" id="guestOtp" maxlength="6" inputmode="numeric"
-      placeholder="• • • • • •"
-      style="letter-spacing:0.4em;font-size:1.5rem;font-weight:900;text-align:center;font-family:monospace;" />
-  </div>
-  <button type="button" class="btn-primary" id="guestLoginBtn" onclick="loginAsGuest()"
-    style="width:100%;padding:0.9rem;border-radius:100px;margin-top:0.25rem;">
-    Enter as Guest →
-  </button>
-  <div id="guestLoginError"
-    style="display:none;margin-top:0.75rem;padding:0.75rem;background:rgba(244,67,54,0.08);
-           color:#c62828;border:1px solid rgba(244,67,54,0.2);border-radius:var(--radius-sm);
-           font-size:0.85rem;font-weight:600;"></div>
-</div>
 // ── ROSTER ────────────────────────────────────────────────
 async function loadLoginRoster() {
   try {
@@ -422,7 +391,6 @@ async function loadLoginRoster() {
   } catch(e) { console.warn('Roster load failed', e); }
 }
 loadLoginRoster();
-  
 </script>
 </body>
 </html>
