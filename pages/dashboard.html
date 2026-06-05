@@ -1640,7 +1640,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
         },
         scales: {
   x: {
-    type: 'linear',
+    type: 'category',
     min: -0.5,
     max: Math.max(eligibleEvents.length - 0.5, 0.5),
     ticks: {
@@ -1678,43 +1678,25 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
     }
   },
 
-  y: {
-    type: 'linear',
-    min: -0.5,
-    max: ROLE_DEFS.length - 0.5,
+y: {
+  type: 'category',
 
-    // High-value roles on top, low-value roles on bottom
-    reverse: true,
+  labels: ROLE_DEFS.map(r => `${r.label} (${r.pts}pt)`),
 
-    ticks: {
-      stepSize: 1,
-      callback: (val) => {
-        const idx = Math.round(val);
-        if (
-          idx < 0 ||
-          idx >= ROLE_DEFS.length ||
-          Math.abs(val - idx) > 0.01
-        ) return '';
+  offset: true,
 
-        return `${ROLE_DEFS[idx].label} (${ROLE_DEFS[idx].pts}pt)`;
-      },
-      color: '#666',
-      font: { size: 11 }
-    },
-
-    grid: {
-      color: 'rgba(128,128,128,0.1)'
-    },
-
-    title: {
-      display: true,
-      text: 'Role'
-    },
-
-    afterFit: (scale) => {
-      scale.width = 140; // ensures role labels are visible
+  ticks: {
+    color: '#666',
+    font: {
+      size: 12
     }
+  },
+
+  title: {
+    display: true,
+    text: 'Role'
   }
+}
 }
       }
     });
