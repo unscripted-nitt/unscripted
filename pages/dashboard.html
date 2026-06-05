@@ -1622,6 +1622,13 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+  padding: {
+    left: 20,
+    right: 10,
+    bottom: 30
+  }
+},
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1632,53 +1639,83 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
           }
         },
         scales: {
-          x: {
-            type: 'linear',
-            min: -0.5,
-            max: Math.max(eligibleEvents.length - 0.5, 0.5),
-            ticks: {
-              stepSize: 1,
-              maxRotation: 0,
-              callback: (val) => {
-                const idx = Math.round(val);
-                if (idx < 0 || idx >= xLabels.length || Math.abs(val - idx) > 0.01) return '';
-                return xLabels[idx]; // returns array → Chart.js renders as 2 lines
-              },
-              color: 'rgba(128,128,128,0.65)',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
-            title: {
-              display: true,
-              text: 'Meets  (chronological order)',
-              color: 'rgba(128,128,128,0.55)',
-              font: { size: 11 }
-            }
-          },
-          y: {
-            type: 'linear',
-            min: -0.5,
-            max: 11.5,
-            reverse: false,
-            ticks: {
-              stepSize: 1,
-              callback: (val) => {
-                const idx = Math.round(val);
-                if (idx < 0 || idx >= ROLE_DEFS.length || Math.abs(val - idx) > 0.01) return '';
-                return `${ROLE_DEFS[idx].label}  (${ROLE_DEFS[idx].pts}pt${ROLE_DEFS[idx].pts !== 1 ? 's' : ''})`;
-              },
-              color: 'rgba(128,128,128,0.65)',
-              font: { size: 11 }
-            },
-            grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
-            title: {
-              display: true,
-              text: '← higher value roles',
-              color: 'rgba(128,128,128,0.55)',
-              font: { size: 11 }
-            }
-          }
-        }
+  x: {
+    type: 'linear',
+    min: -0.5,
+    max: Math.max(eligibleEvents.length - 0.5, 0.5),
+    ticks: {
+      stepSize: 1,
+      maxRotation: 0,
+      minRotation: 0,
+      callback: (val) => {
+        const idx = Math.round(val);
+        if (
+          idx < 0 ||
+          idx >= eligibleEvents.length ||
+          Math.abs(val - idx) > 0.01
+        ) return '';
+
+        const d = eligibleEvents[idx].date?.toDate
+          ? eligibleEvents[idx].date.toDate()
+          : new Date(eligibleEvents[idx].date);
+
+        const dateStr = d.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short'
+        });
+
+        return [`Meet ${idx + 1}`, dateStr];
+      },
+      color: '#666',
+      font: { size: 11 }
+    },
+    grid: {
+      color: 'rgba(128,128,128,0.1)'
+    },
+    title: {
+      display: true,
+      text: 'Meet Number / Date'
+    }
+  },
+
+  y: {
+    type: 'linear',
+    min: -0.5,
+    max: ROLE_DEFS.length - 0.5,
+
+    // High-value roles on top, low-value roles on bottom
+    reverse: false,
+
+    ticks: {
+      stepSize: 1,
+      callback: (val) => {
+        const idx = Math.round(val);
+        if (
+          idx < 0 ||
+          idx >= ROLE_DEFS.length ||
+          Math.abs(val - idx) > 0.01
+        ) return '';
+
+        return `${ROLE_DEFS[idx].label} (${ROLE_DEFS[idx].pts}pt)`;
+      },
+      color: '#666',
+      font: { size: 11 }
+    },
+
+    grid: {
+      color: 'rgba(128,128,128,0.1)'
+    },
+
+    title: {
+      display: true,
+      text: 'Role'
+    },
+
+    afterFit: (scale) => {
+      scale.width = 140; // ensures role labels are visible
+    }
+  }
+}
       }
     });
   } catch(e) { console.warn('Role timeline chart error', e); }
