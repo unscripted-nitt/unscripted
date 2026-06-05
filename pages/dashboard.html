@@ -124,8 +124,11 @@
         <canvas id="radarChart" width="400" height="400" style="max-width:400px;margin:0 auto;display:block;"></canvas>
       </div>
       <div class="card">
-        <h3>Speeches Over Time</h3>
-        <canvas id="progressChart" width="600" height="250" style="max-width:100%;"></canvas>
+        <h3>Role Activity Timeline</h3>
+        <p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:1.25rem;">Every role played at each meet, sorted top-to-bottom by point value. Multiple dots on the same vertical line = multiple roles that day.</p>
+        <div style="position:relative;height:400px;width:100%;">
+          <canvas id="progressChart"></canvas>
+        </div>
       </div>
       <div class="card">
         <h3>Skill Breakdown</h3>
@@ -1510,32 +1513,10 @@ async function loadAndRenderAnalysis() {
     return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
   });
 
-  // Get events where this user gave a prepared speech, sorted by date
-  const speechEvents = [];
-  [...allEventsCache].sort((a,b) => {
-    try { return (a.date?.toDate?a.date.toDate():new Date(a.date)) - (b.date?.toDate?b.date.toDate():new Date(b.date)); }
-    catch(_){ return 0; }
-  }).forEach(e => {
-    const roles = e.roles || {};
-    for (const [rk, uid] of Object.entries(roles)) {
-      if (rk.startsWith('speaker') && uid === currentUid) {
-        let dateStr = '';
-        if (e.date) {
-          try {
-            const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
-            dateStr = d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
-          } catch(_) {}
-        }
-        speechEvents.push({ title: e.title, date: dateStr });
-        break;
-      }
-    }
-  });
-
-  renderCharts(avgScores, speechEvents, feedbacks);
+renderCharts(avgScores, allEventsCache, feedbacks);
 }
 
-function renderCharts(avgScores, speechEvents, feedbacks) {
+function renderCharts(avgScores, eventsCache, feedbacks) {
   // Destroy old charts to avoid duplication on re-render
   ['radarChart','progressChart'].forEach(id => {
     const el = document.getElementById(id);
@@ -1557,22 +1538,142 @@ function renderCharts(avgScores, speechEvents, feedbacks) {
       options:{scales:{r:{min:0,max:5,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.12)'}}},plugins:{legend:{display:false}}}
     });
 
+// ── ROLE DEFINITIONS — ordered by points descending (y=0 is top = most valuable) ──
+  const ROLE_DEFS = [
+    { label:'HOM',          pts:10, color:'#FF5722', match: rk => rk.startsWith('hom') },
+    { label:'Speaker',      pts:7,  color:'#E91E63', match: rk => rk.startsWith('speaker') },
+    { label:'TTM',          pts:5,  color:'#9C27B0', match: rk => rk === 'ttm' },
+    { label:'GE',           pts:5,  color:'#673AB7', match: rk => rk === 'ge' },
+    { label:'MOM',          pts:4,  color:'#3F51B5', match: rk => rk === 'momTaker' || rk === 'momPres' },
+    { label:'Evaluator',    pts:3,  color:'#2196F3', match: rk => rk.startsWith('evaluator') },
+    { label:'TTE',          pts:3,  color:'#0097A7', match: rk => rk === 'tte' },
+    { label:'Timer',        pts:3,  color:'#00897B', match: rk => rk === 'timer' },
+    { label:'Listener',     pts:3,  color:'#43A047', match: rk => rk === 'listener' },
+    { label:'Grammarian',   pts:3,  color:'#7CB342', match: rk => rk === 'grammarian' },
+    { label:'Table Topics', pts:2,  color:'#FFA000', match: rk => rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte' },
+    { label:'Attendance',   pts:1,  color:'#9E9E9E', match: null },
+  ];
+
+  // ── Sort events chronologically, exclude ineligible ──
+  const eligibleEvents = [...eventsCache]
+    .filter(e => !(e.ineligible || []).includes(currentUid))
+    .sort((a, b) => {
+      try { return (a.date?.toDate ? a.date.toDate() : new Date(a.date)) - (b.date?.toDate ? b.date.toDate() : new Date(b.date)); }
+      catch(_) { return 0; }
+    });
+
+  // ── Build x-axis labels and scatter data points ──
+  const xLabels = eligibleEvents.map((e, i) => {
+    let dateStr = '';
+    try {
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+    } catch(_) {}
+    return [`Meet ${i + 1}`, dateStr];
+  });
+
+  const scatterData = [];
+  eligibleEvents.forEach((e, xIdx) => {
+    const roles = e.roles || {};
+    const jitterCount = {};
+    const addPoint = (yIdx, label) => {
+      const jKey = `${xIdx}_${yIdx}`;
+      const n = jitterCount[jKey] = (jitterCount[jKey] || 0) + 1;
+      const jitter = (n - 1) * 0.18; // slight vertical offset for same-role duplicates
+      scatterData.push({
+        x: xIdx,
+        y: yIdx + jitter,
+        _yBase: yIdx,
+        _color: ROLE_DEFS[yIdx].color,
+        _tooltip: `${label} — ${e.title || 'Meet ' + (xIdx + 1)} (${ROLE_DEFS[yIdx].pts} pt${ROLE_DEFS[yIdx].pts !== 1 ? 's' : ''})`
+      });
+    };
+
+    for (const [rk, uid] of Object.entries(roles)) {
+      if (uid !== currentUid) continue;
+      const yIdx = ROLE_DEFS.findIndex(r => r.match && r.match(rk));
+      if (yIdx >= 0) addPoint(yIdx, ROLE_DEFS[yIdx].label);
+    }
+    if ((e.attended || []).includes(currentUid)) addPoint(11, 'Attendance');
+  });
+
+  try {
     const progressEl = document.getElementById('progressChart');
     progressEl._chartInstance = new Chart(progressEl, {
-      type:'line',
-      data:{
-        labels: speechEvents.length ? speechEvents.map(e => e.date||e.title) : ['(no speeches yet)'],
-        datasets:[{label:'Speeches Done',
-          data: speechEvents.length ? speechEvents.map((_,i)=>i+1) : [0],
-          borderColor:'var(--orange)',
-          backgroundColor:'rgba(255,87,34,0.07)',fill:true,tension:0.4,
-          pointRadius:5,pointBackgroundColor:'var(--orange)',pointBorderColor:'#fff',pointBorderWidth:2}]
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: scatterData,
+          backgroundColor: scatterData.map(p => p._color + 'BB'),
+          borderColor: scatterData.map(p => p._color),
+          borderWidth: 1.5,
+          pointRadius: scatterData.map(() => 7),
+          pointHoverRadius: 10,
+        }]
       },
-      options:{
-        plugins:{legend:{display:false},tooltip:{callbacks:{title:ctx=>speechEvents[ctx[0].dataIndex]?.title||''}}},
-        scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(128,128,128,0.08)'}},x:{grid:{color:'rgba(128,128,128,0.08)'}}}
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: () => '',
+              label: (item) => item.raw._tooltip || ''
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: -0.5,
+            max: Math.max(eligibleEvents.length - 0.5, 0.5),
+            ticks: {
+              stepSize: 1,
+              maxRotation: 0,
+              callback: (val) => {
+                const idx = Math.round(val);
+                if (idx < 0 || idx >= xLabels.length || Math.abs(val - idx) > 0.01) return '';
+                return xLabels[idx]; // returns array → Chart.js renders as 2 lines
+              },
+              color: 'rgba(128,128,128,0.65)',
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
+            title: {
+              display: true,
+              text: 'Meets  (chronological order)',
+              color: 'rgba(128,128,128,0.55)',
+              font: { size: 11 }
+            }
+          },
+          y: {
+            type: 'linear',
+            min: -0.5,
+            max: 11.5,
+            reverse: false,
+            ticks: {
+              stepSize: 1,
+              callback: (val) => {
+                const idx = Math.round(val);
+                if (idx < 0 || idx >= ROLE_DEFS.length || Math.abs(val - idx) > 0.01) return '';
+                return `${ROLE_DEFS[idx].label}  (${ROLE_DEFS[idx].pts}pt${ROLE_DEFS[idx].pts !== 1 ? 's' : ''})`;
+              },
+              color: 'rgba(128,128,128,0.65)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
+            title: {
+              display: true,
+              text: '← higher value roles',
+              color: 'rgba(128,128,128,0.55)',
+              font: { size: 11 }
+            }
+          }
+        }
       }
     });
+  } catch(e) { console.warn('Role timeline chart error', e); }
   } catch(e) { console.warn('Chart render error',e); }
 
   // Skill bars
