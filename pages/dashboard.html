@@ -1646,18 +1646,17 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
             ticks: {
               maxRotation: 0,
               callback: (val) => {
-                // We can simplify this since we know we only get exact integers now
                 if (val < 0 || val >= xLabels.length) return '';
-                return xLabels[val]; // returns array → Chart.js renders as 2 lines
+                return xLabels[val]; 
               },
-              color: 'rgba(128,128,128,0.65)',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 10 }
             },
             grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
             title: {
               display: true,
               text: 'Meets  (chronological order)',
-              color: 'rgba(128,128,128,0.55)',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             }
           },
@@ -1678,14 +1677,14 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
                 if (val < 0 || val >= ROLE_DEFS.length) return '';
                 return `${ROLE_DEFS[val].label}  (${ROLE_DEFS[val].pts}pt${ROLE_DEFS[val].pts !== 1 ? 's' : ''})`;
               },
-              color: 'rgba(128,128,128,0.65)',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             },
             grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
             title: {
               display: true,
               text: '← higher value roles',
-              color: 'rgba(128,128,128,0.55)',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             }
           }
