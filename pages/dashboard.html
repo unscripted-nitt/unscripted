@@ -1394,8 +1394,9 @@ window.submitFeedback = async function() {
   if (!eventId||!speakerUid) { fbErr.textContent='Select an event and speaker.'; fbErr.style.display='block'; return; }
 
   // Check at least some ratings
-  if (Object.keys(ratings).length < 3) {
-    fbErr.textContent = 'Please rate at least 3 categories.'; fbErr.style.display='block'; return;
+  if (Object.keys(ratings).length < FB_CATEGORIES.length) {
+    fbErr.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
+    fbErr.style.display = 'block'; return;
   }
 
   try {
@@ -1481,6 +1482,13 @@ async function loadVoting() {
 
 window.submitVote = async function(sessionId) {
   const form = document.getElementById('voteForm');
+  const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
+  const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
+  if (checkedNames.size < allNames.size) {
+    alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
+          (allNames.size - checkedNames.size) + ' remaining.');
+    return;
+  }
   const radios = form.querySelectorAll('input[type="radio"]:checked');
   if (!radios.length) { alert('Please select at least one option before submitting.'); return; }
 
