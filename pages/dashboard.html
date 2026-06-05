@@ -1572,17 +1572,12 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
 
   // ── Build x-axis labels and scatter data points ──
   const xLabels = eligibleEvents.map((e, i) => {
-  const d = e.date?.toDate
-    ? e.date.toDate()
-    : new Date(e.date);
-
-  return [
-    `Meet ${i + 1}`,
-    d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short'
-    })
-  ];
+  let dateStr = '';
+  try {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+  } catch(_) {}
+  return [`Meet ${i + 1}`, dateStr];
 });
 
   const scatterData = [];
