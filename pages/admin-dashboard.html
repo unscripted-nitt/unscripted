@@ -112,6 +112,10 @@
       <a class="dash-nav-item" onclick="showSection('roles')"><span class="dash-nav-icon"><i class="fa-solid fa-clipboard-user"></i></span> Role Assignments</a>
       <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Voting Manager</a>
       <a class="dash-nav-item" onclick="showSection('pathways')"><span class="dash-nav-icon"><i class="fa-solid fa-road"></i></span> Pathway / Guide Links</a>
+      <a class="dash-nav-item" onclick="showSection('guests')">
+  <span class="dash-nav-icon"><i class="fa-solid fa-person-walking-arrow-right"></i></span>
+  Guest Management
+</a>
 
       <div class="sidebar-label">Public Site</div>
       <a class="dash-nav-item" onclick="showSection('events')"><span class="dash-nav-icon"><i class="fa-solid fa-bullhorn"></i></span> Event Manager</a>
@@ -663,6 +667,74 @@
       </div>
     </div>
 
+
+    <!-- ═══════════════ GUEST MANAGEMENT ═══════════════ -->
+<div class="dash-section" id="section-guests">
+  <h1 class="section-title">Guest Management</h1>
+  <p class="section-sub">Generate one-time access codes for meet guests and view their experience feedback.</p>
+
+  <div class="admin-grid-2" style="margin-bottom:2rem;">
+
+    <!-- Token Generator -->
+    <div class="card" style="margin-bottom:0;">
+      <h3 style="margin-top:0;">Generate Guest Token</h3>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Select Event</label>
+          <select id="guestEventSelect">
+            <option value="">-- Select an event --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Guest Name</label>
+          <input type="text" id="guestNameInput" placeholder="e.g. Rahul Kumar" />
+        </div>
+        <button class="btn-primary" onclick="generateGuestToken()"
+          style="width:100%;padding:1rem;border-radius:100px;">
+          Generate OTP →
+        </button>
+      </div>
+
+      <div id="generatedOtpBox"
+        style="display:none;margin-top:1.5rem;padding:1.5rem;background:var(--orange-light);
+               border:2px solid rgba(255,87,34,0.3);border-radius:var(--radius);text-align:center;">
+        <div style="font-size:0.7rem;font-weight:800;text-transform:uppercase;
+                    letter-spacing:0.1em;color:var(--orange);margin-bottom:0.5rem;">
+          Share this OTP verbally with the guest
+        </div>
+        <div id="generatedOtpCode"
+          style="font-size:3.5rem;font-weight:900;letter-spacing:0.5em;
+                 color:var(--text);font-family:monospace;"></div>
+        <div style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">Valid for 24 hours</div>
+        <div id="generatedGuestLabel"
+          style="font-size:0.85rem;font-weight:700;color:var(--orange);margin-top:0.25rem;"></div>
+      </div>
+    </div>
+
+    <!-- Active Tokens List -->
+    <div class="card" style="margin-bottom:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 style="margin:0;">Active Guest Tokens</h3>
+        <button class="btn-outline btn-sm" onclick="loadGuestTokensList()">
+          <i class="fa-solid fa-rotate"></i> Refresh
+        </button>
+      </div>
+      <div id="guestTokensList"><p style="color:var(--text-mid);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- Guest Experience Feedback -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="margin:0;">Guest Experience Feedback</h3>
+      <button class="btn-outline btn-sm" onclick="loadGuestExperienceFeedback()">
+        <i class="fa-solid fa-rotate"></i> Refresh
+      </button>
+    </div>
+    <div id="guestFeedbackList"><p style="color:var(--text-mid);">Loading...</p></div>
+  </div>
+</div>
+    
   </main>
 </div>
 
@@ -766,6 +838,135 @@
   
 <!-- ─────────────────────────────────────────────────── -->
 <script type="module">
+// ── GUEST MANAGEMENT ──────────────────────────────────────
+
+function populateGuestEventSelect() {
+  const sel = document.getElementById('guestEventSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Select an event --</option>' +
+    allEventsCache.map(e => `<option value="${e.id}" data-title="${e.title}">${e.title}</option>`).join('');
+}
+
+window.generateGuestToken = async function() {
+  const sel = document.getElementById('guestEventSelect');
+  const eventId = sel.value;
+  const guestName = document.getElementById('guestNameInput').value.trim();
+  if (!eventId) { alert('Please select an event.'); return; }
+  if (!guestName) { alert('Please enter the guest name.'); return; }
+  const eventTitle = sel.options[sel.selectedIndex]?.dataset.title || '';
+
+  // Generate 6-digit OTP server-side randomness is approximated via crypto
+  const otp = Array.from(crypto.getRandomValues(new Uint32Array(1)))
+    .map(n => String(100000 + (n % 900000)))[0];
+
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  try {
+    await addDoc(collection(db, 'guestTokens'), {
+      otp, guestName, eventId, eventTitle,
+      createdAt: serverTimestamp(),
+      expiresAt,
+      winBadges: [],
+    });
+
+    document.getElementById('generatedOtpCode').textContent = otp;
+    document.getElementById('generatedGuestLabel').textContent = `Guest: ${guestName}`;
+    document.getElementById('generatedOtpBox').style.display = 'block';
+    document.getElementById('guestNameInput').value = '';
+    loadGuestTokensList();
+  } catch(e) { alert('Failed to generate token: ' + e.message); }
+};
+
+async function loadGuestTokensList() {
+  const container = document.getElementById('guestTokensList');
+  if (!container) return;
+  try {
+    const snap = await getDocs(query(collection(db,'guestTokens'), orderBy('createdAt','desc'), limit(30)));
+    if (snap.empty) {
+      container.innerHTML = '<p style="color:var(--text-mid);">No guest tokens yet.</p>';
+      return;
+    }
+    const now = new Date();
+    container.innerHTML = snap.docs.map(d => {
+      const t = d.data();
+      const exp = t.expiresAt?.toDate ? t.expiresAt.toDate() : new Date(t.expiresAt);
+      const active = exp > now;
+      return `<div style="padding:0.85rem 1rem;border:1px solid var(--border);
+                border-radius:var(--radius-sm);margin-bottom:0.5rem;
+                display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+        <div>
+          <div style="font-weight:700;">${t.guestName}</div>
+          <div style="font-size:0.72rem;color:var(--text-light);">
+            ${t.eventTitle}&nbsp;·&nbsp;OTP:&nbsp;<strong style="letter-spacing:0.15em;font-family:monospace;">${t.otp}</strong>
+          </div>
+        </div>
+        <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;
+          ${active ? 'background:rgba(76,175,80,0.1);color:#2e7d32;' : 'background:var(--surface2);color:var(--text-light);'}">
+          ${active ? 'Active' : 'Expired'}
+        </span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
+  }
+}
+
+async function loadGuestExperienceFeedback() {
+  const container = document.getElementById('guestFeedbackList');
+  if (!container) return;
+  try {
+    const snap = await getDocs(query(
+      collection(db,'guestExperienceFeedback'), orderBy('createdAt','desc'), limit(50)
+    ));
+    if (snap.empty) {
+      container.innerHTML = '<p style="color:var(--text-mid);">No guest experience feedback yet.</p>';
+      return;
+    }
+    container.innerHTML = snap.docs.map(d => {
+      const f = d.data();
+      let dateStr = '';
+      try { dateStr = f.createdAt?.toDate().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(_){}
+      const avg = (((f.ratings?.q1||0)+(f.ratings?.q2||0)+(f.ratings?.q3||0)+(f.ratings?.q4||0))/4).toFixed(1);
+      return `<div style="padding:1.1rem 1.25rem;border:1px solid var(--border);
+                border-radius:var(--radius-sm);margin-bottom:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+          <div>
+            <div style="font-weight:700;">${f.guestName}</div>
+            <div style="font-size:0.72rem;color:var(--text-light);">${f.eventTitle} · ${dateStr}</div>
+          </div>
+          <span style="font-size:1.2rem;font-weight:800;color:var(--orange);">
+            ${avg}<span style="font-size:0.72rem;color:var(--text-light);">/5</span>
+          </span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+                    gap:0.35rem;font-size:0.78rem;margin-bottom:${f.comment?'0.75rem':'0'};">
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-mid);">Overall experience</span>
+            <strong>${f.ratings?.q1||0}/5</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-mid);">Engagement</span>
+            <strong>${f.ratings?.q2||0}/5</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-mid);">Members</span>
+            <strong>${f.ratings?.q3||0}/5</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-mid);">Return likelihood</span>
+            <strong>${f.ratings?.q4||0}/5</strong>
+          </div>
+        </div>
+        ${f.comment ? `<div style="padding:0.6rem 0.75rem;background:var(--surface2);
+            border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text-mid);
+            font-style:italic;">"${f.comment}"</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
+  }
+}
 import { auth, db, storage } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -816,6 +1017,11 @@ window.showSection = function(id) {
   const navItem = [...document.querySelectorAll('.dash-nav-item')].find(el => el.getAttribute('onclick') === `showSection('${id}')`);
   if (navItem) navItem.classList.add('active');
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
+  if (id === 'guests') {
+  populateGuestEventSelect();
+  loadGuestTokensList();
+  loadGuestExperienceFeedback();
+}
 };
 
 // ── LOAD ALL DATA ────────────────────────────────────────
@@ -825,6 +1031,8 @@ async function loadAllData() {
     allUsers = []; snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
     // Load events FIRST so allEventsCache is populated before the table renders
     await loadEvents();
+    loadGuestTokensList();
+    loadGuestExperienceFeedback();
     // Now render everything that depends on allEventsCache
     renderUserTable();
     updateInsights();
@@ -2090,7 +2298,31 @@ document.getElementById('winnerConfirmButtons').innerHTML=winnerButtons.map((wb,
 window.closeVoteResultsModal = () => document.getElementById('voteResultsModal').classList.remove('open');
 
 window.awardWinnerBadge = async (uid, name, category, meetTitle, btn) => {
-  if (!uid) { alert(`Could not find UID for ${name}. Please manually find them in Member Control.`); return; }
+  // ── Guest winner path ─────────────────────────────────
+  if (!uid) {
+    const cleanName = name.replace(/\s*\(Guest\)/i, '').trim();
+    if (!confirm(`Award "${category}" badge to guest ${name}?`)) return;
+    btn.disabled = true; btn.textContent = 'Awarding...';
+    try {
+      const gSnap = await getDocs(query(
+        collection(db,'guestTokens'), where('guestName','==',cleanName)
+      ));
+      if (gSnap.empty) {
+        alert(`No guest token found for "${cleanName}".`);
+        btn.disabled = false; btn.textContent = 'Award Badge';
+        return;
+      }
+      await updateDoc(doc(db,'guestTokens',gSnap.docs[0].id), {
+        winBadges: arrayUnion({ category, meet:meetTitle, awarded:new Date().toISOString() })
+      });
+      btn.textContent = 'Awarded!'; btn.style.background = '#4CAF50';
+    } catch(e) {
+      alert('Failed: ' + e.message);
+      btn.disabled = false; btn.textContent = 'Award Badge';
+    }
+    return;
+  }
+  // ── Normal member path (existing code below, unchanged) ──
   if (!confirm(`Award "${category}" winner badge to ${name}?`)) return;
   btn.disabled=true; btn.textContent='Awarding...';
   try {
