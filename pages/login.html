@@ -229,74 +229,6 @@
 </style>
 
 <script type="module">
-// ── add to auth import: signInAnonymously, signOut
-// ── add to firestore import: getDocs, query, collection, where
-
-window.toggleGuestLogin = function() {
-  const s = document.getElementById('guestLoginSection');
-  s.style.display = s.style.display === 'none' ? 'block' : 'none';
-};
-
-window.loginAsGuest = async function() {
-  const otp = (document.getElementById('guestOtp').value || '').trim();
-  const btn = document.getElementById('guestLoginBtn');
-  const err = document.getElementById('guestLoginError');
-  err.style.display = 'none';
-
-  if (!/^\d{6}$/.test(otp)) {
-    err.textContent = 'Please enter a valid 6-digit OTP.';
-    err.style.display = 'block';
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Verifying...';
-
-  let signedIn = false;
-  try {
-    // Need anon auth to read Firestore
-    await signInAnonymously(auth);
-    signedIn = true;
-
-    const snap = await getDocs(query(collection(db, 'guestTokens'), where('otp', '==', otp)));
-
-    if (snap.empty) {
-      await signOut(auth);
-      err.textContent = 'Invalid OTP. Please check with the admin.';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Enter as Guest →';
-      return;
-    }
-
-    const tokenDoc = snap.docs[0];
-    const tokenData = { id: tokenDoc.id, ...tokenDoc.data() };
-    const expiresAt = tokenData.expiresAt?.toDate
-      ? tokenData.expiresAt.toDate()
-      : new Date(tokenData.expiresAt);
-
-    if (new Date() > expiresAt) {
-      await signOut(auth);
-      err.textContent = 'This OTP has expired. Ask the admin for a new one.';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Enter as Guest →';
-      return;
-    }
-
-    localStorage.setItem('guestSession', JSON.stringify({
-      tokenId:    tokenData.id,
-      guestName:  tokenData.guestName,
-      eventId:    tokenData.eventId,
-      eventTitle: tokenData.eventTitle,
-      expiresAt:  expiresAt.toISOString(),
-    }));
-
-    window.location.href = 'guest-dashboard.html';
-  } catch(e) {
-    if (signedIn) await signOut(auth).catch(() => {});
-    err.textContent = 'Login failed: ' + e.message;
-    err.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Enter as Guest →';
-  }
-};
 import { auth, db } from '../js/firebase-config.js';
 import {
   signInWithEmailAndPassword,
@@ -465,7 +397,74 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogi
            color:#c62828;border:1px solid rgba(244,67,54,0.2);border-radius:var(--radius-sm);
            font-size:0.85rem;font-weight:600;"></div>
 </div>
+// ── add to auth import: signInAnonymously, signOut
+// ── add to firestore import: getDocs, query, collection, where
 
+window.toggleGuestLogin = function() {
+  const s = document.getElementById('guestLoginSection');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+};
+
+window.loginAsGuest = async function() {
+  const otp = (document.getElementById('guestOtp').value || '').trim();
+  const btn = document.getElementById('guestLoginBtn');
+  const err = document.getElementById('guestLoginError');
+  err.style.display = 'none';
+
+  if (!/^\d{6}$/.test(otp)) {
+    err.textContent = 'Please enter a valid 6-digit OTP.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  let signedIn = false;
+  try {
+    // Need anon auth to read Firestore
+    await signInAnonymously(auth);
+    signedIn = true;
+
+    const snap = await getDocs(query(collection(db, 'guestTokens'), where('otp', '==', otp)));
+
+    if (snap.empty) {
+      await signOut(auth);
+      err.textContent = 'Invalid OTP. Please check with the admin.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enter as Guest →';
+      return;
+    }
+
+    const tokenDoc = snap.docs[0];
+    const tokenData = { id: tokenDoc.id, ...tokenDoc.data() };
+    const expiresAt = tokenData.expiresAt?.toDate
+      ? tokenData.expiresAt.toDate()
+      : new Date(tokenData.expiresAt);
+
+    if (new Date() > expiresAt) {
+      await signOut(auth);
+      err.textContent = 'This OTP has expired. Ask the admin for a new one.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enter as Guest →';
+      return;
+    }
+
+    localStorage.setItem('guestSession', JSON.stringify({
+      tokenId:    tokenData.id,
+      guestName:  tokenData.guestName,
+      eventId:    tokenData.eventId,
+      eventTitle: tokenData.eventTitle,
+      expiresAt:  expiresAt.toISOString(),
+    }));
+
+    window.location.href = 'guest-dashboard.html';
+  } catch(e) {
+    if (signedIn) await signOut(auth).catch(() => {});
+    err.textContent = 'Login failed: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enter as Guest →';
+  }
+};
 // ── ROSTER ────────────────────────────────────────────────
 async function loadLoginRoster() {
   try {
