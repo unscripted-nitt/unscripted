@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Dashboard — Unscripted NITT</title>  
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../icons/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .guest-badge { background:var(--orange);color:#fff;font-size:0.6rem;font-weight:800;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;margin-left:0.4rem; }
+    .exp-star-row { display:flex;gap:0.5rem;margin-top:0.5rem; }
+    .exp-star { font-size:1.8rem;cursor:pointer;color:var(--border);transition:color 0.15s;line-height:1; }
+    .exp-star.filled { color:#f59e0b; }
+    .exp-question { margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border); }
+    .exp-question:last-child { border-bottom:none; }
+    .exp-q-label { font-weight:700;font-size:0.95rem;margin-bottom:0.3rem; }
+    .exp-q-sub { font-size:0.78rem;color:var(--text-mid);margin-bottom:0.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="dash-top-nav">
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
+      <img src="../icons/logo.png" alt="Unscripted" style="height:44px;width:auto;" />
+    </a>
+    <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);border-left:1px solid var(--border);padding-left:1rem;">Guest Session</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span id="guestNameDisplay" style="color:var(--text-mid);font-size:0.88rem;font-weight:600;"></span>
+    <span class="guest-badge">Guest</span>
+    <button onclick="doGuestLogout()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.45rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">Exit Session</button>
+  </div>
+</div>
+
+<div class="dash-body">
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <div class="sidebar-label">My Event</div>
+      <a class="dash-nav-item active" onclick="showSection('event')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-days"></i></span> Event Details</a>
+
+      <div class="sidebar-label">Participate</div>
+      <a class="dash-nav-item" onclick="showSection('feedback')"><span class="dash-nav-icon"><i class="fa-solid fa-star-half-stroke"></i></span> Give Feedback</a>
+      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Give Vote</a>
+
+      <div class="sidebar-label">Share</div>
+      <a class="dash-nav-item" onclick="showSection('experience')"><span class="dash-nav-icon"><i class="fa-solid fa-heart"></i></span> My Experience</a>
+      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon"><i class="fa-solid fa-medal"></i></span> Achievements</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- EVENT DETAILS -->
+    <div class="dash-section active" id="section-event">
+      <h2 class="section-title">My Event</h2>
+      <p class="section-sub">Details for the meet you are attending today</p>
+      <div id="guestEventContent">
+        <div class="card" style="text-align:center;padding:3rem;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+          <p style="color:var(--text-mid);">Loading event details...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GIVE FEEDBACK -->
+    <div class="dash-section" id="section-feedback">
+      <h2 class="section-title">Give Feedback</h2>
+      <p class="section-sub">Rate a speaker from today's event</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+        <span>Your feedback is anonymous to the speaker — they only see the average scores. Your responses will appear as <strong>Guest Feedback</strong> on their profile.</span>
+      </div>
+      <div class="card">
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>Speaker</label>
+          <select id="guestFbSpeaker" onchange="loadGuestFeedbackForm()">
+            <option value="">-- Select a speaker --</option>
+          </select>
+        </div>
+        <div id="guestFbForm" style="display:none;">
+          <h3 style="margin-bottom:1.5rem;">Rate the Speech</h3>
+          <div id="guestFbCategories"></div>
+          <div class="form-group" style="margin-top:1rem;">
+            <label>Written Feedback</label>
+            <textarea id="guestFbComment" placeholder="What worked well? What could be improved?" style="min-height:100px;"></textarea>
+          </div>
+          <button class="btn-primary" onclick="submitGuestFeedback()" style="margin-top:1rem;width:100%;">Submit Feedback &rarr;</button>
+          <div id="guestFbMsg" style="display:none;margin-top:1rem;padding:0.85rem;border-radius:var(--radius-sm);font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GIVE VOTE -->
+    <div class="dash-section" id="section-voting">
+      <h2 class="section-title">Give Vote</h2>
+      <p class="section-sub">Vote anonymously for the best performers</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+        <span>Your vote is completely anonymous. You can only vote once.</span>
+      </div>
+      <div id="guestVotingContainer">
+        <div class="card" style="text-align:center;padding:3rem;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+          <p style="color:var(--text-mid);">Checking for active voting session...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY EXPERIENCE -->
+    <div class="dash-section" id="section-experience">
+      <h2 class="section-title">My Experience</h2>
+      <p class="section-sub">Share your thoughts about today's event — this helps us improve</p>
+      <div id="expAlreadySubmitted" style="display:none;" class="card" style="border:1px solid rgba(76,175,80,0.3);background:rgba(76,175,80,0.05);">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <i class="fa-solid fa-circle-check" style="color:#4CAF50;font-size:1.5rem;"></i>
+          <div><div style="font-weight:700;">Thank you for your feedback!</div><div style="font-size:0.85rem;color:var(--text-mid);">Your experience feedback has been submitted.</div></div>
+        </div>
+      </div>
+      <div id="expForm" class="card">
+        <div class="exp-question">
+          <div class="exp-q-label">1. How was the overall experience of the event?</div>
+          <div class="exp-q-sub">1 = Very poor, 5 = Excellent</div>
+          <div class="exp-star-row" id="expStars_1">
+            <span class="exp-star" data-q="1" data-val="1" onclick="setExpRating(1,1)">★</span>
+            <span class="exp-star" data-q="1" data-val="2" onclick="setExpRating(1,2)">★</span>
+            <span class="exp-star" data-q="1" data-val="3" onclick="setExpRating(1,3)">★</span>
+            <span class="exp-star" data-q="1" data-val="4" onclick="setExpRating(1,4)">★</span>
+            <span class="exp-star" data-q="1" data-val="5" onclick="setExpRating(1,5)">★</span>
+          </div>
+        </div>
+        <div class="exp-question">
+          <div class="exp-q-label">2. Was the event engaging?</div>
+          <div class="exp-q-sub">1 = Not at all, 5 = Extremely engaging</div>
+          <div class="exp-star-row" id="expStars_2">
+            <span class="exp-star" data-q="2" data-val="1" onclick="setExpRating(2,1)">★</span>
+            <span class="exp-star" data-q="2" data-val="2" onclick="setExpRating(2,2)">★</span>
+            <span class="exp-star" data-q="2" data-val="3" onclick="setExpRating(2,3)">★</span>
+            <span class="exp-star" data-q="2" data-val="4" onclick="setExpRating(2,4)">★</span>
+            <span class="exp-star" data-q="2" data-val="5" onclick="setExpRating(2,5)">★</span>
+          </div>
+        </div>
+        <div class="exp-question">
+          <div class="exp-q-label">3. Rate your experience with the Unscripted members.</div>
+          <div class="exp-q-sub">1 = Poor, 5 = Outstanding</div>
+          <div class="exp-star-row" id="expStars_3">
+            <span class="exp-star" data-q="3" data-val="1" onclick="setExpRating(3,1)">★</span>
+            <span class="exp-star" data-q="3" data-val="2" onclick="setExpRating(3,2)">★</span>
+            <span class="exp-star" data-q="3" data-val="3" onclick="setExpRating(3,3)">★</span>
+            <span class="exp-star" data-q="3" data-val="4" onclick="setExpRating(3,4)">★</span>
+            <span class="exp-star" data-q="3" data-val="5" onclick="setExpRating(3,5)">★</span>
+          </div>
+        </div>
+        <div class="exp-question">
+          <div class="exp-q-label">4. When will you visit us again?</div>
+          <div class="exp-q-sub">1 = Probably never, 5 = Definitely very soon!</div>
+          <div class="exp-star-row" id="expStars_4">
+            <span class="exp-star" data-q="4" data-val="1" onclick="setExpRating(4,1)">★</span>
+            <span class="exp-star" data-q="4" data-val="2" onclick="setExpRating(4,2)">★</span>
+            <span class="exp-star" data-q="4" data-val="3" onclick="setExpRating(4,3)">★</span>
+            <span class="exp-star" data-q="4" data-val="4" onclick="setExpRating(4,4)">★</span>
+            <span class="exp-star" data-q="4" data-val="5" onclick="setExpRating(4,5)">★</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:0.5rem;">
+          <label>Written Feedback (Optional)</label>
+          <textarea id="expComment" placeholder="Share anything else about your experience today..." style="min-height:100px;"></textarea>
+        </div>
+        <button class="btn-primary" onclick="submitGuestExperience()" style="width:100%;margin-top:1.25rem;padding:1rem;">Submit My Experience &rarr;</button>
+        <div id="expMsg" style="display:none;margin-top:1rem;padding:0.85rem;border-radius:var(--radius-sm);font-weight:600;"></div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="dash-section" id="section-achievements">
+      <h2 class="section-title">Achievements</h2>
+      <p class="section-sub">Awards earned during your visit</p>
+      <div id="guestAchievementsContent">
+        <div class="card">
+          <p style="color:var(--text-mid);">No achievements yet. Participate in voting to earn recognition!</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module">
+import { auth, db } from '../js/firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, getDocs, collection, query, where, orderBy,
+  addDoc, setDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ── GUEST SESSION CHECK ────────────────────────────────────
+let guestSession = null;
+try {
+  guestSession = JSON.parse(localStorage.getItem('guestSession') || 'null');
+} catch(_) {}
+
+if (!guestSession || new Date() > new Date(guestSession.expiresAt)) {
+  localStorage.removeItem('guestSession');
+  window.location.href = 'login.html';
+}
+
+// ── INIT ───────────────────────────────────────────────────
+const { tokenId, guestName, eventId, eventTitle } = guestSession;
+document.getElementById('guestNameDisplay').textContent = guestName;
+
+let eventData = null;
+let guestTokenData = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    // Session cleared externally — redirect
+    localStorage.removeItem('guestSession');
+    window.location.href = 'login.html';
+    return;
+  }
+  // Load event and token data
+  await loadEventData();
+  await loadGuestTokenData();
+  loadFeedbackSpeakers();
+  loadGuestVoting();
+  loadGuestAchievements();
+  checkExperienceSubmitted();
+});
+
+// ── SECTION SWITCH ─────────────────────────────────────────
+window.showSection = function(id) {
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.querySelectorAll('.dash-nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll(`[onclick="showSection('${id}')"]`).forEach(el => el.classList.add('active'));
+};
+
+// ── LOGOUT ─────────────────────────────────────────────────
+window.doGuestLogout = async () => {
+  localStorage.removeItem('guestSession');
+  await signOut(auth).catch(() => {});
+  window.location.href = 'login.html';
+};
+
+// ── LOAD EVENT DATA ────────────────────────────────────────
+async function loadEventData() {
+  const container = document.getElementById('guestEventContent');
+  try {
+    const snap = await getDoc(doc(db, 'events', eventId));
+    if (!snap.exists()) {
+      container.innerHTML = '<div class="card"><p style="color:var(--text-mid);">Event not found.</p></div>';
+      return;
+    }
+    eventData = { id: snap.id, ...snap.data() };
+
+    let dateStr = '—';
+    if (eventData.date) {
+      try {
+        const d = eventData.date.toDate ? eventData.date.toDate() : new Date(eventData.date);
+        dateStr = d.toLocaleDateString('en-IN', {day:'numeric', month:'long', year:'numeric'});
+      } catch(_) {}
+    }
+
+    // Roles display
+    let rolesHtml = '';
+    if (eventData.rolesDisplay?.length) {
+      rolesHtml = `<div style="margin-top:1.25rem;">
+        <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-light);margin-bottom:0.75rem;">Meet Roster</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">
+          ${eventData.rolesDisplay.map(rd => `
+            <div style="padding:0.7rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.65rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${rd.role}</span>
+              <span style="font-weight:700;font-size:0.88rem;">${rd.name}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    container.innerHTML = `
+      <div class="card" style="border-left:4px solid var(--orange);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+          <div>
+            <h2 style="margin:0;font-size:1.6rem;">${eventData.title || 'Event'}</h2>
+            <div style="font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem;">${dateStr}</div>
+          </div>
+          <span style="background:rgba(255,87,34,0.1);color:var(--orange);padding:4px 12px;border-radius:100px;font-size:0.72rem;font-weight:800;">You're a guest!</span>
+        </div>
+        ${eventData.description ? `<p style="color:var(--text-mid);font-size:0.9rem;line-height:1.6;margin-bottom:1rem;">${eventData.description}</p>` : ''}
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          ${eventData.galleryLink ? `<a href="${eventData.galleryLink}" target="_blank" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-images"></i> Gallery</a>` : ''}
+          ${eventData.docLink ? `<a href="${eventData.docLink}" target="_blank" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-file-lines"></i> Documentation</a>` : ''}
+        </div>
+        ${(eventData.eventVideos||[]).length ? `
+          <div style="margin-top:1.25rem;">
+            <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-light);margin-bottom:0.6rem;">Event Videos</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+              ${eventData.eventVideos.map((v,i) => `<a href="${v.url}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.85rem;">${v.title||'Video '+(i+1)} →</a>`).join('')}
+            </div>
+          </div>` : ''}
+        ${rolesHtml}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load event: ${e.message}</p></div>`;
+  }
+}
+
+// ── LOAD GUEST TOKEN DATA ──────────────────────────────────
+async function loadGuestTokenData() {
+  try {
+    const snap = await getDoc(doc(db, 'guestTokens', tokenId));
+    if (snap.exists()) guestTokenData = { id: snap.id, ...snap.data() };
+  } catch(_) {}
+}
+
+// ── FEEDBACK ───────────────────────────────────────────────
+const FB_CATEGORIES = ['Content','Clarity of Speech','Fluency','Expression & Gestures','Pace & Pauses','Creativity','Organization','X-Factor'];
+const fbRatings = {};
+
+function loadFeedbackSpeakers() {
+  const sel = document.getElementById('guestFbSpeaker');
+  if (!eventData?.roles) return;
+  const speakers = [];
+  for (const [rk, uid] of Object.entries(eventData.roles)) {
+    if (rk.startsWith('speaker') && uid) {
+      const rd = eventData.rolesDisplay?.find(r => r.uid === uid);
+      if (rd) speakers.push({ uid, name: rd.name });
+    }
+  }
+  sel.innerHTML = '<option value="">-- Select a speaker --</option>' +
+    speakers.map(s => `<option value="${s.uid}">${s.name}</option>`).join('');
+}
+
+window.loadGuestFeedbackForm = function() {
+  const uid = document.getElementById('guestFbSpeaker').value;
+  const form = document.getElementById('guestFbForm');
+  form.style.display = uid ? 'block' : 'none';
+  if (!uid) return;
+  const container = document.getElementById('guestFbCategories');
+  container.innerHTML = FB_CATEGORIES.map((cat, i) => `
+    <div class="rating-row">
+      <div class="rating-label">${cat}</div>
+      <div class="star-row" id="gStarRow_${i}">
+        ${[1,2,3,4,5].map(n => `<button class="star-btn" data-val="${n}" onclick="setGuestRating(${i},${n})">&#9733;</button>`).join('')}
+      </div>
+    </div>`).join('');
+  document.getElementById('guestFbMsg').style.display = 'none';
+};
+
+window.setGuestRating = function(catIdx, val) {
+  fbRatings[catIdx] = val;
+  const row = document.getElementById('gStarRow_' + catIdx);
+  row?.querySelectorAll('.star-btn').forEach(btn => {
+    btn.classList.toggle('active', +btn.dataset.val <= val);
+  });
+};
+
+window.submitGuestFeedback = async function() {
+  const speakerUid = document.getElementById('guestFbSpeaker').value;
+  const comment = document.getElementById('guestFbComment').value.trim();
+  const msg = document.getElementById('guestFbMsg');
+
+  if (!speakerUid) return;
+  if (Object.keys(fbRatings).length < 3) {
+    msg.textContent = 'Please rate at least 3 categories.';
+    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, 'feedback'), {
+      eventId,
+      speakerUid,
+      giverUid: auth.currentUser?.uid || null,
+      isGuest: true,
+      guestName,
+      tokenId,
+      ratings: { ...fbRatings },
+      comment,
+      createdAt: serverTimestamp()
+    });
+    msg.textContent = 'Thank you! Your feedback has been submitted.';
+    msg.style.cssText = 'display:block;background:rgba(76,175,80,0.08);color:#2e7d32;border:1px solid rgba(76,175,80,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+    document.getElementById('guestFbComment').value = '';
+    document.getElementById('guestFbSpeaker').value = '';
+    document.getElementById('guestFbForm').style.display = 'none';
+    Object.keys(fbRatings).forEach(k => delete fbRatings[k]);
+  } catch(e) {
+    msg.textContent = 'Submit failed: ' + e.message;
+    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+  }
+};
+
+// ── VOTING ─────────────────────────────────────────────────
+async function loadGuestVoting() {
+  const container = document.getElementById('guestVotingContainer');
+  try {
+    const snap = await getDocs(query(collection(db, 'votingSessions'), where('active', '==', true)));
+    if (snap.empty) {
+      container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <h3 style="font-family:var(--font-body);">No Active Voting Session</h3>
+        <p style="color:var(--text-mid);">Voting opens after the meeting ends.</p>
+      </div>`; return;
+    }
+
+    // Find session for this event
+    let sessionDoc = null;
+    snap.forEach(d => {
+      if (d.data().eventId === eventId) sessionDoc = d;
+    });
+    if (!sessionDoc) {
+      container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <p style="color:var(--text-mid);">No active voting session for your event.</p>
+      </div>`; return;
+    }
+
+    const sessionId = sessionDoc.id;
+    const sessionData = sessionDoc.data();
+
+    // Check already voted
+    let alreadyVoted = false;
+    try {
+      const vd = await getDoc(doc(db, 'voteRecords', 'guest_' + tokenId + '_' + sessionId));
+      alreadyVoted = vd.exists();
+    } catch(_) {}
+
+    if (alreadyVoted) {
+      container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+        <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
+        <h3 style="color:#2e7d32;">Vote Submitted!</h3>
+        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${sessionData.meetTitle}</strong> has been recorded.</p>
+      </div>`; return;
+    }
+
+    const categories = [
+      { key:'bestSpeaker',    label:'Best Speaker',            candidates: sessionData.speakers||[] },
+      { key:'bestEvaluator',  label:'Best Evaluator',          candidates: sessionData.evaluators||[] },
+      { key:'bestTableTopic', label:'Best Table Topic Speaker', candidates: sessionData.tableTopicSpeakers||[] },
+      { key:'bestRolePlayer', label:'Best Role Player',         candidates: sessionData.rolePlayers||[] },
+    ].filter(c => c.candidates.length > 0);
+
+    container.innerHTML = `
+      <div class="card" style="margin-bottom:1.5rem;border:1px solid rgba(255,87,34,0.2);background:var(--orange-light);">
+        <h3 style="margin:0;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);margin-right:0.5rem;"></i>${sessionData.meetTitle} — Voting Open</h3>
+        <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--text-mid);">Your vote is anonymous.</p>
+      </div>
+      <form id="guestVoteForm">
+        ${categories.map(cat => `
+          <div class="vote-category">
+            <h4>${cat.label}</h4>
+            <div class="vote-options">
+              ${cat.candidates.map(c => `
+                <label class="vote-option" onclick="this.classList.add('selected');this.closest('.vote-options').querySelectorAll('.vote-option').forEach(el=>el.classList.remove('selected'));this.classList.add('selected');">
+                  <input type="radio" name="${cat.key}" value="${c.uid||c.name}" style="pointer-events:none;" />
+                  <span>${c.name}</span>
+                </label>`).join('')}
+            </div>
+          </div>`).join('')}
+        <button type="button" class="btn-primary" onclick="submitGuestVote('${sessionId}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote &rarr;</button>
+        <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:0.75rem;">Your identity will not be stored with your vote.</p>
+      </form>`;
+  } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting: ${e.message}</p></div>`; }
+}
+
+window.submitGuestVote = async function(sessionId) {
+  const form = document.getElementById('guestVoteForm');
+  const radios = form?.querySelectorAll('input[type="radio"]:checked');
+  if (!radios?.length) { alert('Please select at least one option.'); return; }
+  const choices = {};
+  radios.forEach(r => { choices[r.name] = r.value; });
+  try {
+    await addDoc(collection(db, 'votes'), { sessionId, choices, createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'voteRecords', 'guest_' + tokenId + '_' + sessionId), {
+      sessionId, tokenId, guestName, createdAt: serverTimestamp()
+    });
+    loadGuestVoting();
+  } catch(e) { alert('Failed to submit vote: ' + e.message); }
+};
+
+// ── GUEST EXPERIENCE FEEDBACK ──────────────────────────────
+const expRatings = {};
+
+window.setExpRating = function(q, val) {
+  expRatings[q] = val;
+  const row = document.getElementById('expStars_' + q);
+  row?.querySelectorAll('.exp-star').forEach(star => {
+    star.classList.toggle('filled', +star.dataset.val <= val);
+  });
+};
+
+function checkExperienceSubmitted() {
+  const submitted = localStorage.getItem('guestExpSubmitted_' + tokenId);
+  if (submitted) {
+    document.getElementById('expAlreadySubmitted').style.display = 'block';
+    document.getElementById('expForm').style.display = 'none';
+  }
+}
+
+window.submitGuestExperience = async function() {
+  const msg = document.getElementById('expMsg');
+  if (Object.keys(expRatings).length < 4) {
+    msg.textContent = 'Please rate all 4 questions before submitting.';
+    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+    return;
+  }
+  const comment = document.getElementById('expComment').value.trim();
+  try {
+    await addDoc(collection(db, 'guestExperienceFeedback'), {
+      tokenId,
+      guestName,
+      eventId,
+      eventTitle,
+      ratings: { q1: expRatings[1]||0, q2: expRatings[2]||0, q3: expRatings[3]||0, q4: expRatings[4]||0 },
+      comment,
+      createdAt: serverTimestamp()
+    });
+    localStorage.setItem('guestExpSubmitted_' + tokenId, '1');
+    document.getElementById('expAlreadySubmitted').style.display = 'block';
+    document.getElementById('expForm').style.display = 'none';
+  } catch(e) {
+    msg.textContent = 'Submit failed: ' + e.message;
+    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+  }
+};
+
+// ── ACHIEVEMENTS ───────────────────────────────────────────
+function loadGuestAchievements() {
+  const container = document.getElementById('guestAchievementsContent');
+  const winBadges = guestTokenData?.winBadges || [];
+  if (!winBadges.length) {
+    container.innerHTML = `<div class="card">
+      <p style="color:var(--text-mid);">No awards yet. Keep participating — winners are announced after voting closes!</p>
+    </div>`; return;
+  }
+  container.innerHTML = `<div class="card">
+    <h3 style="margin-top:0;display:flex;align-items:center;gap:0.6rem;">
+      <i class="fa-solid fa-crown" style="color:#ffa000;"></i> Meeting Awards
+    </h3>
+    <div class="badges-grid">
+      ${winBadges.map(wb => `
+        <div class="badge-item won">
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.8rem;color:#ffa000;"></i></div>
+          <div class="badge-name">${wb.category}</div>
+          <div class="badge-desc" style="color:#e65100;font-weight:700;">${wb.meet}</div>
+          <div class="winner-badge" style="margin-top:0.75rem;font-size:0.65rem;">Winner</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>
