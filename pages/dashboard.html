@@ -1633,7 +1633,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
         },
         scales: {
           x: {
-            type: 'category',
+            type: 'linear',
             min: -0.5,
             max: Math.max(eligibleEvents.length - 0.5, 0.5),
             ticks: {
@@ -1656,7 +1656,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
             }
           },
           y: {
-            type: 'category',
+            type: 'linear',
             min: -0.5,
             max: 11.5,
             reverse: true,
