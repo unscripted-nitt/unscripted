@@ -11,7 +11,7 @@ export default defineConfig({
         adminDashboard: resolve(__dirname, 'pages/admin-dashboard.html'),
         members: resolve(__dirname, 'pages/members.html'),
         videos: resolve(__dirname, 'pages/videos.html'),
-        guestDashboard: resolve(_dirname, 'pages/guest-dashboard.html'),
+        guestDashboard: resolve(__dirname, 'pages/guest-dashboard.html'),
       }
     }
   }
