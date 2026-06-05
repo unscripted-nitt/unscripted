@@ -361,8 +361,8 @@ window.submitGuestFeedback = async function() {
   const msg = document.getElementById('guestFbMsg');
 
   if (!speakerUid) return;
-  if (Object.keys(fbRatings).length < 3) {
-    msg.textContent = 'Please rate at least 3 categories.';
+    if (Object.keys(fbRatings).length < FB_CATEGORIES.length) {
+    msg.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
     msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
     return;
   }
@@ -466,6 +466,13 @@ async function loadGuestVoting() {
 
 window.submitGuestVote = async function(sessionId) {
   const form = document.getElementById('guestVoteForm');
+  const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
+  const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
+  if (checkedNames.size < allNames.size) {
+    alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
+          (allNames.size - checkedNames.size) + ' remaining.');
+    return;
+  }
   const radios = form?.querySelectorAll('input[type="radio"]:checked');
   if (!radios?.length) { alert('Please select at least one option.'); return; }
   const choices = {};
