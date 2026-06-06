@@ -1665,7 +1665,6 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
             min: -0.5,
             max: 11.5,
             reverse: true,
-            // Force ticks to perfectly align with integers
             afterBuildTicks: (scale) => {
               scale.ticks = [];
               for (let i = 0; i < ROLE_DEFS.length; i++) {
@@ -1677,14 +1676,14 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
                 if (val < 0 || val >= ROLE_DEFS.length) return '';
                 return `${ROLE_DEFS[val].label}  (${ROLE_DEFS[val].pts}pt${ROLE_DEFS[val].pts !== 1 ? 's' : ''})`;
               },
-              color: '#444444', // <-- CHANGED TO DARKER GREY
+              color: '#444444',
               font: { size: 11 }
             },
             grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
             title: {
               display: true,
               text: '← higher value roles',
-              color: '#444444', // <-- CHANGED TO DARKER GREY
+              color: '#444444',
               font: { size: 11 }
             }
           }
