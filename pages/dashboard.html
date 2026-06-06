@@ -1570,31 +1570,6 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
       catch(_) { return 0; }
     });
 
-  // ── Build x-axis labels and scatter data points ──
-  // ── ROLE DEFINITIONS — ordered by points descending (y=0 is top = most valuable) ──
-  const ROLE_DEFS = [
-    { label:'HOM',          pts:10, color:'#FF5722', match: rk => rk.startsWith('hom') },
-    { label:'Speaker',      pts:7,  color:'#E91E63', match: rk => rk.startsWith('speaker') },
-    { label:'TTM',          pts:5,  color:'#9C27B0', match: rk => rk === 'ttm' },
-    { label:'GE',           pts:5,  color:'#673AB7', match: rk => rk === 'ge' },
-    { label:'MOM',          pts:4,  color:'#3F51B5', match: rk => rk === 'momTaker' || rk === 'momPres' },
-    { label:'Evaluator',    pts:3,  color:'#2196F3', match: rk => rk.startsWith('evaluator') },
-    { label:'TTE',          pts:3,  color:'#0097A7', match: rk => rk === 'tte' },
-    { label:'Timer',        pts:3,  color:'#00897B', match: rk => rk === 'timer' },
-    { label:'Listener',     pts:3,  color:'#43A047', match: rk => rk === 'listener' },
-    { label:'Grammarian',   pts:3,  color:'#7CB342', match: rk => rk === 'grammarian' },
-    { label:'Table Topics', pts:2,  color:'#FFA000', match: rk => rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte' },
-    { label:'Attendance',   pts:1,  color:'#9E9E9E', match: null },
-  ];
-
-  // ── Sort events chronologically, exclude ineligible ──
-  const eligibleEvents = [...eventsCache]
-    .filter(e => !(e.ineligible || []).includes(currentUid))
-    .sort((a, b) => {
-      try { return (a.date?.toDate ? a.date.toDate() : new Date(a.date)) - (b.date?.toDate ? b.date.toDate() : new Date(b.date)); }
-      catch(_) { return 0; }
-    });
-
   // ── Build x-axis labels: Event Name + date (two lines) ──
   const xLabels = eligibleEvents.map((e) => {
     let dateStr = '';
