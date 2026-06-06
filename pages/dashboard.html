@@ -1633,33 +1633,39 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
         },
         scales: {
           x: {
-            type: 'linear',
-            min: -0.5,
-            max: Math.max(eligibleEvents.length - 0.5, 0.5),
-            ticks: {
-              stepSize: 1,
-              maxRotation: 30,
-              callback: (val) => {
-                const idx = Math.round(val);
-                if (idx < 0 || idx >= xLabels.length || Math.abs(val - idx) > 0.01) return '';
-                return xLabels[idx]; // array → Chart.js renders as 2-line label
-              },
-              color: '#444444',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
-            title: {
-              display: true,
-              text: 'Events (chronological)',
-              color: '#444444',
-              font: { size: 11 }
-            }
-          },
+  type: 'linear',
+  min: -0.5,
+  max: Math.max(eligibleEvents.length - 0.5, 0.5),
+  // Force ticks to perfectly align with integers (0, 1, 2...)
+  afterBuildTicks: (scale) => {
+    scale.ticks = [];
+    for (let i = 0; i < xLabels.length; i++) {
+      scale.ticks.push({ value: i });
+    }
+  },
+  ticks: {
+    maxRotation: 30, // <-- Updated to 30 so long event names don't collide
+    callback: (val) => {
+      if (val < 0 || val >= xLabels.length) return '';
+      return xLabels[val]; // Returns e.title (array -> Chart.js renders as 2-line label)
+    },
+    color: '#444444', // <-- CHANGED TO DARKER GREY
+    font: { size: 10 }
+  },
+  grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
+  title: {
+    display: true,
+    text: 'Events (chronological)', // <-- Updated title text
+    color: '#444444', // <-- CHANGED TO DARKER GREY
+    font: { size: 11 }
+  }
+}
           y: {
             type: 'linear',
             min: -0.5,
             max: 11.5,
             reverse: true,
+            // Force ticks to perfectly align with integers
             afterBuildTicks: (scale) => {
               scale.ticks = [];
               for (let i = 0; i < ROLE_DEFS.length; i++) {
@@ -1671,14 +1677,14 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
                 if (val < 0 || val >= ROLE_DEFS.length) return '';
                 return `${ROLE_DEFS[val].label}  (${ROLE_DEFS[val].pts}pt${ROLE_DEFS[val].pts !== 1 ? 's' : ''})`;
               },
-              color: '#444444',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             },
             grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
             title: {
               display: true,
               text: '← higher value roles',
-              color: '#444444',
+              color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             }
           }
