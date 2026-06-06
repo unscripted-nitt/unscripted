@@ -1644,7 +1644,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
     }
   },
   ticks: {
-    maxRotation: 30, // <-- Updated to 30 so long event names don't collide
+    maxRotation: 60, // <-- Updated to 30 so long event names don't collide
     callback: (val) => {
       if (val < 0 || val >= xLabels.length) return '';
       return xLabels[val]; // Returns e.title (array -> Chart.js renders as 2-line label)
