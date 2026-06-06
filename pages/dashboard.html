@@ -1571,29 +1571,54 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
     });
 
   // ── Build x-axis labels and scatter data points ──
-  const xLabels = eligibleEvents.map((e, i) => {
-  let dateStr = '';
-  try {
-    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
-    dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
-  } catch(_) {}
-  return [`Meet ${i + 1}`, dateStr];
-});
+  // ── ROLE DEFINITIONS — ordered by points descending (y=0 is top = most valuable) ──
+  const ROLE_DEFS = [
+    { label:'HOM',          pts:10, color:'#FF5722', match: rk => rk.startsWith('hom') },
+    { label:'Speaker',      pts:7,  color:'#E91E63', match: rk => rk.startsWith('speaker') },
+    { label:'TTM',          pts:5,  color:'#9C27B0', match: rk => rk === 'ttm' },
+    { label:'GE',           pts:5,  color:'#673AB7', match: rk => rk === 'ge' },
+    { label:'MOM',          pts:4,  color:'#3F51B5', match: rk => rk === 'momTaker' || rk === 'momPres' },
+    { label:'Evaluator',    pts:3,  color:'#2196F3', match: rk => rk.startsWith('evaluator') },
+    { label:'TTE',          pts:3,  color:'#0097A7', match: rk => rk === 'tte' },
+    { label:'Timer',        pts:3,  color:'#00897B', match: rk => rk === 'timer' },
+    { label:'Listener',     pts:3,  color:'#43A047', match: rk => rk === 'listener' },
+    { label:'Grammarian',   pts:3,  color:'#7CB342', match: rk => rk === 'grammarian' },
+    { label:'Table Topics', pts:2,  color:'#FFA000', match: rk => rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte' },
+    { label:'Attendance',   pts:1,  color:'#9E9E9E', match: null },
+  ];
 
+  // ── Sort events chronologically, exclude ineligible ──
+  const eligibleEvents = [...eventsCache]
+    .filter(e => !(e.ineligible || []).includes(currentUid))
+    .sort((a, b) => {
+      try { return (a.date?.toDate ? a.date.toDate() : new Date(a.date)) - (b.date?.toDate ? b.date.toDate() : new Date(b.date)); }
+      catch(_) { return 0; }
+    });
+
+  // ── Build x-axis labels: Event Name + date (two lines) ──
+  const xLabels = eligibleEvents.map((e) => {
+    let dateStr = '';
+    try {
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      dateStr = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' });
+    } catch(_) {}
+    return [e.title || 'Event', dateStr];
+  });
+
+  // ── Build scatter data points ──
   const scatterData = [];
   eligibleEvents.forEach((e, xIdx) => {
     const roles = e.roles || {};
     const jitterCount = {};
-    const addPoint = (yIdx, label) => {
+    const addPoint = (yIdx, roleLabel) => {
       const jKey = `${xIdx}_${yIdx}`;
       const n = jitterCount[jKey] = (jitterCount[jKey] || 0) + 1;
-      const jitter = (n - 1) * 0.18; // slight vertical offset for same-role duplicates
+      const jitter = (n - 1) * 0.18;
       scatterData.push({
         x: xIdx,
         y: yIdx + jitter,
-        _yBase: yIdx,
         _color: ROLE_DEFS[yIdx].color,
-        _tooltip: `${label} — ${e.title || 'Meet ' + (xIdx + 1)} (${ROLE_DEFS[yIdx].pts} pt${ROLE_DEFS[yIdx].pts !== 1 ? 's' : ''})`
+        _tooltip: `${roleLabel}  —  ${e.title || 'Event'}  (${ROLE_DEFS[yIdx].pts} pt${ROLE_DEFS[yIdx].pts !== 1 ? 's' : ''})`
       });
     };
 
@@ -1613,9 +1638,9 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
         datasets: [{
           data: scatterData,
           backgroundColor: scatterData.map(p => p._color + 'BB'),
-          borderColor: scatterData.map(p => p._color),
+          borderColor:      scatterData.map(p => p._color),
           borderWidth: 1.5,
-          pointRadius: scatterData.map(() => 7),
+          pointRadius:      scatterData.map(() => 7),
           pointHoverRadius: 10,
         }]
       },
