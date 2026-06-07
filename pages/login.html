@@ -447,11 +447,11 @@ window.doLogin = async function() {
       await auth.signOut(); return;
     }
 
-    if (data.isActive === false) {
-      err.textContent = 'This account has been deactivated. Contact the core team.';
-      err.style.display = 'block';
-      await auth.signOut(); return;
-    }
+    // if (data.isActive === false) {
+    //   err.textContent = 'This account has been deactivated. Contact the core team.';
+    //   err.style.display = 'block';
+    //   await auth.signOut(); return;
+    // }
 
     window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html';
 
