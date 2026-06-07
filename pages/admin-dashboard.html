@@ -1157,7 +1157,9 @@ window.closeModal = () => document.getElementById('editModal').classList.remove(
 
 function populateMentorDropdown() {
   document.getElementById('editMentor').innerHTML =
-  '<option value="">(None)</option>' + allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  '<option value="">(None)</option>' + allUsers.map(u =>
+    `<option value="${u.id}">${u.name}${u.isActive === false ? ' (inactive)' : ''}</option>`
+  ).join('');
 }
 
 //
