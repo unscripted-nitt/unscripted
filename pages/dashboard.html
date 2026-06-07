@@ -888,14 +888,25 @@ function renderUpcomingRolesCard(upcoming) {
 function renderMyUpcomingRoles(upcoming) {
   const rolesMap = upcoming.roles || {};
   const myRoles = [];
+  const ROLE_KEY_LABELS = [
+    {id:'hom1',label:'HOM 1'},{id:'hom2',label:'HOM 2'},{id:'ttm',label:'TTM'},
+    {id:'tte',label:'TTE'},{id:'ge',label:'GE'},{id:'timer',label:'Timer'},
+    {id:'momTaker',label:'MOM Taker'},{id:'momPres',label:'MOM Presenter'},
+    {id:'listener',label:'Listener'},{id:'grammarian',label:'Grammarian'}
+  ];
   for (const [rKey, uid] of Object.entries(rolesMap)) {
-    if (uid === currentUid) {
-      const displayObj = upcoming.rolesDisplay?.find(rd => rd.role.toLowerCase().includes(rKey.replace(/[0-9]/g,'').toLowerCase()));
-      myRoles.push({ role: displayObj?.role || rKey.toUpperCase(), meet: upcoming.title });
-    }
+    if (uid !== currentUid) continue;
+    let roleLabel = '';
+    const found = ROLE_KEY_LABELS.find(r => r.id === rKey);
+    if (found)                                                    roleLabel = found.label;
+    else if (rKey.startsWith('speaker'))                          roleLabel = 'Speaker ' + rKey.replace('speaker','');
+    else if (rKey.startsWith('evaluator'))                        roleLabel = 'Evaluator ' + rKey.replace('evaluator','');
+    else if (rKey.startsWith('tt') && rKey !== 'ttm' && rKey !== 'tte') roleLabel = 'TT Speaker ' + rKey.replace('tt','');
+    else                                                          roleLabel = rKey.toUpperCase();
+    myRoles.push({ role: roleLabel, meet: upcoming.title });
   }
   const wrapper = document.getElementById('myUpcomingRolesWrapper');
-  const grid = document.getElementById('myUpcomingRolesGrid');
+  const grid    = document.getElementById('myUpcomingRolesGrid');
   if (myRoles.length && wrapper && grid) {
     wrapper.style.display = 'block';
     grid.innerHTML = myRoles.map(r => `
@@ -906,7 +917,6 @@ function renderMyUpcomingRoles(upcoming) {
       </div>`).join('');
   }
 }
-
 // ── ACHIEVEMENTS ──────────────────────────────────────────
 async function loadAchievements() {
   const badgesGrid = document.getElementById('badgesGrid');
