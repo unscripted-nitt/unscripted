@@ -659,6 +659,7 @@ function loadDashEvents() {
         <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;${badgeStyle}">${badgeText}</span>
         ${e.galleryLink ? `<a href="${e.galleryLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Gallery →</a>` : ''}
         ${e.docLink ? `<a href="${e.docLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Docs →</a>` : ''}
+        ${(e.eventVideos||[]).map((v,i) => `<a href="${v.url}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">${v.title || 'Video '+(i+1)} →</a>`).join('')}
       </div>
     </div>`;
   }).join('');
