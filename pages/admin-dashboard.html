@@ -766,10 +766,18 @@
           <option value="admin">Administrator</option>
         </select>
       </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;">
-        <input type="checkbox" id="editIsActive" style="width:18px;height:18px;accent-color:var(--orange);" />
-        <label for="editIsActive" style="font-weight:700;font-size:0.9rem;cursor:pointer;">Account Active</label>
-      </div>
+     <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;">
+  <input type="checkbox" id="editIsActive" style="width:18px;height:18px;accent-color:var(--orange);"
+    onchange="toggleInactiveSinceField()" />
+  <label for="editIsActive" style="font-weight:700;font-size:0.9rem;cursor:pointer;">Account Active</label>
+</div>
+<div class="form-group" id="inactiveSinceField" style="display:none;">
+  <label class="form-label" style="color:#c62828;">Inactive Since</label>
+  <input type="date" id="editInactiveSince" />
+  <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">
+    Events on or before this date count toward their attendance record. All events after this date are completely ignored — they will not appear as absent.
+  </p>
+</div>
       <button class="btn-primary" onclick="saveUserChanges()" style="width:100%;padding:1rem;border-radius:100px;margin-top:0.5rem;">Apply Changes &rarr;</button>
     </div>
   </div>
@@ -971,7 +979,7 @@ import { auth, db, storage } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, query, orderBy, where, limit,
-  setDoc, updateDoc, addDoc, deleteDoc, arrayUnion, serverTimestamp, writeBatch
+  setDoc, updateDoc, addDoc, deleteDoc, arrayUnion, serverTimestamp, writeBatch, deleteField
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -1061,13 +1069,17 @@ function updateInsights() {
   document.getElementById('insightSpeeches').textContent = speechesDelivered;
 
   // Avg Attendance — active members only, computed from event.attended arrays
-  let totalPresent = 0, totalPossible = 0;
-  allEventsCache.forEach(e => {
-    totalPresent  += (e.attended || []).filter(uid => activeIds.has(uid)).length;
-    totalPossible += activeUsers.length;
-  });
-  document.getElementById('insightAvgAtt').textContent =
-    totalPossible ? Math.round(totalPresent / totalPossible * 100) + '%' : '0%';
+  // Average of each active member's individual attendance percentage
+const attPcts = activeUsers.map(u => {
+  const eligible = allEventsCache.filter(e => !(e.ineligible||[]).includes(u.id));
+  if (!eligible.length) return 0;
+  const present = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+  return present / eligible.length * 100;
+});
+const avgAtt = attPcts.length
+  ? Math.round(attPcts.reduce((a, b) => a + b, 0) / attPcts.length)
+  : 0;
+document.getElementById('insightAvgAtt').textContent = avgAtt + '%';
 
   document.getElementById('insightEvents').textContent = allEventsCache.length;
 }
@@ -1141,6 +1153,11 @@ window.clearLeaderboard = async () => {
   } catch(e) { alert('Failed: ' + e.message); }
 };
 
+window.toggleInactiveSinceField = function() {
+  const isActive = document.getElementById('editIsActive').checked;
+  document.getElementById('inactiveSinceField').style.display = isActive ? 'none' : 'block';
+};
+  
 // ── EDIT MODAL ───────────────────────────────────────────
 window.openEditModal = (uid) => {
   const u = allUsers.find(x=>x.id===uid); if (!u) return;
@@ -1150,6 +1167,19 @@ window.openEditModal = (uid) => {
   document.getElementById('editRole').value = u.role||'user';
   document.getElementById('editMentor').value = u.mentor||'';
   document.getElementById('editIsActive').checked = u.isActive !== false;
+// Show/hide the inactive-since field and pre-fill if stored
+if (u.isActive === false) {
+  document.getElementById('inactiveSinceField').style.display = 'block';
+  if (u.inactiveSince) {
+    const d = u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince);
+    document.getElementById('editInactiveSince').value = d.toISOString().slice(0, 10);
+  } else {
+    document.getElementById('editInactiveSince').value = '';
+  }
+} else {
+  document.getElementById('inactiveSinceField').style.display = 'none';
+  document.getElementById('editInactiveSince').value = '';
+}
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editPersonalEmail').value = u.personalEmail || '';
 };
@@ -1189,15 +1219,28 @@ window.saveUserChanges = async () => {
   // fall back to 0 so the member simply shows "not started".
  
   try {
-    await updateDoc(doc(db, 'users', uid), {
-      pathway:     newPathway,
-      pathwayKey:  newPathwayKey,
-      speechIndex: newSpeechIndex,
-      role:    document.getElementById('editRole').value    || 'user',
-      mentor:  document.getElementById('editMentor').value  || '',
-      isActive: document.getElementById('editIsActive').checked,
-      personalEmail: document.getElementById('editPersonalEmail').value.trim(),
-    });
+    const isActive         = document.getElementById('editIsActive').checked;
+const inactiveSinceVal = document.getElementById('editInactiveSince').value;
+
+const updateData = {
+  pathway:       newPathway,
+  pathwayKey:    newPathwayKey,
+  speechIndex:   newSpeechIndex,
+  role:          document.getElementById('editRole').value   || 'user',
+  mentor:        document.getElementById('editMentor').value || '',
+  personalEmail: document.getElementById('editPersonalEmail')?.value.trim() || '',
+  isActive,
+};
+
+if (!isActive && inactiveSinceVal) {
+  // Store as a plain JS Date — Firestore converts it to a Timestamp automatically
+  updateData.inactiveSince = new Date(inactiveSinceVal);
+} else if (isActive) {
+  // Clear the field when reactivating so they're treated as fully active
+  updateData.inactiveSince = deleteField();
+}
+
+await updateDoc(doc(db, 'users', uid), updateData);
     alert('Profile updated!'); closeModal(); loadAllData();
   } catch (e) {
     alert('Failed: ' + e.message);
