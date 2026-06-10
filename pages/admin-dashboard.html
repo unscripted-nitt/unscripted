@@ -1076,42 +1076,66 @@ function updateInsights() {
 function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
   tbody.innerHTML = allUsers.map(u => {
-    // Eligible = events where this member is NOT ineligible
-    const eligibleEvents = allEventsCache.filter(e => !(e.ineligible || []).includes(u.id));
-    const totalMeets     = eligibleEvents.length;
-    const presentCount   = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
-    const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
- 
-    const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
-    const isActive   = u.isActive !== false;
- 
+    const isActive = u.isActive !== false;
+    let pct = 0, presentCount = 0, totalLabel = '';
+
+    if (isActive) {
+      const eligible = allEventsCache.filter(e => !(e.ineligible||[]).includes(u.id));
+      presentCount   = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+      pct = eligible.length ? Math.round(presentCount / eligible.length * 100) : 0;
+      totalLabel = `${presentCount} / ${eligible.length} eligible meets`;
+
+    } else if (u.inactiveSince) {
+      // Has deactivation timestamp — only count events on or before that date
+      const cutoff = u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince);
+      const eligible = allEventsCache.filter(e => {
+        if ((e.ineligible||[]).includes(u.id)) return false;
+        if (!e.date) return false;
+        const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
+        return d <= cutoff;
+      });
+      presentCount = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+      pct = eligible.length ? Math.round(presentCount / eligible.length * 100) : 0;
+      totalLabel = `${presentCount} / ${eligible.length} eligible meets`;
+
+    } else {
+      // Old inactive member — no timestamp stored yet.
+      // Only count events they were explicitly recorded in (present or ineligible).
+      const recorded   = allEventsCache.filter(e =>
+        (e.attended||[]).includes(u.id) || (e.ineligible||[]).includes(u.id));
+      const eligible   = recorded.filter(e => !(e.ineligible||[]).includes(u.id));
+      presentCount     = eligible.length;
+      pct = recorded.length ? Math.round(presentCount / recorded.length * 100) : 0;
+      totalLabel = `${presentCount} / ${recorded.length} recorded meets`;
+    }
+
+    const mentorName = u.mentor ? (allUsers.find(x=>x.id===u.mentor)?.name||'—') : '—';
+
     return `<tr>
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${u.name}</div>
-        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
-        ${u.personalEmail ? `<div style="font-size:0.68rem;color:var(--text-light);">📱 ${u.personalEmail}</div>` : ''}
-        ${u.role === 'admin' || u.role === 'core'
-          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
-          : ''}
+        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email||''}</div>
+        ${u.role==='admin'||u.role==='core'
+          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`:''}
       </td>
       <td>
         <span style="font-weight:800;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;">
-          ${u.pathway || 'L1P1'}
+          ${u.pathway||'L1P1'}
         </span>
       </td>
       <td><span style="font-size:0.88rem;">${mentorName}</span></td>
       <td>
         <div style="font-weight:800;">${pct}%</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} eligible meets</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${totalLabel}</div>
       </td>
       <td>
-        <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
-        <span style="font-size:0.8rem;font-weight:700;">${isActive ? 'Active' : 'Inactive'}</span>
+        <span style="width:10px;height:10px;border-radius:50%;background:${isActive?'#4CAF50':'#f44336'};display:inline-block;margin-right:0.4rem;"></span>
+        <span style="font-size:0.8rem;font-weight:700;">${isActive?'Active':'Inactive'}</span>
       </td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
           <button class="btn-primary btn-sm" onclick="openEditModal('${u.id}')">Edit</button>
-          <button class="btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name?.replace(/'/g, "\\'")}')">Delete</button>
+          <button class="btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name?.replace(/'/g,"\\'")}')">Delete</button>
         </div>
       </td>
     </tr>`;
@@ -1187,7 +1211,11 @@ window.saveUserChanges = async () => {
   }
   // If no match found (admin typed a valid label not in sequence for that key)
   // fall back to 0 so the member simply shows "not started".
- 
+
+  const newIsActive = document.getElementById('editIsActive').checked;
+  const currentUser = allUsers.find(x => x.id === uid);
+  const wasActive   = currentUser ? currentUser.isActive !== false : true;
+
   try {
     await updateDoc(doc(db, 'users', uid), {
       pathway:     newPathway,
