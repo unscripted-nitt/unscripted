@@ -767,8 +767,16 @@
         </select>
       </div>
       <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;">
-        <input type="checkbox" id="editIsActive" style="width:18px;height:18px;accent-color:var(--orange);" />
+        <input type="checkbox" id="editIsActive" style="width:18px;height:18px;accent-color:var(--orange);"
+          onchange="document.getElementById('inactiveSinceGroup').style.display=this.checked?'none':'block'" />
         <label for="editIsActive" style="font-weight:700;font-size:0.9rem;cursor:pointer;">Account Active</label>
+      </div>
+      <div class="form-group" id="inactiveSinceGroup" style="display:none;">
+        <label class="form-label">Inactive Since</label>
+        <input type="date" id="editInactiveSince" />
+        <p style="font-size:0.75rem;color:var(--text-mid);margin-top:0.4rem;">
+          Events after this date will not count toward this member's attendance.
+        </p>
       </div>
       <button class="btn-primary" onclick="saveUserChanges()" style="width:100%;padding:1rem;border-radius:100px;margin-top:0.5rem;">Apply Changes &rarr;</button>
     </div>
@@ -1061,13 +1069,16 @@ function updateInsights() {
   document.getElementById('insightSpeeches').textContent = speechesDelivered;
 
   // Avg Attendance — active members only, computed from event.attended arrays
-  let totalPresent = 0, totalPossible = 0;
-  allEventsCache.forEach(e => {
-    totalPresent  += (e.attended || []).filter(uid => activeIds.has(uid)).length;
-    totalPossible += activeUsers.length;
+  let totalPct = 0, membersWithMeets = 0;
+  activeUsers.forEach(u => {
+    const eligible = allEventsCache.filter(e => !(e.ineligible||[]).includes(u.id));
+    if (!eligible.length) return;
+    const present = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+    totalPct += Math.round(present / eligible.length * 100);
+    membersWithMeets++;
   });
   document.getElementById('insightAvgAtt').textContent =
-    totalPossible ? Math.round(totalPresent / totalPossible * 100) + '%' : '0%';
+    membersWithMeets ? Math.round(totalPct / membersWithMeets) + '%' : '0%';
 
   document.getElementById('insightEvents').textContent = allEventsCache.length;
 }
@@ -1076,61 +1087,61 @@ function updateInsights() {
 function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
   tbody.innerHTML = allUsers.map(u => {
-    const isActive = u.isActive !== false;
-    let pct = 0, presentCount = 0, totalLabel = '';
+    const isActive   = u.isActive !== false;
+    const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
 
+    // ── Attendance calculation ─────────────────────────────
+    let attDisplay = '';
     if (isActive) {
       const eligible = allEventsCache.filter(e => !(e.ineligible||[]).includes(u.id));
-      presentCount   = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
-      pct = eligible.length ? Math.round(presentCount / eligible.length * 100) : 0;
-      totalLabel = `${presentCount} / ${eligible.length} eligible meets`;
-
+      const present  = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+      const pct      = eligible.length ? Math.round(present / eligible.length * 100) : 0;
+      attDisplay = `<div style="font-weight:800;">${pct}%</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${present} / ${eligible.length} eligible meets</div>`;
     } else if (u.inactiveSince) {
-      // Has deactivation timestamp — only count events on or before that date
-      const cutoff = u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince);
+      const cutoff   = u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince);
       const eligible = allEventsCache.filter(e => {
         if ((e.ineligible||[]).includes(u.id)) return false;
         if (!e.date) return false;
         const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
         return d <= cutoff;
       });
-      presentCount = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
-      pct = eligible.length ? Math.round(presentCount / eligible.length * 100) : 0;
-      totalLabel = `${presentCount} / ${eligible.length} eligible meets`;
-
+      const present  = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+      const pct      = eligible.length ? Math.round(present / eligible.length * 100) : 0;
+      attDisplay = `<div style="font-weight:800;">${pct}%</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${present} / ${eligible.length} eligible meets (until inactive)</div>`;
     } else {
-      // Old inactive member — no timestamp stored yet.
-      // Only count events they were explicitly recorded in (present or ineligible).
-      const recorded   = allEventsCache.filter(e =>
+      // Old inactive member — no timestamp stored. Count only events they appear in.
+      const recorded = allEventsCache.filter(e =>
         (e.attended||[]).includes(u.id) || (e.ineligible||[]).includes(u.id));
-      const eligible   = recorded.filter(e => !(e.ineligible||[]).includes(u.id));
-      presentCount     = eligible.length;
-      pct = recorded.length ? Math.round(presentCount / recorded.length * 100) : 0;
-      totalLabel = `${presentCount} / ${recorded.length} recorded meets`;
+      const eligible = recorded.filter(e => !(e.ineligible||[]).includes(u.id));
+      const present  = eligible.length;
+      const pct      = recorded.length ? Math.round(present / recorded.length * 100) : 0;
+      attDisplay = `<div style="font-weight:800;">${pct}%</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${present} / ${recorded.length} recorded meets</div>`;
     }
-
-    const mentorName = u.mentor ? (allUsers.find(x=>x.id===u.mentor)?.name||'—') : '—';
 
     return `<tr>
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${u.name}</div>
         <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email||''}</div>
-        ${u.role==='admin'||u.role==='core'
-          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`:''}
+        ${u.personalEmail
+          ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:1px;">📧 ${u.personalEmail}</div>`
+          : ''}
+        ${u.role === 'admin' || u.role === 'core'
+          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
+          : ''}
       </td>
       <td>
         <span style="font-weight:800;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;">
-          ${u.pathway||'L1P1'}
+          ${u.pathway || 'L1P1'}
         </span>
       </td>
       <td><span style="font-size:0.88rem;">${mentorName}</span></td>
+      <td>${attDisplay}</td>
       <td>
-        <div style="font-weight:800;">${pct}%</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${totalLabel}</div>
-      </td>
-      <td>
-        <span style="width:10px;height:10px;border-radius:50%;background:${isActive?'#4CAF50':'#f44336'};display:inline-block;margin-right:0.4rem;"></span>
-        <span style="font-size:0.8rem;font-weight:700;">${isActive?'Active':'Inactive'}</span>
+        <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
+        <span style="font-size:0.8rem;font-weight:700;">${isActive ? 'Active' : 'Inactive'}</span>
       </td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
@@ -1174,8 +1185,20 @@ window.openEditModal = (uid) => {
   document.getElementById('editRole').value = u.role||'user';
   document.getElementById('editMentor').value = u.mentor||'';
   document.getElementById('editIsActive').checked = u.isActive !== false;
+  const inactiveSinceGroup = document.getElementById('inactiveSinceGroup');
+  if (u.isActive === false) {
+    inactiveSinceGroup.style.display = 'block';
+    if (u.inactiveSince) {
+      const d = u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince);
+      document.getElementById('editInactiveSince').value = d.toISOString().slice(0,10);
+    } else {
+      document.getElementById('editInactiveSince').value = '';
+    }
+  } else {
+    inactiveSinceGroup.style.display = 'none';
+    document.getElementById('editInactiveSince').value = '';
+  }
   document.getElementById('editModal').classList.add('open');
-  document.getElementById('editPersonalEmail').value = u.personalEmail || '';
 };
 window.closeModal = () => document.getElementById('editModal').classList.remove('open');
 
@@ -1212,28 +1235,24 @@ window.saveUserChanges = async () => {
   // If no match found (admin typed a valid label not in sequence for that key)
   // fall back to 0 so the member simply shows "not started".
 
-  const newIsActive = document.getElementById('editIsActive').checked;
-  const currentUser = allUsers.find(x => x.id === uid);
-  const wasActive   = currentUser ? currentUser.isActive !== false : true;
+  const newIsActive      = document.getElementById('editIsActive').checked;
+  const inactiveSinceVal = document.getElementById('editInactiveSince').value;
+  const currentUser      = allUsers.find(x => x.id === uid);
 
   try {
     await updateDoc(doc(db, 'users', uid), {
-      pathway:     newPathway,
-      pathwayKey:  newPathwayKey,
-      speechIndex: newSpeechIndex,
-      role:    document.getElementById('editRole').value    || 'user',
-      mentor:  document.getElementById('editMentor').value  || '',
-      isActive: document.getElementById('editIsActive').checked,
+      pathway:       newPathway,
+      pathwayKey:    newPathwayKey,
+      speechIndex:   newSpeechIndex,
+      role:          document.getElementById('editRole').value    || 'user',
+      mentor:        document.getElementById('editMentor').value  || '',
+      isActive:      newIsActive,
       personalEmail: document.getElementById('editPersonalEmail').value.trim(),
+      inactiveSince: !newIsActive && inactiveSinceVal
+                     ? new Date(inactiveSinceVal)
+                     : newIsActive ? null
+                     : (currentUser?.inactiveSince || null),
     });
-    alert('Profile updated!'); closeModal(); loadAllData();
-  } catch (e) {
-    alert('Failed: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Apply Changes →';
-  }
-};
- 
 
 // ── EXCEL UPLOAD (req 8) ─────────────────────────────────
 let excelData = [];
