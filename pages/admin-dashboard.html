@@ -1089,9 +1089,22 @@ function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
   tbody.innerHTML = allUsers.map(u => {
     // Eligible = events where this member is NOT ineligible
-    const eligibleEvents = allEventsCache.filter(e => !(e.ineligible || []).includes(u.id));
-    const totalMeets     = eligibleEvents.length;
-    const presentCount   = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
+    const inactiveSince = (u.isActive === false && u.inactiveSince)
+      ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
+      : null;
+
+    const eligibleEvents = allEventsCache.filter(e => {
+      if ((e.ineligible || []).includes(u.id)) return false;
+      if (inactiveSince) {
+        try {
+          const eventDate = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+          if (eventDate > inactiveSince) return false;
+        } catch(_) {}
+      }
+      return true;
+    });
+    const totalMeets   = eligibleEvents.length;
+    const presentCount = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
     const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
  
     const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
@@ -1940,7 +1953,17 @@ async function loadMeetRoles() {
 
   const rows = activeUsers.map(u => {
     let c = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, listener:0, grammarian:0, attendance:0, mom:0 };
+    const inactiveSince = (u.isActive === false && u.inactiveSince)
+      ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
+      : null;
+
     filteredEvents.forEach(e => {
+      if (inactiveSince) {
+        try {
+          const eventDate = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+          if (eventDate > inactiveSince) return;
+        } catch(_) {}
+      }
       const rm = e.roles || {};
       for (const [rk, uid] of Object.entries(rm)) {
         if (uid !== u.id) continue;
@@ -1958,7 +1981,6 @@ async function loadMeetRoles() {
       }
       if (e.attended?.includes(u.id)) c.attendance++;
     });
-
     const totalPoints = c.hom*10 + c.speaker*7 + c.ttm*5 + c.evaluator*3 + c.tte*3 +
                         c.ge*5  + c.timer*3   + c.tt*2  + c.listener*3  + c.grammarian*3 +
                         c.attendance*1 + c.mom*4;
