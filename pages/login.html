@@ -453,6 +453,7 @@ window.doLogin = async function() {
     //   await auth.signOut(); return;
     // }
 
+    if (navigator.vibrate) navigator.vibrate(2000);
     window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html';
 
   } catch(e) {
