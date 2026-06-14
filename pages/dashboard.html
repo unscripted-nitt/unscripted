@@ -593,7 +593,7 @@ if (userData.isActive === false) {
   await checkPersonalNotification();
 });
 
-window.doLogout = async () => { if (navigator.vibrate) navigator.vibrate(2000); await signOut(auth); window.location.href = 'login.html'; };
+window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
 
 window.toggleSidebar = () => {
   document.getElementById('sidebar').classList.toggle('open');
