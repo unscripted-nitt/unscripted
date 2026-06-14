@@ -278,6 +278,7 @@
 <script type="module" src="js/public-home.js"></script>
 <script type="module" src="js/nav.js"></script>
 <script>
+  if (navigator.vibrate) navigator.vibrate(2000);
   function closeVisitorPopup() {
     document.getElementById('newVisitorModal').style.display = 'none';
     sessionStorage.setItem('popupSeen','1');
