@@ -278,6 +278,9 @@
 <script type="module" src="js/public-home.js"></script>
 <script type="module" src="js/nav.js"></script>
 <script>
+  function buzz() {
+  if (navigator.vibrate) navigator.vibrate([150, 100, 300]);
+}
   function closeVisitorPopup() {
     document.getElementById('newVisitorModal').style.display = 'none';
     sessionStorage.setItem('popupSeen','1');
@@ -285,6 +288,7 @@
   if (sessionStorage.getItem('popupSeen')) {
     document.getElementById('newVisitorModal').style.display = 'none';
   }
+  buzz();
 </script>
 </body>
 </html>
