@@ -513,10 +513,10 @@
 
 /* Push nav and sidebar content down when banner is visible */
 /* Pad bottom of main content so content isn't hidden behind the warning banner */
-body.has-warning .main-content { padding-bottom: 7rem; }
+body.has-warning .main-content { padding-bottom: 12rem; }
 /* On mobile: hide sidebar by default, show hamburger, add overlay */
 .sidebar { overflow-y: auto; }
-body.has-warning .sidebar nav { padding-bottom: 7rem; }
+body.has-warning .sidebar nav { padding-bottom: 12rem; }
 
   @media (max-width:1024px) {
   .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
@@ -524,9 +524,8 @@ body.has-warning .sidebar nav { padding-bottom: 7rem; }
   .main-content { margin-left:0 !important; }
   #hamburgerDash { display:block !important; }
   .main-content { padding-bottom:1rem; }
-  body.has-warning .main-content { padding-bottom: 7rem; }
+  body.has-warning .main-content { padding-bottom: 12rem; }
   body.has-warning .sidebar { padding-bottom: 12rem; }
-body.has-warning .sidebar nav { padding-bottom: 7rem; }
 }
 </style>
   
