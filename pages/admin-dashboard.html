@@ -2331,6 +2331,9 @@ let _currentVoteSession=null;
 window.viewVoteResults = async (sid) => {
   const sSnap=await getDoc(doc(db,'votingSessions',sid)); if (!sSnap.exists()) return;
   const sData=sSnap.data(); _currentVoteSession={id:sid,...sData};
+  // Fetch guest tokens so we can check awarded status for guest winners too
+  const guestTokensSnap = await getDocs(collection(db,'guestTokens'));
+  const guestTokensList = guestTokensSnap.docs.map(d => ({id:d.id, ...d.data()}));
   // Fetch all votes and filter client-side to avoid needing a composite Firestore index
   const vSnap=await getDocs(collection(db,'votes'));
   const votes=[]; vSnap.forEach(d=>{ const v=d.data(); if(v.sessionId===sid) votes.push(v); });
@@ -2380,11 +2383,23 @@ window.viewVoteResults = async (sid) => {
   });
 }
   });
-  document.getElementById('voteResultsBody').innerHTML=html;
+  
+document.getElementById('voteResultsBody').innerHTML=html;
 document.getElementById('winnerConfirmButtons').innerHTML=winnerButtons.map((wb,i)=>{
-    const alreadyAwarded = allUsers.find(u => u.id === wb.winnerUid)?.winBadges?.some(
-      b => b.category === wb.category && b.meet === wb.meetTitle
-    );
+    let alreadyAwarded;
+    if (wb.winnerUid) {
+      // Registered member winner
+      alreadyAwarded = allUsers.find(u => u.id === wb.winnerUid)?.winBadges?.some(
+        b => b.category === wb.category && b.meet === wb.meetTitle
+      );
+    } else {
+      // Guest winner — winBadges live on the guestTokens document
+      const cleanName = wb.winner.replace(/\s*\(Guest\)/i, '').trim();
+      const guestToken = guestTokensList.find(g => g.guestName === cleanName);
+      alreadyAwarded = guestToken?.winBadges?.some(
+        b => b.category === wb.category && b.meet === wb.meetTitle
+      );
+    }
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
       <span style="font-weight:700;font-size:0.88rem;">${wb.category}: <span style="color:var(--orange);">${wb.winner}</span></span>
       ${alreadyAwarded
