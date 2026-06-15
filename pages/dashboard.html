@@ -489,7 +489,17 @@
 .file-badge { background:var(--orange-light);color:var(--orange);padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;transition:all 0.2s; }
 .file-badge:hover { background:var(--orange);color:#fff; }
 .att-ineligible { background:var(--surface2) !important; border-color:var(--border) !important; color:var(--text-light) !important; opacity:0.5; }
- 
+
+#dangerOverlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9990;
+  background: rgba(244,67,54,0); transition: background 2.5s ease;
+}
+#dangerOverlay.active { background: rgba(244,67,54,0.16); }
+body.has-warning .dash-top-nav { margin-top: 3.4rem; }
+@media (max-width:600px) {
+  #lowActivityBanner { padding-top: calc(0.85rem + env(safe-area-inset-top, 0px)); }
+}
+
 /* On mobile: hide sidebar by default, show hamburger, add overlay */
 @media (max-width:1024px) {
   .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
@@ -576,11 +586,12 @@ if (userData.isActive === false) {
   document.querySelector('.main-content').prepend(banner);
 }
   
-  // Load everything
+// Load everything
   await loadAllEvents();
   await loadAllUsers();
-  renderProgress();
+  await renderProgress();
   loadAttendance();
+  checkLowActivityWarning();
   loadMentorship();
   loadGallery();
   loadLeaderboard();
@@ -895,6 +906,30 @@ if (hasChosenL3)
   }
 }
  
+function checkLowActivityWarning() {
+  const eligibleMeets = allEventsCache.filter(e => !(e.ineligible||[]).includes(currentUid));
+  const presentCount  = eligibleMeets.filter(e => (e.attended||[]).includes(currentUid)).length;
+  const attPct = eligibleMeets.length ? (presentCount / eligibleMeets.length * 100) : 100;
+
+  const totalRolesTaken = userData._totalRolesTaken || 0;
+  const isL1P0 = (!userData.pathway || userData.pathway === 'L1P0');
+
+  const shouldWarn = attPct < 60 && (isL1P0 || totalRolesTaken < 3);
+
+  const banner  = document.getElementById('lowActivityBanner');
+  const overlay = document.getElementById('dangerOverlay');
+
+  if (shouldWarn) {
+    banner.style.display = 'block';
+    document.body.classList.add('has-warning');
+    requestAnimationFrame(() => overlay.classList.add('active'));
+  } else {
+    banner.style.display = 'none';
+    document.body.classList.remove('has-warning');
+    overlay.classList.remove('active');
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // ADD this new function anywhere after renderProgress()
 // ─────────────────────────────────────────────────────────────
