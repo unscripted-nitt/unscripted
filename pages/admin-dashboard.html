@@ -771,6 +771,12 @@
   <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">
     Events on or before this date count toward their attendance record. All events after this date are completely ignored — they will not appear as absent.
   </p>
+  <label class="form-label" style="margin-top:0.75rem;color:#c62828;">Reason</label>
+  <select id="editInactiveReason">
+    <option value="">-- Select reason --</option>
+    <option value="passed_out">Passed Out</option>
+    <option value="left_removed">Left / Removed</option>
+  </select>
 </div>
       <button class="btn-primary" onclick="saveUserChanges()" style="width:100%;padding:1rem;border-radius:100px;margin-top:0.5rem;">Apply Changes &rarr;</button>
     </div>
@@ -1153,6 +1159,9 @@ function renderUserTable() {
       <td>
         <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
         <span style="font-size:0.8rem;font-weight:700;">${isActive ? 'Active' : 'Inactive'}</span>
+        ${!isActive && u.inactiveReason
+          ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;">${u.inactiveReason === 'passed_out' ? 'Passed Out' : 'Left / Removed'}</div>`
+          : ''}
       </td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
@@ -1214,6 +1223,7 @@ if (u.isActive === false) {
   document.getElementById('inactiveSinceField').style.display = 'none';
   document.getElementById('editInactiveSince').value = '';
 }
+  document.getElementById('editInactiveReason').value = u.inactiveReason || '';
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editPersonalEmail').value = u.personalEmail || '';
 };
@@ -1270,8 +1280,14 @@ if (!isActive && inactiveSinceVal) {
   // Store as a plain JS Date — Firestore converts it to a Timestamp automatically
   updateData.inactiveSince = new Date(inactiveSinceVal);
 } else if (isActive) {
-  // Clear the field when reactivating so they're treated as fully active
+  // Clear the fields when reactivating so they're treated as fully active
   updateData.inactiveSince = deleteField();
+}
+
+if (!isActive) {
+  updateData.inactiveReason = document.getElementById('editInactiveReason').value || '';
+} else {
+  updateData.inactiveReason = deleteField();
 }
 
 await updateDoc(doc(db, 'users', uid), updateData);
