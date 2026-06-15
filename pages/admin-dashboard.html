@@ -1906,15 +1906,23 @@ window.saveMeetRoles = async () => {
       if (!userUpdates[val]) userUpdates[val]=[];
       userUpdates[val].push(specificLabel+' M-'+ev.title);
     });
+    // Fetch the true pre-save roles from Firestore BEFORE overwriting,
+    // so we can detect which speakers are genuinely new this save.
+    const preSaveSnap = await getDoc(doc(db, 'events', eventId));
+    const preSaveRoles = preSaveSnap.exists() ? (preSaveSnap.data().roles || {}) : {};
+
     await updateDoc(doc(db,'events',eventId),{roles:rolesData,rolesDisplay});
+    // Immediately patch the cache so a quick re-save in the same session
+    // also uses the correct (post-save) roles and doesn't double-increment.
+    ev.roles = {...rolesData};
+
     for (const [uid,rolesList] of Object.entries(userUpdates)) {
       for (const r of rolesList) await updateDoc(doc(db,'users',uid),{roleBadges:arrayUnion(r)});
     }
     // Auto-increment pathway for speakers (Req 1)
-    // Auto-increment pathway for speakers (Req 1)
-    // Only increment for speakers who are NEW to this event (not already saved in a prior save)
+    // Only increment for speakers who were NOT already in the pre-save roles.
     const existingSpeakerUids = new Set();
-    for (const [rk, uid] of Object.entries(ev.roles || {})) {
+    for (const [rk, uid] of Object.entries(preSaveRoles)) {
       if (rk.startsWith('speaker') && uid) existingSpeakerUids.add(uid);
     }
     const speakerUids = new Set();
