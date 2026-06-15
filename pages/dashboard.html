@@ -92,6 +92,8 @@
         <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Done</div></div>
         <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Current Project</div></div>
         <div class="stat-card"><div class="big-num" id="statAttPct">—</div><div class="stat-name">Attendance %</div></div>
+        <div class="stat-card"><div class="big-num" id="statTotalRoles">—</div><div class="stat-name">Total Roles Taken</div></div>
+        <div class="stat-card"><div class="big-num" id="statTTCount">—</div><div class="stat-name">Table Topics Delivered</div></div>
       </div>
 
       <div class="card">
@@ -700,6 +702,25 @@ async function renderProgress() {
     const presentCount  = eligibleMeets.filter(e => (e.attended || []).includes(currentUid)).length;
     document.getElementById('statAttPct').textContent =
       eligibleMeets.length ? Math.round(presentCount / eligibleMeets.length * 100) + '%' : '0%';
+
+    // ── Total Roles Taken & Table Topics Delivered ──────────
+    let totalRolesTaken = 0, ttDelivered = 0;
+    allEventsCache.forEach(e => {
+      const roles = e.roles || {};
+      for (const [rk, uid] of Object.entries(roles)) {
+        if (uid !== currentUid) continue;
+        if (rk.startsWith('hom'))                                              totalRolesTaken++;
+        else if (rk === 'ttm' || rk === 'tte' || rk === 'ge')                  totalRolesTaken++;
+        else if (rk === 'momTaker' || rk === 'momPres')                        totalRolesTaken++;
+        else if (rk.startsWith('evaluator'))                                   totalRolesTaken++;
+        else if (rk === 'timer' || rk === 'listener' || rk === 'grammarian')   totalRolesTaken++;
+        else if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte')          ttDelivered++;
+        // speaker roles and attendance are excluded
+      }
+    });
+    document.getElementById('statTotalRoles').textContent = totalRolesTaken;
+    document.getElementById('statTTCount').textContent = ttDelivered;
+    userData._totalRolesTaken = totalRolesTaken; // cached for the warning check (item 5)
  
     // ── Project-to-speech-slot mapping ─────────────────────
     const PROJ_RANGES = {
