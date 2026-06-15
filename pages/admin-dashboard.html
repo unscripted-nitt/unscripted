@@ -75,6 +75,13 @@
 </head>
 <body>
 
+<!-- Low activity warning banner -->
+<div id="lowActivityBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#c62828;color:#fff;padding:0.85rem 1.5rem;text-align:center;font-size:0.85rem;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,0.25);line-height:1.5;">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  Caution! Very low attendance and low role activities detected. If not improved, the core may soon take the decision of letting you go and give a chance to new deserving people. Please take up roles, give speeches and attend meets more regularly to improve your public speaking skills.
+</div>
+<div id="dangerOverlay"></div>
+
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
 <div class="dash-top-nav">
   <div style="display:flex;align-items:center;gap:1rem;">
@@ -281,10 +288,6 @@
               <label class="form-label">Meeting Event</label>
               <select id="attEventSelect" onchange="loadAttendanceStateForEvent()"><option value="">-- Choose an Event --</option></select>
             </div>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-              <button type="button" class="btn-success" style="flex:1;min-width:100px;" onclick="setAllAttendance(true)">All Present</button>
-              <button type="button" class="btn-danger" style="flex:1;min-width:100px;" onclick="setAllAttendance(false)">All Absent</button>
-            </div>
           </div>
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
@@ -298,10 +301,6 @@
         </div>
         <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem;">
           <button class="btn-primary" onclick="submitAttendanceChecklist()" style="width:100%;padding:1.1rem;border-radius:100px;">Save Meeting Attendance &rarr;</button>
-        </div>
-        <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);">
-          <h4 style="margin-bottom:0.5rem;color:var(--text);">Danger Zone</h4>
-          <button onclick="resetAllAttendance()" style="background:#fff0f0;color:#c62828;border:1px solid rgba(198,40,40,0.2);padding:0.6rem 1.2rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.82rem;">Reset All Attendance Records</button>
         </div>
       </div>
     </div>
@@ -1089,7 +1088,12 @@ document.getElementById('insightAvgAtt').textContent = avgAtt + '%';
 // ── USER TABLE ───────────────────────────────────────────
 function renderUserTable() {
   const tbody = document.getElementById('userTableBody');
-  tbody.innerHTML = allUsers.map(u => {
+  const sortedUsers = [...allUsers].sort((a, b) => {
+    const aInactive = a.isActive === false ? 1 : 0;
+    const bInactive = b.isActive === false ? 1 : 0;
+    return aInactive - bInactive; // active (0) first, inactive (1) last
+  });
+  tbody.innerHTML = sortedUsers.map(u => {
     // Eligible = events where this member is NOT ineligible
     const inactiveSince = (u.isActive === false && u.inactiveSince)
       ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
@@ -1431,14 +1435,6 @@ window.setAttState = function(uid, val) {
   });
 };
 
-window.setAllAttendance = function(val) {
-  const list = document.getElementById('attList');
-  if (!list) return;
-  list.querySelectorAll('input[type="checkbox"]').forEach(function(c) {
-    c.checked = val;
-  });
-};
-
 window.loadAttendanceStateForEvent = function() {
   const eventId = document.getElementById('attEventSelect').value;
   if (!eventId) return;
@@ -1518,20 +1514,6 @@ window.submitAttendanceChecklist = async () => {
     alert(`Saved! ${attendedUids.length} present, ${ineligibleUids.length} ineligible for "${eventData?.title||'event'}".`);
   } catch(e) { alert('Error: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = origText; }
-};
- 
-window.resetAllAttendance = async () => {
-  if (!confirm('RESET all attendance for ALL members? Cannot be undone.')) return;
-  if (!confirm('Second confirmation: proceed?')) return;
-  try {
-    const batch = writeBatch(db);
-    const uSnap = await getDocs(collection(db,'users'));
-    uSnap.docs.forEach(d => batch.update(doc(db,'users',d.id), {attendance:[]}));
-    const eSnap = await getDocs(collection(db,'events'));
-    eSnap.docs.forEach(d => batch.update(doc(db,'events',d.id), {attended:[]}));
-    await batch.commit();
-    alert('All attendance records reset.'); location.reload();
-  } catch(e) { alert('Error: '+e.message); }
 };
 
 // ── EVENTS ───────────────────────────────────────────────
