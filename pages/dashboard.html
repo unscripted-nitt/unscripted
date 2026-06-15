@@ -15,13 +15,13 @@
 <div id="dangerOverlay"></div>
 
 <!-- ── LOW ACTIVITY WARNING BANNER (fixed top, all tabs) ── -->
-<div id="lowActivityBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9991;
-  background:linear-gradient(135deg,#b71c1c,#c62828);
-  color:#fff;padding:0.75rem 1.5rem;
-  display:none;align-items:flex-start;gap:0.75rem;
-  box-shadow:0 2px 12px rgba(183,28,28,0.45);
-  font-size:0.82rem;line-height:1.55;">
-  <i class="fa-solid fa-triangle-exclamation" style="font-size:1.1rem;flex-shrink:0;margin-top:2px;"></i>
+<div id="lowActivityBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9991;
+  background:linear-gradient(135deg,#7f0000,#b71c1c);
+  color:#fff;padding:1.25rem 1.5rem;
+  align-items:flex-start;gap:0.75rem;
+  box-shadow:0 -4px 24px rgba(80,0,0,0.75);
+  font-size:0.97rem;line-height:1.65;">
+  <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem;flex-shrink:0;margin-top:2px;"></i>
   <span><strong>Caution!</strong> Very low attendance and low role activities detected. If not improved, the core may soon take the decision of letting you go and give a chance to new deserving people. Please take up roles, give speeches and attend meets more regularly to improve your public speaking skills.</span>
 </div>
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
@@ -512,15 +512,8 @@
 #dangerOverlay.active { background: rgba(183,28,28,0.18); }
 
 /* Push nav and sidebar content down when banner is visible */
-body.has-warning .dash-top-nav { margin-top: 3.4rem; }
-body.has-warning .sidebar { padding-top: calc(1.5rem + 3.4rem); }
-
-/* Keep text readable over the red tint */
-body.has-warning .main-content,
-body.has-warning .sidebar,
-body.has-warning .dash-top-nav {
-  position: relative; z-index: 9990;
-}
+/* Pad bottom of main content so content isn't hidden behind the warning banner */
+body.has-warning .main-content { padding-bottom: 7rem; }
 /* On mobile: hide sidebar by default, show hamburger, add overlay */
 @media (max-width:1024px) {
   .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
@@ -928,9 +921,11 @@ if (hasChosenL3)
 }
  
 function checkLowActivityWarning() {
+  // Never warn inactive members
+  if (userData.isActive === false) return;
+
   const eligibleMeets = allEventsCache.filter(e => !(e.ineligible||[]).includes(currentUid));
   const presentCount  = eligibleMeets.filter(e => (e.attended||[]).includes(currentUid)).length;
-  // If no meets recorded yet, don't warn (they haven't had a chance to attend)
   const attPct = eligibleMeets.length ? (presentCount / eligibleMeets.length * 100) : 100;
 
   const totalRolesTaken = userData._totalRolesTaken || 0;
@@ -941,21 +936,21 @@ function checkLowActivityWarning() {
 
   const banner  = document.getElementById('lowActivityBanner');
   const overlay = document.getElementById('dangerOverlay');
-
-  if (!banner || !overlay) return; // guard in case elements not yet in DOM
+  if (!banner || !overlay) return;
 
   if (shouldWarn) {
-    banner.style.display   = 'flex';
+    const alreadyShowing = banner.style.display === 'flex';
+    banner.style.display = 'flex';
     document.body.classList.add('has-warning');
-    // Slight delay so the CSS transition fires after display:flex is applied
     requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('active')));
+    // Vibrate once for 5 s when the warning first appears this session
+    if (!alreadyShowing && navigator.vibrate) navigator.vibrate(5000);
   } else {
     banner.style.display = 'none';
     document.body.classList.remove('has-warning');
     overlay.classList.remove('active');
   }
 }
-
 // ─────────────────────────────────────────────────────────────
 // ADD this new function anywhere after renderProgress()
 // ─────────────────────────────────────────────────────────────
