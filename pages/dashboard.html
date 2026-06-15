@@ -515,7 +515,10 @@
 /* Pad bottom of main content so content isn't hidden behind the warning banner */
 body.has-warning .main-content { padding-bottom: 7rem; }
 /* On mobile: hide sidebar by default, show hamburger, add overlay */
-@media (max-width:1024px) {
+.sidebar { overflow-y: auto; }
+body.has-warning .sidebar nav { padding-bottom: 7rem; }
+
+  @media (max-width:1024px) {
   .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
   .sidebar.open { transform:translateX(0); }
   .main-content { margin-left:0 !important; }
