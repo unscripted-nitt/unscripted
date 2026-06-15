@@ -937,7 +937,7 @@ function checkLowActivityWarning() {
   const isL1P0 = (!userData.pathway || userData.pathway === 'L1P0');
 
   // Condition: att < 60% AND (still on L1P0 OR fewer than 3 major roles taken)
-  const shouldWarn = attPct < 60 && (isL1P0 || totalRolesTaken < 3);
+  const shouldWarn = (attPct < 60 && (isL1P0 || totalRolesTaken < 3)) || attPct < 50;
 
   const banner  = document.getElementById('lowActivityBanner');
   const overlay = document.getElementById('dangerOverlay');
