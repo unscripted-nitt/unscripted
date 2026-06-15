@@ -9,8 +9,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body> 
+<body>
 
+<!-- ── DANGER OVERLAY (slow red tint on warning) ── -->
+<div id="dangerOverlay"></div>
+
+<!-- ── LOW ACTIVITY WARNING BANNER (fixed top, all tabs) ── -->
+<div id="lowActivityBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9991;
+  background:linear-gradient(135deg,#b71c1c,#c62828);
+  color:#fff;padding:0.75rem 1.5rem;
+  display:none;align-items:flex-start;gap:0.75rem;
+  box-shadow:0 2px 12px rgba(183,28,28,0.45);
+  font-size:0.82rem;line-height:1.55;">
+  <i class="fa-solid fa-triangle-exclamation" style="font-size:1.1rem;flex-shrink:0;margin-top:2px;"></i>
+  <span><strong>Caution!</strong> Very low attendance and low role activities detected. If not improved, the core may soon take the decision of letting you go and give a chance to new deserving people. Please take up roles, give speeches and attend meets more regularly to improve your public speaking skills.</span>
+</div>
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
 <div class="dash-top-nav">
   <div style="display:flex;align-items:center;gap:1rem;">
@@ -491,15 +504,23 @@
 .att-ineligible { background:var(--surface2) !important; border-color:var(--border) !important; color:var(--text-light) !important; opacity:0.5; }
 
 #dangerOverlay {
-  position: fixed; inset: 0; pointer-events: none; z-index: 9990;
-  background: rgba(244,67,54,0); transition: background 2.5s ease;
+  position: fixed; inset: 0; pointer-events: none; z-index: 9989;
+  background: rgba(183,28,28,0);
+  transition: background 2.5s ease;
+  mix-blend-mode: multiply;
 }
-#dangerOverlay.active { background: rgba(244,67,54,0.16); }
-body.has-warning .dash-top-nav { margin-top: 3.4rem; }
-@media (max-width:600px) {
-  #lowActivityBanner { padding-top: calc(0.85rem + env(safe-area-inset-top, 0px)); }
-}
+#dangerOverlay.active { background: rgba(183,28,28,0.18); }
 
+/* Push nav and sidebar content down when banner is visible */
+body.has-warning .dash-top-nav { margin-top: 3.4rem; }
+body.has-warning .sidebar { padding-top: calc(1.5rem + 3.4rem); }
+
+/* Keep text readable over the red tint */
+body.has-warning .main-content,
+body.has-warning .sidebar,
+body.has-warning .dash-top-nav {
+  position: relative; z-index: 9990;
+}
 /* On mobile: hide sidebar by default, show hamburger, add overlay */
 @media (max-width:1024px) {
   .sidebar { transform:translateX(-100%); z-index:500; transition:transform 0.25s; }
@@ -909,20 +930,25 @@ if (hasChosenL3)
 function checkLowActivityWarning() {
   const eligibleMeets = allEventsCache.filter(e => !(e.ineligible||[]).includes(currentUid));
   const presentCount  = eligibleMeets.filter(e => (e.attended||[]).includes(currentUid)).length;
+  // If no meets recorded yet, don't warn (they haven't had a chance to attend)
   const attPct = eligibleMeets.length ? (presentCount / eligibleMeets.length * 100) : 100;
 
   const totalRolesTaken = userData._totalRolesTaken || 0;
   const isL1P0 = (!userData.pathway || userData.pathway === 'L1P0');
 
+  // Condition: att < 60% AND (still on L1P0 OR fewer than 3 major roles taken)
   const shouldWarn = attPct < 60 && (isL1P0 || totalRolesTaken < 3);
 
   const banner  = document.getElementById('lowActivityBanner');
   const overlay = document.getElementById('dangerOverlay');
 
+  if (!banner || !overlay) return; // guard in case elements not yet in DOM
+
   if (shouldWarn) {
-    banner.style.display = 'block';
+    banner.style.display   = 'flex';
     document.body.classList.add('has-warning');
-    requestAnimationFrame(() => overlay.classList.add('active'));
+    // Slight delay so the CSS transition fires after display:flex is applied
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('active')));
   } else {
     banner.style.display = 'none';
     document.body.classList.remove('has-warning');
