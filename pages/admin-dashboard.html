@@ -1179,6 +1179,8 @@ function renderUserTable() {
     return aInactive - bInactive; // active (0) first, inactive (1) last
   });
   tbody.innerHTML = sortedUsers.map(u => {
+    const isActive = u.isActive !== false;
+
     // Eligible = events where this member is NOT ineligible
     const inactiveSince = (!isActive && u.inactiveSince)
       ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
@@ -1212,8 +1214,6 @@ function renderUserTable() {
     const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
  
     const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
-    const isActive   = u.isActive !== false;
-
     let totalRoles = 0, ttCount = 0;
     allEventsCache.forEach(e => {
       const rm = e.roles || {};
