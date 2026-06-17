@@ -2790,10 +2790,6 @@ function renderDocs(docs) {
           ${dateStr ? `<div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.08em;">${dateStr}</div>` : ''}
         </div>
         <div style="display:flex;gap:0.5rem;flex-shrink:0;">
-          <button onclick="toggleDocStar('${d.id}',${starred})"
-            style="background:${starred?'rgba(245,158,11,0.12)':'var(--surface2)'};border:1px solid ${starred?'rgba(245,158,11,0.3)':'var(--border)'};color:${starred?'#f59e0b':'var(--text-light)'};padding:0.4rem 0.85rem;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:700;transition:all 0.2s;">
-            <i class="fa-${starred?'solid':'regular'} fa-star"></i> ${starred?'Unstar':'Star'}
-          </button>
           <button onclick="editDoc('${d.id}')" class="btn-outline btn-sm">
             <i class="fa-solid fa-pen"></i> Edit
           </button>
