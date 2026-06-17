@@ -1180,20 +1180,33 @@ function renderUserTable() {
   });
   tbody.innerHTML = sortedUsers.map(u => {
     // Eligible = events where this member is NOT ineligible
-    const inactiveSince = (u.isActive === false && u.inactiveSince)
+    const inactiveSince = (!isActive && u.inactiveSince)
       ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
       : null;
 
-    const eligibleEvents = allEventsCache.filter(e => {
-      if ((e.ineligible || []).includes(u.id)) return false;
-      if (inactiveSince) {
+    let eligibleEvents;
+    if (isActive) {
+      // Active member: all events except explicitly ineligible ones
+      eligibleEvents = allEventsCache.filter(e => !(e.ineligible || []).includes(u.id));
+    } else if (inactiveSince) {
+      // Inactive member WITH a date: only events on or before inactiveSince
+      // Events after the date are treated as ineligible — excluded entirely
+      eligibleEvents = allEventsCache.filter(e => {
+        if ((e.ineligible || []).includes(u.id)) return false;
+        if (!e.date) return false; // events with no date are excluded for safety
         try {
-          const eventDate = e.date?.toDate ? e.date.toDate() : new Date(e.date);
-          if (eventDate > inactiveSince) return false;
-        } catch(_) {}
-      }
-      return true;
-    });
+          const eventDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
+          if (isNaN(eventDate.getTime())) return false; // guard against Invalid Date
+          return eventDate <= inactiveSince; // include events ON or BEFORE inactiveSince
+        } catch(_) { return false; }
+      });
+    } else {
+      // Inactive member WITHOUT a date: only count events they were explicitly recorded in
+      const recorded = allEventsCache.filter(e =>
+        (e.attended || []).includes(u.id) || (e.ineligible || []).includes(u.id)
+      );
+      eligibleEvents = recorded.filter(e => !(e.ineligible || []).includes(u.id));
+    }
     const totalMeets   = eligibleEvents.length;
     const presentCount = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
     const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
