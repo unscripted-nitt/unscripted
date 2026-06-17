@@ -109,6 +109,7 @@
       <a class="dash-nav-item" onclick="showSection('users')"><span class="dash-nav-icon"><i class="fa-solid fa-users-gear"></i></span> Member Control</a>
       <a class="dash-nav-item" onclick="showSection('excel')"><span class="dash-nav-icon"><i class="fa-solid fa-file-excel"></i></span> Excel Upload</a>
       <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Bulk Attendance</a>
+      <a class="dash-nav-item" onclick="showSection('documentation')"><span class="dash-nav-icon"><i class="fa-solid fa-folder-open"></i></span> Documentation</a>
       <a class="dash-nav-item" onclick="showSection('roles')"><span class="dash-nav-icon"><i class="fa-solid fa-clipboard-user"></i></span> Role Assignments</a>
       <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Voting Manager</a>
       <a class="dash-nav-item" onclick="showSection('pathways')"><span class="dash-nav-icon"><i class="fa-solid fa-road"></i></span> Pathway / Guide Links</a>
@@ -298,6 +299,90 @@
       </div>
     </div>
 
+<!-- ═══════════════ DOCUMENTATION ═══════════════ -->
+    <div class="dash-section" id="section-documentation">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+        <h1 class="section-title" style="margin:0;">Documentation</h1>
+        <button class="btn-primary" onclick="toggleDocForm()" id="toggleDocBtn">
+          <i class="fa-solid fa-plus"></i> Add Document
+        </button>
+      </div>
+      <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1.5rem;">
+        Store meeting minutes, guidelines, resources and references. Starred documents are highlighted for high importance. Documents cannot be deleted — use editing to update content.
+      </p>
+
+      <!-- Add/Edit Form -->
+      <div class="card" id="docFormCard" style="display:none;border:1.5px solid var(--orange);margin-bottom:2rem;max-width:820px;">
+        <h3 id="docFormTitle" style="margin-top:0;">Add New Document</h3>
+        <input type="hidden" id="editDocId" />
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+          <div class="form-group">
+            <label class="form-label">Document Title</label>
+            <input type="text" id="docTitle" placeholder="e.g. Meet-24 Minutes of Meeting" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="docDate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="docDesc" rows="4" placeholder="Write a description, summary, or any notes about this document..."></textarea>
+          </div>
+
+          <!-- Links -->
+          <div>
+            <label class="form-label" style="margin-bottom:0.75rem;">Links</label>
+            <div id="docLinksContainer" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+            <button type="button" onclick="addDocLinkRow()"
+              style="margin-top:0.6rem;background:none;border:1.5px dashed var(--border);color:var(--text-mid);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;width:100%;transition:0.2s;"
+              onmouseenter="this.style.borderColor='var(--orange)'"
+              onmouseleave="this.style.borderColor='var(--border)'">
+              + Add Link
+            </button>
+          </div>
+
+          <!-- Starred -->
+          <div style="display:flex;align-items:center;gap:0.85rem;padding:1rem;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.2);border-radius:var(--radius-sm);">
+            <input type="checkbox" id="docStarred" style="width:20px;height:20px;accent-color:#f59e0b;cursor:pointer;" />
+            <div>
+              <label for="docStarred" style="font-weight:700;font-size:0.9rem;cursor:pointer;">
+                <i class="fa-solid fa-star" style="color:#f59e0b;margin-right:0.35rem;"></i>Mark as Important
+              </label>
+              <div style="font-size:0.75rem;color:var(--text-light);margin-top:2px;">Starred documents are highlighted in gold across the list</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:0.75rem;">
+            <button class="btn-primary" id="saveDocBtn" onclick="saveDoc()" style="flex:2;">Save Document &rarr;</button>
+            <button class="btn-outline" onclick="toggleDocForm(false)" style="flex:1;">Cancel</button>
+          </div>
+          <div id="docSaveStatus" style="display:none;padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:600;"></div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;">
+        <button class="filter-btn active" onclick="filterDocs('all',this)">All</button>
+        <button class="filter-btn" onclick="filterDocs('starred',this)">
+          <i class="fa-solid fa-star" style="color:#f59e0b;margin-right:0.3rem;"></i>Starred
+        </button>
+        <input type="text" id="docSearch" placeholder="Search documents..."
+          style="max-width:260px;margin-left:auto;" oninput="filterDocs('search',null)" />
+      </div>
+
+      <!-- Documents list -->
+      <div id="docsList">
+        <div class="card" style="text-align:center;padding:3rem;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+          <p style="color:var(--text-mid);">Loading documents...</p>
+        </div>
+      </div>
+    </div>
+
+    
     <!-- ═══════════════ ROLE ASSIGNMENTS ═══════════════ -->
     <div class="dash-section" id="section-roles">
       <h1 class="section-title">Meeting Role Assignments</h1>
@@ -1050,6 +1135,7 @@ async function loadAllData() {
     renderRoleDropdowns();
     populateMemberPhotoSelect();
     loadRoleGuides();
+    loadDocs();
   } catch(e) { console.warn('loadAllData error',e); }
 }
 
@@ -2645,6 +2731,213 @@ window.uploadRoleGuideFile = async function(roleId, input) {
   } finally {
     input.value = '';
   }
+};
+
+// ── DOCUMENTATION ─────────────────────────────────────────
+let allDocsCache = [];
+let currentDocFilter = 'all';
+
+async function loadDocs() {
+  const container = document.getElementById('docsList');
+  if (!container) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'clubDocs'), orderBy('createdAt', 'desc')));
+    allDocsCache = [];
+    snap.forEach(d => allDocsCache.push({ id: d.id, ...d.data() }));
+    renderDocs(allDocsCache);
+  } catch(e) {
+    if (container) container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load documents: ${e.message}</p></div>`;
+  }
+}
+
+function renderDocs(docs) {
+  const container = document.getElementById('docsList');
+  if (!container) return;
+  if (!docs.length) {
+    container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
+      <i class="fa-solid fa-folder-open" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+      <p style="color:var(--text-mid);">No documents yet. Click "Add Document" to get started.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = docs.map(d => {
+    const starred = d.starred === true;
+    const borderColor = starred ? '#f59e0b' : 'var(--border)';
+    const bgColor = starred ? 'linear-gradient(135deg,rgba(245,158,11,0.06),var(--surface))' : 'var(--surface)';
+    let dateStr = '';
+    if (d.date) {
+      try {
+        const dObj = d.date.toDate ? d.date.toDate() : new Date(d.date);
+        dateStr = dObj.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+      } catch(_) {}
+    }
+    const linksHtml = (d.links || []).filter(l => l.url).map(l =>
+      `<a href="${l.url}" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.85rem;background:var(--orange-light);color:var(--orange);border:1px solid rgba(255,87,34,0.2);border-radius:100px;font-size:0.78rem;font-weight:700;text-decoration:none;transition:all 0.2s;"
+        onmouseover="this.style.background='var(--orange)';this.style.color='#fff'"
+        onmouseout="this.style.background='var(--orange-light)';this.style.color='var(--orange)'">
+        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>${l.name || l.url}
+      </a>`
+    ).join('');
+
+    return `<div style="background:${bgColor};border:1.5px solid ${borderColor};border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem;transition:box-shadow 0.2s;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.75rem;margin-bottom:${d.description?'1rem':'0'};">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+            ${starred ? '<i class="fa-solid fa-star" style="color:#f59e0b;font-size:0.95rem;"></i>' : ''}
+            <h3 style="margin:0;font-size:1.15rem;font-family:var(--font-display);">${d.title || 'Untitled'}</h3>
+          </div>
+          ${dateStr ? `<div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.08em;">${dateStr}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+          <button onclick="toggleDocStar('${d.id}',${starred})"
+            style="background:${starred?'rgba(245,158,11,0.12)':'var(--surface2)'};border:1px solid ${starred?'rgba(245,158,11,0.3)':'var(--border)'};color:${starred?'#f59e0b':'var(--text-light)'};padding:0.4rem 0.85rem;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:700;transition:all 0.2s;">
+            <i class="fa-${starred?'solid':'regular'} fa-star"></i> ${starred?'Unstar':'Star'}
+          </button>
+          <button onclick="editDoc('${d.id}')" class="btn-outline btn-sm">
+            <i class="fa-solid fa-pen"></i> Edit
+          </button>
+        </div>
+      </div>
+      ${d.description ? `<p style="font-size:0.88rem;color:var(--text-mid);line-height:1.65;margin-bottom:${linksHtml?'1.1rem':'0'};">${d.description.replace(/\n/g,'<br>')}</p>` : ''}
+      ${linksHtml ? `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">${linksHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+window.filterDocs = function(type, btn) {
+  if (btn) {
+    document.querySelectorAll('#section-documentation .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDocFilter = type;
+  }
+  const search = (document.getElementById('docSearch')?.value || '').toLowerCase();
+  let filtered = [...allDocsCache];
+  if (currentDocFilter === 'starred') filtered = filtered.filter(d => d.starred === true);
+  if (search) filtered = filtered.filter(d =>
+    (d.title || '').toLowerCase().includes(search) ||
+    (d.description || '').toLowerCase().includes(search)
+  );
+  renderDocs(filtered);
+};
+
+window.toggleDocForm = function(show = null) {
+  const form = document.getElementById('docFormCard');
+  const btn  = document.getElementById('toggleDocBtn');
+  const isShowing = show !== null ? show : form.style.display === 'none';
+  form.style.display = isShowing ? 'block' : 'none';
+  btn.innerHTML = isShowing ? '&times; Close Form' : '<i class="fa-solid fa-plus"></i> Add Document';
+  if (!isShowing) {
+    document.getElementById('editDocId').value = '';
+    document.getElementById('docTitle').value = '';
+    document.getElementById('docDate').value = '';
+    document.getElementById('docDesc').value = '';
+    document.getElementById('docStarred').checked = false;
+    document.getElementById('docLinksContainer').innerHTML = '';
+    document.getElementById('docFormTitle').textContent = 'Add New Document';
+    document.getElementById('docSaveStatus').style.display = 'none';
+  }
+};
+
+window.addDocLinkRow = function() {
+  const container = document.getElementById('docLinksContainer');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;';
+  row.innerHTML = `
+    <input type="text" class="doc-link-name" placeholder="Link name (e.g. Meet Notes)" style="width:200px;flex-shrink:0;" />
+    <input type="url" class="doc-link-url" placeholder="https://drive.google.com/..." style="flex:1;" />
+    <button type="button" onclick="this.parentElement.remove()"
+      style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;padding:0.4rem;flex-shrink:0;">&times;</button>`;
+  container.appendChild(row);
+};
+
+window.editDoc = async function(id) {
+  try {
+    const snap = await getDoc(doc(db, 'clubDocs', id));
+    if (!snap.exists()) return;
+    const d = snap.data();
+    document.getElementById('editDocId').value = id;
+    document.getElementById('docTitle').value = d.title || '';
+    document.getElementById('docDesc').value  = d.description || '';
+    document.getElementById('docStarred').checked = d.starred === true;
+    document.getElementById('docFormTitle').textContent = 'Edit Document';
+    if (d.date) {
+      try {
+        const dObj = d.date.toDate ? d.date.toDate() : new Date(d.date);
+        document.getElementById('docDate').value = dObj.toISOString().slice(0, 10);
+      } catch(_) {}
+    }
+    const lc = document.getElementById('docLinksContainer');
+    lc.innerHTML = '';
+    (d.links || []).forEach(l => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;';
+      row.innerHTML = `
+        <input type="text" class="doc-link-name" value="${l.name||''}" placeholder="Link name" style="width:200px;flex-shrink:0;" />
+        <input type="url" class="doc-link-url" value="${l.url||''}" placeholder="https://..." style="flex:1;" />
+        <button type="button" onclick="this.parentElement.remove()"
+          style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;padding:0.4rem;flex-shrink:0;">&times;</button>`;
+      lc.appendChild(row);
+    });
+    toggleDocForm(true);
+    document.getElementById('docFormCard').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch(e) { alert('Could not load document: ' + e.message); }
+};
+
+window.saveDoc = async function() {
+  const id      = document.getElementById('editDocId').value;
+  const title   = document.getElementById('docTitle').value.trim();
+  const desc    = document.getElementById('docDesc').value.trim();
+  const dateVal = document.getElementById('docDate').value;
+  const starred = document.getElementById('docStarred').checked;
+  const status  = document.getElementById('docSaveStatus');
+  const btn     = document.getElementById('saveDocBtn');
+
+  if (!title) { alert('Title is required.'); return; }
+
+  const links = [];
+  document.querySelectorAll('#docLinksContainer > div').forEach(row => {
+    const name = row.querySelector('.doc-link-name')?.value.trim();
+    const url  = row.querySelector('.doc-link-url')?.value.trim();
+    if (url) links.push({ name: name || url, url });
+  });
+
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  status.style.display = 'none';
+
+  try {
+    const data = {
+      title,
+      description: desc,
+      date: dateVal ? new Date(dateVal) : null,
+      links,
+      starred,
+      updatedAt: serverTimestamp()
+    };
+    if (id) {
+      await updateDoc(doc(db, 'clubDocs', id), data);
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(db, 'clubDocs'), data);
+    }
+    status.textContent = id ? 'Document updated!' : 'Document saved!';
+    status.style.cssText = 'display:block;background:rgba(76,175,80,0.08);color:#2e7d32;border:1px solid rgba(76,175,80,0.2);padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:600;';
+    toggleDocForm(false);
+    loadDocs();
+  } catch(e) {
+    status.textContent = 'Save failed: ' + e.message;
+    status.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:600;';
+    status.style.display = 'block';
+  } finally {
+    btn.textContent = 'Save Document →'; btn.disabled = false;
+  }
+};
+
+window.toggleDocStar = async function(id, currentlyStarred) {
+  try {
+    await updateDoc(doc(db, 'clubDocs', id), { starred: !currentlyStarred, updatedAt: serverTimestamp() });
+    loadDocs();
+  } catch(e) { alert('Could not update: ' + e.message); }
 };
   
 // Close modals on overlay click
