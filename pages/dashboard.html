@@ -1308,8 +1308,7 @@ async function loadNotifications() {
 
     let commonUnread = 0;
 if (commonNotifs.length > 0) {
-  let lastSeen = '';
-  try { lastSeen = localStorage.getItem('lastCommonNotifSeen') || ''; } catch(_) {}
+  const lastSeen = userData.lastSeenCommonNotifId || '';
   if (commonNotifs[0].id !== lastSeen) commonUnread = 1;
 }
 const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
@@ -1342,8 +1341,7 @@ async function checkPersonalNotification() {
   } catch(e) { console.warn('Personal notif check error',e); }
   // Show latest common notification as popup if not seen yet
   try {
-    let lastSeen = '';
-    try { lastSeen = localStorage.getItem('lastCommonNotifSeen') || ''; } catch(_) {}
+    const lastSeen = userData.lastSeenCommonNotifId || '';
     const cSnap = await getDocs(query(collection(db,'notifications'),
   where('type','==','common')));
 const allCommon = [];
@@ -1379,7 +1377,11 @@ window.dismissPersonalNotif = () => {
 
 window.dismissCommonNotif = () => {
   document.getElementById('commonNotifModal').classList.remove('open');
-  try { localStorage.setItem('lastCommonNotifSeen', _lastCommonNotifId); } catch(_) {}
+  if (_lastCommonNotifId && currentUid) {
+    userData.lastSeenCommonNotifId = _lastCommonNotifId;
+    updateDoc(doc(db, 'users', currentUid), { lastSeenCommonNotifId: _lastCommonNotifId })
+      .catch(e => console.warn('Could not save lastSeenCommonNotifId', e));
+  }
   // Clear the unread badge immediately
   const notifCount = document.getElementById('notifCount');
   const sidebarBadge = document.getElementById('sidebarNotifBadge');
