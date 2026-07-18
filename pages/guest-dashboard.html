@@ -377,20 +377,33 @@ window.setGuestRating = function(catIdx, val) {
   });
 };
 
+// Module-level lock — put once near the top, alongside _guestVoteSubmissionInProgress
+let _guestFeedbackSubmissionInProgress = false;
+
 window.submitGuestFeedback = async function() {
+  // ── Synchronous guard ──
+  if (_guestFeedbackSubmissionInProgress) return;
+  _guestFeedbackSubmissionInProgress = true;
+
   const speakerUid = document.getElementById('guestFbSpeaker').value;
   const comment = document.getElementById('guestFbComment').value.trim();
   const msg = document.getElementById('guestFbMsg');
-
-  if (!speakerUid) return;
-    if (Object.keys(fbRatings).length < FB_CATEGORIES.length) {
-    msg.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
-    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
-    return;
-  }
+  const submitBtn = document.querySelector('[onclick="submitGuestFeedback()"]');
 
   try {
-    await addDoc(collection(db, 'feedback'), {
+    if (!speakerUid) return;
+    if (Object.keys(fbRatings).length < FB_CATEGORIES.length) {
+      msg.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
+      msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+      return;
+    }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+    // Deterministic ID: one guest token can only ever have ONE feedback doc per speaker per event.
+    const feedbackDocId = `${eventId}_${speakerUid}_guest_${tokenId}`;
+
+    await setDoc(doc(db, 'feedback', feedbackDocId), {
       eventId,
       speakerUid,
       giverUid: auth.currentUser?.uid || null,
@@ -399,7 +412,7 @@ window.submitGuestFeedback = async function() {
       tokenId,
       ratings: { ...fbRatings },
       comment,
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp()
     });
     msg.textContent = 'Thank you! Your feedback has been submitted.';
     msg.style.cssText = 'display:block;background:rgba(76,175,80,0.08);color:#2e7d32;border:1px solid rgba(76,175,80,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
@@ -410,9 +423,11 @@ window.submitGuestFeedback = async function() {
   } catch(e) {
     msg.textContent = 'Submit failed: ' + e.message;
     msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback →'; }
+    _guestFeedbackSubmissionInProgress = false;
   }
 };
-
 // ── VOTING ─────────────────────────────────────────────────
 async function loadGuestVoting() {
   const container = document.getElementById('guestVotingContainer');
@@ -486,27 +501,54 @@ async function loadGuestVoting() {
   } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting: ${e.message}</p></div>`; }
 }
 
+// Module-level lock — put once near the top of the script, alongside the other module-level vars
+let _guestVoteSubmissionInProgress = false;
+
 window.submitGuestVote = async function(sessionId) {
+  // ── Synchronous guard: blocks any re-entrant call instantly ──
+  if (_guestVoteSubmissionInProgress) return;
+  _guestVoteSubmissionInProgress = true;
+
   const form = document.getElementById('guestVoteForm');
-  const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
-  const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
-  if (checkedNames.size < allNames.size) {
-    alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
-          (allNames.size - checkedNames.size) + ' remaining.');
-    return;
-  }
-  const radios = form?.querySelectorAll('input[type="radio"]:checked');
-  if (!radios?.length) { alert('Please select at least one option.'); return; }
-  const choices = {};
-  radios.forEach(r => { choices[r.name] = r.value; });
+  const submitBtn = form?.parentElement.querySelector('button.btn-primary');
+
   try {
-    await addDoc(collection(db, 'votes'), { sessionId, choices, createdAt: serverTimestamp() });
+    const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
+    const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
+    if (checkedNames.size < allNames.size) {
+      alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
+            (allNames.size - checkedNames.size) + ' remaining.');
+      return;
+    }
+    const radios = form?.querySelectorAll('input[type="radio"]:checked');
+    if (!radios?.length) { alert('Please select at least one option.'); return; }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+    const choices = {};
+    radios.forEach(r => { choices[r.name] = r.value; });
+
+    // Deterministic ID per guest+session — resubmits overwrite instead of duplicating.
+    const voteDocId = await hashVoterSession('guest_' + tokenId, sessionId);
+
+    await setDoc(doc(db, 'votes', voteDocId), { sessionId, choices, updatedAt: serverTimestamp() });
     await setDoc(doc(db, 'voteRecords', 'guest_' + tokenId + '_' + sessionId), {
       sessionId, tokenId, guestName, createdAt: serverTimestamp()
     });
     loadGuestVoting();
-  } catch(e) { alert('Failed to submit vote: ' + e.message); }
+  } catch(e) {
+    alert('Failed to submit vote: ' + e.message);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote →'; }
+  } finally {
+    _guestVoteSubmissionInProgress = false;
+  }
 };
+
+async function hashVoterSession(id, sessionId) {
+  const data = new TextEncoder().encode(id + '_' + sessionId);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 // ── GUEST EXPERIENCE FEEDBACK ──────────────────────────────
 const expRatings = {};
@@ -527,23 +569,38 @@ function checkExperienceSubmitted() {
   }
 }
 
+// Module-level lock — put once near the top, alongside the other module-level locks
+let _guestExperienceSubmissionInProgress = false;
+
 window.submitGuestExperience = async function() {
+  // ── Synchronous guard ──
+  if (_guestExperienceSubmissionInProgress) return;
+  _guestExperienceSubmissionInProgress = true;
+
   const msg = document.getElementById('expMsg');
-  if (Object.keys(expRatings).length < 4) {
-    msg.textContent = 'Please rate all 4 questions before submitting.';
-    msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
-    return;
-  }
-  const comment = document.getElementById('expComment').value.trim();
+  const submitBtn = document.querySelector('[onclick="submitGuestExperience()"]');
+
   try {
-    await addDoc(collection(db, 'guestExperienceFeedback'), {
+    if (Object.keys(expRatings).length < 4) {
+      msg.textContent = 'Please rate all 4 questions before submitting.';
+      msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+      return;
+    }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+    const comment = document.getElementById('expComment').value.trim();
+
+    // Deterministic ID: one guest token can only ever have ONE experience feedback doc.
+    // Resubmits (accidental double-click) overwrite instead of duplicating.
+    await setDoc(doc(db, 'guestExperienceFeedback', 'guest_' + tokenId), {
       tokenId,
       guestName,
       eventId,
       eventTitle,
       ratings: { q1: expRatings[1]||0, q2: expRatings[2]||0, q3: expRatings[3]||0, q4: expRatings[4]||0 },
       comment,
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp()
     });
     localStorage.setItem('guestExpSubmitted_' + tokenId, '1');
     document.getElementById('expAlreadySubmitted').style.display = 'block';
@@ -551,9 +608,11 @@ window.submitGuestExperience = async function() {
   } catch(e) {
     msg.textContent = 'Submit failed: ' + e.message;
     msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Experience →'; }
+  } finally {
+    _guestExperienceSubmissionInProgress = false;
   }
 };
-
 // ── ACHIEVEMENTS ───────────────────────────────────────────
 function loadGuestAchievements() {
   const container = document.getElementById('guestAchievementsContent');
