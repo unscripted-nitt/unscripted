@@ -1598,44 +1598,47 @@ async function loadVoting() {
   } catch(e) { console.warn('Voting error',e); container.innerHTML = '<div class="card"><p style="color:var(--text-mid);">Could not load voting session.</p></div>'; }
 }
 
-window.submitVote = async function(sessionId) {
-window.submitVote = async function(sessionId) {
-  const form = document.getElementById('voteForm');
-  const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
-  const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
-  if (checkedNames.size < allNames.size) {
-    alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
-          (allNames.size - checkedNames.size) + ' remaining.');
-    return;
-  }
-  const radios = form.querySelectorAll('input[type="radio"]:checked');
-  if (!radios.length) { alert('Please select at least one option before submitting.'); return; }
+// Module-level lock — declared once, outside the function, near the top of the script
+let _voteSubmissionInProgress = false;
 
-  // Disable the button immediately so a slow connection can't be double-tapped
+window.submitVote = async function(sessionId) {
+  // ── Synchronous guard: blocks ANY re-entrant call instantly, no matter how fast ──
+  if (_voteSubmissionInProgress) return;
+  _voteSubmissionInProgress = true;
+
+  const form = document.getElementById('voteForm');
   const submitBtn = form.parentElement.querySelector('button.btn-primary');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
-  const choices = {};
-  radios.forEach(r => { choices[r.name] = r.value; });
-
-  // Deterministic, per-voter-per-session ID — resubmits OVERWRITE instead of duplicating.
-  // We hash the uid so the vote document's own ID doesn't reveal identity to anyone
-  // browsing the votes collection directly.
-  const voteDocId = await hashVoterSession(currentUid, sessionId);
-
   try {
-    // Idempotent write: same person + same session always lands on the same doc.
+    const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
+    const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
+    if (checkedNames.size < allNames.size) {
+      alert('Please vote in all ' + allNames.size + ' categories before submitting. ' +
+            (allNames.size - checkedNames.size) + ' remaining.');
+      return; // falls through to `finally` below, which resets the lock
+    }
+    const radios = form.querySelectorAll('input[type="radio"]:checked');
+    if (!radios.length) { alert('Please select at least one option before submitting.'); return; }
+
+    const choices = {};
+    radios.forEach(r => { choices[r.name] = r.value; });
+
+    // Deterministic, per-voter-per-session ID — resubmits OVERWRITE instead of duplicating.
+    const voteDocId = await hashVoterSession(currentUid, sessionId);
+
     await setDoc(doc(db,'votes',voteDocId), { sessionId, choices, updatedAt: serverTimestamp() });
-    // Record that this user voted (separate doc, so vote is unlinkable)
     await setDoc(doc(db,'voteRecords',currentUid+'_'+sessionId), { sessionId, voterUid: currentUid, createdAt: serverTimestamp() });
     loadVoting();
   } catch(e) {
     alert('Failed to submit vote. Please try again.');
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote →'; }
+  } finally {
+    // Always release the lock, whether we succeeded, failed, or returned early on validation
+    _voteSubmissionInProgress = false;
   }
 };
 
-// Simple SHA-256 hash so the votes/{id} document name doesn't leak the voter's uid
 async function hashVoterSession(uid, sessionId) {
   const data = new TextEncoder().encode(uid + '_' + sessionId);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
