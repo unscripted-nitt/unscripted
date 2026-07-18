@@ -1599,6 +1599,7 @@ async function loadVoting() {
 }
 
 window.submitVote = async function(sessionId) {
+window.submitVote = async function(sessionId) {
   const form = document.getElementById('voteForm');
   const allNames     = new Set([...form.querySelectorAll('input[type="radio"]')].map(r => r.name));
   const checkedNames = new Set([...form.querySelectorAll('input[type="radio"]:checked')].map(r => r.name));
@@ -1610,19 +1611,36 @@ window.submitVote = async function(sessionId) {
   const radios = form.querySelectorAll('input[type="radio"]:checked');
   if (!radios.length) { alert('Please select at least one option before submitting.'); return; }
 
+  // Disable the button immediately so a slow connection can't be double-tapped
+  const submitBtn = form.parentElement.querySelector('button.btn-primary');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
   const choices = {};
   radios.forEach(r => { choices[r.name] = r.value; });
 
+  // Deterministic, per-voter-per-session ID — resubmits OVERWRITE instead of duplicating.
+  // We hash the uid so the vote document's own ID doesn't reveal identity to anyone
+  // browsing the votes collection directly.
+  const voteDocId = await hashVoterSession(currentUid, sessionId);
+
   try {
-    // Store vote — anonymous: only sessionId, no voterUid in vote doc
-    await addDoc(collection(db,'votes'), { sessionId, choices, createdAt: serverTimestamp() });
+    // Idempotent write: same person + same session always lands on the same doc.
+    await setDoc(doc(db,'votes',voteDocId), { sessionId, choices, updatedAt: serverTimestamp() });
     // Record that this user voted (separate doc, so vote is unlinkable)
     await setDoc(doc(db,'voteRecords',currentUid+'_'+sessionId), { sessionId, voterUid: currentUid, createdAt: serverTimestamp() });
     loadVoting();
   } catch(e) {
     alert('Failed to submit vote. Please try again.');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote →'; }
   }
 };
+
+// Simple SHA-256 hash so the votes/{id} document name doesn't leak the voter's uid
+async function hashVoterSession(uid, sessionId) {
+  const data = new TextEncoder().encode(uid + '_' + sessionId);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 // ── ANALYSIS CHARTS ───────────────────────────────────────
 async function loadAndRenderAnalysis() {
