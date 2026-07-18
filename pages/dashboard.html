@@ -1502,26 +1502,42 @@ window.setRating = function(catIdx, val) {
   });
 };
 
+// Module-level lock — put this once near the top of the script, alongside _voteSubmissionInProgress
+let _feedbackSubmissionInProgress = false;
+
 window.submitFeedback = async function() {
+  // ── Synchronous guard: blocks any re-entrant call instantly ──
+  if (_feedbackSubmissionInProgress) return;
+  _feedbackSubmissionInProgress = true;
+
   const eventId = document.getElementById('fbEvent').value;
   const speakerUid = document.getElementById('fbSpeaker').value;
   const comment = document.getElementById('fbComment').value.trim();
   const fbMsg = document.getElementById('fbMsg');
   const fbErr = document.getElementById('fbErr');
+  const submitBtn = document.querySelector('[onclick="submitFeedback()"]');
   fbMsg.style.display='none'; fbErr.style.display='none';
-  if (!eventId||!speakerUid) { fbErr.textContent='Select an event and speaker.'; fbErr.style.display='block'; return; }
-
-  // Check at least some ratings
-  if (Object.keys(ratings).length < FB_CATEGORIES.length) {
-    fbErr.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
-    fbErr.style.display = 'block'; return;
-  }
 
   try {
-    await addDoc(collection(db,'feedback'), {
+    if (!eventId||!speakerUid) { fbErr.textContent='Select an event and speaker.'; fbErr.style.display='block'; return; }
+
+    // Check at least some ratings
+    if (Object.keys(ratings).length < FB_CATEGORIES.length) {
+      fbErr.textContent = 'Please rate all ' + FB_CATEGORIES.length + ' categories before submitting.';
+      fbErr.style.display = 'block'; return;
+    }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+    // Deterministic ID: one giver can only ever have ONE feedback doc per speaker per event.
+    // Re-submitting (accidental double-click, or intentionally editing their feedback later)
+    // overwrites the same doc instead of creating a duplicate.
+    const feedbackDocId = `${eventId}_${speakerUid}_${currentUid}`;
+
+    await setDoc(doc(db,'feedback',feedbackDocId), {
       eventId, speakerUid, giverUid: currentUid,
       ratings: {...ratings}, comment,
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp()
     });
     fbMsg.textContent = 'Feedback submitted! Thank you.'; fbMsg.style.display='block';
     document.getElementById('fbComment').value = '';
@@ -1530,9 +1546,11 @@ window.submitFeedback = async function() {
     loadExistingFeedback();
   } catch(e) {
     fbErr.textContent = 'Failed to submit. Try again.'; fbErr.style.display='block';
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback →'; }
+    _feedbackSubmissionInProgress = false;
   }
 };
-
 // ── VOTING (req 15) ───────────────────────────────────────
 async function loadVoting() {
   const container = document.getElementById('votingContainer');
