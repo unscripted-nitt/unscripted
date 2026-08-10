@@ -1187,11 +1187,9 @@ function renderUserTable() {
       : null;
 
     let eligibleEvents;
-    let candidateEvents; // for the 8 status chips — includes ineligible-marked events too
     if (isActive) {
       // Active member: all events except explicitly ineligible ones
       eligibleEvents = allEventsCache.filter(e => !(e.ineligible || []).includes(u.id));
-      candidateEvents = allEventsCache;
     } else if (inactiveSince) {
       // Inactive member WITH a date: only events on or before inactiveSince
       // Events after the date are treated as ineligible — excluded entirely
@@ -1204,54 +1202,17 @@ function renderUserTable() {
           return eventDate <= inactiveSince; // include events ON or BEFORE inactiveSince
         } catch(_) { return false; }
       });
-      candidateEvents = allEventsCache.filter(e => {
-        if (!e.date) return false;
-        try {
-          const eventDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
-          if (isNaN(eventDate.getTime())) return false;
-          return eventDate <= inactiveSince;
-        } catch(_) { return false; }
-      });
     } else {
       // Inactive member WITHOUT a date: only count events they were explicitly recorded in
       const recorded = allEventsCache.filter(e =>
         (e.attended || []).includes(u.id) || (e.ineligible || []).includes(u.id)
       );
       eligibleEvents = recorded.filter(e => !(e.ineligible || []).includes(u.id));
-      candidateEvents = recorded;
     }
     const totalMeets   = eligibleEvents.length;
     const presentCount = eligibleEvents.filter(e => (e.attended || []).includes(u.id)).length;
     const pct = totalMeets ? Math.round(presentCount / totalMeets * 100) : 0;
-
-    // ── Last-8 attendance status chips (present / absent / not eligible) ──
-    const sortByDateDesc = (a, b) => {
-      const da = a.date ? (a.date.toDate ? a.date.toDate() : new Date(a.date)) : new Date(0);
-      const dbb = b.date ? (b.date.toDate ? b.date.toDate() : new Date(b.date)) : new Date(0);
-      return dbb - da;
-    };
-    const last8 = [...candidateEvents].sort(sortByDateDesc).slice(0, 8).reverse(); // oldest → newest, left to right
-    const chipStyles = {
-      present:    { bg:'#4CAF50', icon:'<i class="fa-solid fa-check"></i>',  label:'Present' },
-      absent:     { bg:'#f44336', icon:'<i class="fa-solid fa-xmark"></i>',  label:'Absent' },
-      ineligible: { bg:'#9e9e9e', icon:'<i class="fa-solid fa-minus"></i>',  label:'Not Eligible' },
-    };
-    const attChips = last8.map(e => {
-      const isIneligible = (e.ineligible || []).includes(u.id);
-      const isPresent     = (e.attended   || []).includes(u.id);
-      const status = isIneligible ? 'ineligible' : (isPresent ? 'present' : 'absent');
-      const s = chipStyles[status];
-      const eTitle = (e.title || 'Event').replace(/"/g,'&quot;');
-      return `<span title="${eTitle} — ${s.label}"
-        style="width:18px;height:18px;border-radius:4px;flex-shrink:0;display:inline-flex;
-               align-items:center;justify-content:center;color:#fff;font-size:0.6rem;background:${s.bg};">
-        ${s.icon}
-      </span>`;
-    }).join('');
-    const attChipsHtml = last8.length
-      ? `<div style="display:flex;gap:3px;margin-top:0.4rem;">${attChips}</div>`
-      : '';
-
+ 
     const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
     let totalRoles = 0, ttCount = 0;
     allEventsCache.forEach(e => {
@@ -1287,7 +1248,6 @@ function renderUserTable() {
       <td>
         <div style="font-weight:800;">${pct}%</div>
         <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} eligible meets</div>
-        ${attChipsHtml}
       </td>
       <td style="text-align:center;">
         <div style="font-weight:800;font-size:1rem;color:var(--orange);">${totalRoles || '—'}</div>
