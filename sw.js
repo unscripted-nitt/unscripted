@@ -1,7 +1,7 @@
 // sw.js — Service Worker for Unscripted NITT PWA
 // Provides offline caching and push notification support
 
-const CACHE_NAME = 'unscripted-v3';
+const CACHE_NAME = 'unscripted-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -43,27 +43,25 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — stale-while-revalidate: serve the cached copy instantly (fast load),
-// then re-fetch in the background and overwrite the cache if the file changed.
-// Firestore/auth calls are never intercepted — those always go to the network.
+// Fetch — network-first: every visit, for every user, tries the network
+// first and always gets the latest file when online. The cache is only
+// used as a fallback when the network is unreachable (offline support),
+// never served ahead of a fresh copy. Firestore/auth calls are never
+// intercepted — those always go straight to the network.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (event.request.url.includes('firebasejs') || event.request.url.includes('googleapis') || event.request.url.includes('firestore')) return;
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(async cache => {
-      const cached = await cache.match(event.request);
-
-      const networkFetch = fetch(event.request)
-        .then(response => {
-          if (response.ok) cache.put(event.request, response.clone());
-          return response;
-        })
-        .catch(() => cached || new Response('', { status: 503 }));
-
-      // Return cache immediately if we have it; otherwise wait on the network.
-      return cached || networkFetch;
-    })
+    fetch(event.request, { cache: 'no-store' })
+      .then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request).then(cached => cached || new Response('', { status: 503 })))
   );
 });
 
