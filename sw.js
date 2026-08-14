@@ -1,12 +1,21 @@
 // sw.js — Service Worker for Unscripted NITT PWA
 // Provides offline caching and push notification support
 
-const CACHE_NAME = 'unscripted-v2';
+const CACHE_NAME = 'unscripted-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/css/style.css',
+  '/css/preloader.css',
+  '/css/theme-toggle.css',
+  '/css/gooey-nav.css',
+  '/css/stack-gallery.css',
   '/js/nav.js',
+  '/js/preloader.js',
+  '/js/theme-toggle.js',
+  '/js/gooey-nav.js',
+  '/js/stack-gallery.js',
+  '/js/data-cache.js',
   '/icons/logo.png',
   '/manifest.json',
   '/pages/login.html',
@@ -34,21 +43,27 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — network first, fallback to cache
+// Fetch — stale-while-revalidate: serve the cached copy instantly (fast load),
+// then re-fetch in the background and overwrite the cache if the file changed.
+// Firestore/auth calls are never intercepted — those always go to the network.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('firebasejs') || event.request.url.includes('googleapis')) return;
+  if (event.request.url.includes('firebasejs') || event.request.url.includes('googleapis') || event.request.url.includes('firestore')) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request).then(cached => cached || new Response('', { status: 503 })))
+    caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(event.request);
+
+      const networkFetch = fetch(event.request)
+        .then(response => {
+          if (response.ok) cache.put(event.request, response.clone());
+          return response;
+        })
+        .catch(() => cached || new Response('', { status: 503 }));
+
+      // Return cache immediately if we have it; otherwise wait on the network.
+      return cached || networkFetch;
+    })
   );
 });
 
