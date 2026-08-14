@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unscripted — Public Speaking &amp; Leadership Club, NIT Trichy</title>
   <meta name="description" content="Unscripted is the official public speaking and leadership club of NIT Trichy. Join us to speak, lead, and inspire." />
+  <!-- Must be a plain, non-deferred script so the theme is set before first paint (no flash) -->
+  <script src="js/theme-toggle.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/preloader.css" />
+  <link rel="stylesheet" href="css/theme-toggle.css" />
+  <link rel="stylesheet" href="css/gooey-nav.css" />
+  <link rel="stylesheet" href="css/stack-gallery.css" />
   <link rel="icon" href="icons/favicon.png" type="image/png" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#FF5722" />
@@ -29,6 +35,8 @@
   
 </head>
 <body>
+
+<script type="module" src="js/preloader.js"></script>
 
 <!-- NEW VISITOR POPUP -->
 <div id="newVisitorModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;">
@@ -55,13 +63,19 @@
 <!-- NAV -->
 <nav class="navbar" id="navbar">
   <a class="nav-logo" href="index.html"><img src="icons/logo.png" alt="Unscripted NITT" /></a>
-  <div class="nav-links" id="navLinks">
-    <a href="#about">About</a>
-    <a href="#events">Events</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#contact">Contact</a>
-    <a href="pages/members.html">Members</a>
-    <a href="pages/videos.html">Speeches</a>
+  <div class="nav-links gooey-nav-container" id="navLinks">
+    <nav>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#events">Events</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="pages/members.html">Members</a></li>
+        <li><a href="pages/videos.html">Speeches</a></li>
+      </ul>
+    </nav>
+    <span class="effect filter"></span>
+    <span class="effect text"></span>
   </div>
   <div class="nav-actions">
     <button class="btn-login" onclick="window.location.href='pages/login.html'">Member Login</button>
@@ -179,8 +193,10 @@
   <div class="section-inner">
     <span class="section-tag">Gallery</span>
     <h2>Moments Worth Remembering</h2>
-    <div class="gallery-mosaic" id="galleryPreview">
-      <div class="gallery-placeholder">Loading moments...</div>
+    <div class="gallery-stack-wrap">
+      <div id="galleryPreview">
+        <div class="gallery-placeholder">Loading moments...</div>
+      </div>
     </div>
   </div>
 </section>
@@ -277,6 +293,11 @@
 
 <script type="module" src="js/public-home.js"></script>
 <script type="module" src="js/nav.js"></script>
+<script type="module">
+  import { GooeyNav } from './js/gooey-nav.js';
+  const navLinks = document.getElementById('navLinks');
+  if (navLinks) new GooeyNav(navLinks, { initialActiveIndex: 0 });
+</script>
 <script>
   function closeVisitorPopup() {
     document.getElementById('newVisitorModal').style.display = 'none';
