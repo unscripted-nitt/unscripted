@@ -71,10 +71,27 @@ if (statsBar) {
   obs.observe(statsBar);
 }
 
-// Service Worker
+// Service Worker — register, actively check for updates, and reload
+// automatically the moment a new version takes control. This is what makes
+// every visitor (not just first-time ones) land on the latest deploy.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        // Ask the browser to check sw.js for changes right now, instead of
+        // waiting for its own internal timer.
+        reg.update().catch(() => {});
+      })
+      .catch(() => {});
+  });
+
+  // A new service worker just activated and took control of this page —
+  // reload once so every asset on screen comes from the new version.
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded) return;
+    reloaded = true;
+    window.location.reload();
   });
 }
 }
