@@ -70,7 +70,7 @@ function renderGallery(container, urls) {
     container.innerHTML = '<div class="gallery-placeholder">No photos yet.</div>';
     return;
   }
-  new StackGallery(container, urls, { randomRotation: true, sensitivity: 160, sendToBackOnClick: true });
+  new StackGallery(container, urls, { randomRotation: true, sensitivity: 90 });
 }
 
 async function loadGalleryPreview(isLoggedIn = false) {
