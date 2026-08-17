@@ -5,7 +5,7 @@ export class StackGallery {
   constructor(container, images, opts = {}) {
     this.container = container;
     this.opts = Object.assign(
-      { randomRotation: false, sensitivity: 200, sendToBackOnClick: true },
+      { randomRotation: false, sensitivity: 200 },
       opts
     );
     this.cards = images.map((src, i) => ({ id: i + 1, src }));
@@ -36,17 +36,14 @@ export class StackGallery {
     img.alt = 'Unscripted moment';
     img.className = 'card-image';
     img.loading = 'lazy';
-    img.onclick = e => {
-      // Only treat as "open lightbox" if this card is on top and wasn't dragged.
-      if (index === total - 1 && window.openLightbox) window.openLightbox(card.src);
-    };
     inner.appendChild(img);
     wrap.appendChild(inner);
 
     let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false;
+    const TAP_THRESHOLD = 6; // px of movement below which a gesture counts as a tap, not a drag
 
     const onDown = e => {
-      if (index !== total - 1) return; // only the top card is draggable
+      if (index !== total - 1) return; // only the top card is interactive
       dragging = true;
       startX = e.clientX; startY = e.clientY;
       wrap.style.transition = 'none';
@@ -62,10 +59,15 @@ export class StackGallery {
       if (!dragging) return;
       dragging = false;
       wrap.style.transition = '';
-      if (Math.abs(dx) > this.opts.sensitivity || Math.abs(dy) > this.opts.sensitivity) {
-        this.sendToBack(card.id);
+
+      const draggedFarEnough = Math.abs(dx) > this.opts.sensitivity || Math.abs(dy) > this.opts.sensitivity;
+      const wasTap = Math.abs(dx) < TAP_THRESHOLD && Math.abs(dy) < TAP_THRESHOLD;
+
+      if (draggedFarEnough) {
+        this.sendToBack(card.id); // swipe far enough → cycle to the next photo
       } else {
         wrap.style.transform = '';
+        if (wasTap && window.openLightbox) window.openLightbox(card.src); // barely moved → treat as a tap, open it
       }
       dx = 0; dy = 0;
     };
@@ -74,12 +76,6 @@ export class StackGallery {
     wrap.addEventListener('pointermove', onMove);
     wrap.addEventListener('pointerup', onUp);
     wrap.addEventListener('pointercancel', onUp);
-
-    if (this.opts.sendToBackOnClick) {
-      wrap.addEventListener('click', () => {
-        if (index === total - 1 && Math.abs(dx) < 4 && Math.abs(dy) < 4) this.sendToBack(card.id);
-      });
-    }
 
     this.container.appendChild(wrap);
   }
