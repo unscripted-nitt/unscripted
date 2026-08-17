@@ -14,10 +14,6 @@
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <style>
-    /* ── Theme toggle position ── */
-    .login-theme-toggle {
-      position: fixed; top: 1.25rem; right: 1.25rem; z-index: 100;
-    }
 
     /* ── Roster ── */
     #loginRoster {
@@ -148,11 +144,9 @@
 <script type="module" src="../js/preloader.js"></script>
 
 
-<!-- Theme toggle (fixed) -->
-<button class="theme-toggle login-theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
-  <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-  </svg>
+<!-- Theme toggle (unified — same button/system as every other page) -->
+<button id="themeToggleBtn" class="theme-toggle-btn theme-toggle-btn--floating" type="button" aria-label="Toggle theme">
+  <span class="theme-toggle-icon"></span>
 </button>
 
 <div class="login-layout">
@@ -352,22 +346,6 @@ import {
   orderBy,
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-// ── THEME ──────────────────────────────────────────────────
-const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`;
-const SUN_SVG  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-
-function applyTheme(dark) {
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  document.getElementById('themeToggle').innerHTML = dark ? SUN_SVG : MOON_SVG;
-  localStorage.setItem('theme', dark ? 'dark' : 'light');
-}
-
-const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-applyTheme(savedTheme === 'dark');
-document.getElementById('themeToggle').onclick = () => {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  applyTheme(!isDark);
-};
 
 // ── AUTH REDIRECT ──────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
