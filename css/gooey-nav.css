@@ -73,41 +73,29 @@
 }
 
 .gooey-nav-container .effect.text {
-  color: #fff;
-  transition: color 0.3s ease;
-  font-size: inherit;
+  /* The floating duplicate label was only needed to sit on top of an opaque
+     pill background. This nav is transparent (like the rest of the navbar),
+     so the pill/backdrop below is disabled and this label would just ghost
+     over the real tab text — hide it. */
+  display: none;
 }
 
 .gooey-nav-container .effect.filter {
-  filter: blur(7px) contrast(100) blur(0);
-  mix-blend-mode: lighten;
+  /* Keep only the particle burst; drop the blur/contrast trick, since it
+     was designed to melt into a solid backdrop we no longer render. */
+  filter: none;
+  mix-blend-mode: normal;
 }
 
-.gooey-nav-container .effect.filter::before {
-  content: '';
-  position: absolute;
-  inset: -75px;
-  z-index: -2;
-  background: var(--bg);
-}
-
+.gooey-nav-container .effect.filter::before,
 .gooey-nav-container .effect.filter::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--orange);
-  transform: scale(0);
-  opacity: 0;
-  z-index: -1;
-  border-radius: 100vw;
-}
-
-.gooey-nav-container .effect.active::after {
-  animation: gooey-pill 0.3s ease both;
-}
-
-@keyframes gooey-pill {
-  to { transform: scale(1); opacity: 1; }
+  /* These created the solid black/white backdrop + pill behind the active
+     tab. On this transparent, glassy navbar that showed up as a stray
+     white box instead of blending in — removed entirely. The navbar itself
+     already goes transparent → semi-transparent-on-scroll via .navbar and
+     .navbar.scrolled, and li.active::after supplies the small orange pill
+     on the active tab, so nothing else is needed here. */
+  content: none;
 }
 
 .gooey-nav-container .particle,
