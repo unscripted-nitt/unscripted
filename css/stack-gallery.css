@@ -56,3 +56,10 @@
   color: var(--text-light);
   padding: 2rem;
 }
+
+.gallery-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 1.25rem;
+}
