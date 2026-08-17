@@ -23,8 +23,7 @@ export class StackGallery {
 
     const wrap = document.createElement('div');
     wrap.className = 'card-rotate';
-    wrap.style.zIndex = String(total - index);
-
+    wrap.style.zIndex = String(index + 1); // last index (front, ~0deg rotation) sits highest
     const inner = document.createElement('div');
     inner.className = 'card';
     const randomRotate = this.opts.randomRotation ? Math.random() * 10 - 5 : 0;
