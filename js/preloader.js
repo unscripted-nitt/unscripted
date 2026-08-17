@@ -14,9 +14,9 @@ function buildPreloader() {
   wrap.innerHTML = `
     <svg viewBox="0 0 900 200" preserveAspectRatio="xMidYMid meet">
       <text class="preloader-stroke" x="450" y="140" text-anchor="middle"
-            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>
-      <text class="preloader-fill" x="450" y="140" text-anchor="middle"
-            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>
+      font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>
+<text class="preloader-fill" x="450" y="140" text-anchor="middle"
+      font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>>
     </svg>`;
   document.body.prepend(wrap);
   return wrap;
@@ -48,13 +48,18 @@ function initPreloader() {
 
   // getComputedTextLength needs the node in the DOM, which it now is.
   let len = 2200;
-  try { len = stroke.getComputedTextLength() * 1.4; } catch (_) {}
+  try { len = stroke.getComputedTextLength() * 6; } catch (_) {}
 
   gsap.set(stroke, { strokeDasharray: len, strokeDashoffset: len });
   gsap.set(fill, { opacity: 0 });
 
   gsap.timeline()
-    .to(stroke, { strokeDashoffset: 0, duration: 1.6, ease: 'power2.out' })
+    .to(stroke, {
+      strokeDashoffset: 0,
+      duration: 1.6,
+      ease: 'power2.out',
+      onComplete: () => gsap.set(stroke, { strokeDasharray: 'none' })
+    })
     .to(fill, { opacity: 1, duration: 0.5, ease: 'power2.out' }, '-=0.35');
 
   if (document.readyState === 'complete') hide();
