@@ -1,23 +1,10 @@
 // sw.js — Service Worker for Unscripted NITT PWA
 // Provides offline caching and push notification support
 
-const CACHE_NAME = 'unscripted-v4';
+const CACHE_NAME = 'unscripted-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/css/style.css',
-  '/css/preloader.css',
-  '/css/theme-toggle.css',
-  '/css/gooey-nav.css',
-  '/css/stack-gallery.css',
-  '/js/nav.js',
-  '/js/preloader.js',
-  '/js/theme-toggle.js',
-  '/js/gooey-nav.js',
-  '/js/stack-gallery.js',
-  '/js/data-cache.js',
-  '/icons/logo.png',
-  '/manifest.json',
   '/pages/login.html',
   '/pages/members.html',
   '/pages/videos.html',
