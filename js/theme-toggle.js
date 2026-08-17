@@ -32,26 +32,34 @@
     });
   }
 
-  function injectToggleButton() {
-    if (document.getElementById('themeToggleBtn')) return;
-    var btn = document.createElement('button');
-    btn.id = 'themeToggleBtn';
-    btn.className = 'theme-toggle-btn';
-    btn.type = 'button';
+  function bindToggleButton() {
+    var btn = document.getElementById('themeToggleBtn');
+
+    // No button in this page's HTML at all (dashboard/login/admin pages
+    // don't have a navbar to put one in) — fall back to a floating one.
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'themeToggleBtn';
+      btn.className = 'theme-toggle-btn theme-toggle-btn--floating';
+      btn.type = 'button';
+      btn.innerHTML = '<span class="theme-toggle-icon"></span>';
+      document.body.appendChild(btn);
+    }
+
+    if (btn.dataset.bound === '1') return; // never double-bind
+    btn.dataset.bound = '1';
     btn.setAttribute('aria-label', 'Toggle theme');
-    btn.innerHTML = '<span class="theme-toggle-icon"></span>';
     btn.addEventListener('click', function () {
       var current = document.documentElement.getAttribute('data-theme') || getSystemTheme();
       var next = current === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem(STORAGE_KEY, next); } catch (e) {}
       applyTheme(next);
     });
-    document.body.appendChild(btn);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectToggleButton);
+    document.addEventListener('DOMContentLoaded', bindToggleButton);
   } else {
-    injectToggleButton();
+    bindToggleButton();
   }
 })();
