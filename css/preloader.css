@@ -1,4 +1,11 @@
-/* css/preloader.css — full-screen "UNSCRIPTED" stroke-draw intro */
+/* css/preloader.css — full-screen "UNSCRIPTED" intro.
+   Plain CSS text + -webkit-text-stroke, NOT an SVG stroke-dasharray path
+   animation. The dasharray approach requires knowing the exact outline
+   perimeter of the stroked glyphs (getComputedTextLength() only gives the
+   typographic advance width, not that perimeter), and guessing it wrong
+   produces small disconnected artifacts inside letters like R. Plain text
+   rendering has no such path-length dependency, so this class of bug is
+   structurally impossible here. */
 #app-preloader {
   position: fixed;
   inset: 0;
@@ -16,25 +23,22 @@
   pointer-events: none;
 }
 
-#app-preloader svg {
-  width: min(88vw, 720px);
-  height: auto;
-  overflow: visible;
-}
-
-#app-preloader .preloader-stroke {
-  fill: none;
-  stroke: #FF5722;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-#app-preloader .preloader-fill {
-  fill: #FF5722;
+#app-preloader .preloader-text {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.2rem, 9vw, 6.75rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+  color: transparent;
+  -webkit-text-stroke: 2.5px #FF5722;
+  text-stroke: 2.5px #FF5722;
   opacity: 0;
+  transform: scale(0.92);
 }
 
 @media (prefers-reduced-motion: reduce) {
   #app-preloader { transition: none; }
+  #app-preloader .preloader-text { opacity: 1; transform: none; }
 }
