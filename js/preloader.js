@@ -14,9 +14,9 @@ function buildPreloader() {
   wrap.innerHTML = `
     <svg viewBox="0 0 900 200" preserveAspectRatio="xMidYMid meet">
       <text class="preloader-stroke" x="450" y="140" text-anchor="middle"
-            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108">${TEXT}</text>
+            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>
       <text class="preloader-fill" x="450" y="140" text-anchor="middle"
-            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108">${TEXT}</text>
+            font-family="'DM Sans', system-ui, sans-serif" font-weight="800" font-size="108" letter-spacing="2">${TEXT}</text>
     </svg>`;
   document.body.prepend(wrap);
   return wrap;
