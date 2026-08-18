@@ -13,6 +13,7 @@ export class TrueFocus {
         blurAmount: 5,
         borderColor: 'green',
         glowColor: 'rgba(0, 255, 0, 0.6)',
+        wordColors: null,
         animationDuration: 0.5,
         pauseBetweenAnimations: 1
       },
@@ -34,7 +35,7 @@ export class TrueFocus {
   }
 
   render() {
-    const { manualMode, borderColor, glowColor, animationDuration } = this.opts;
+    const { manualMode, borderColor, glowColor, animationDuration, wordColors } = this.opts;
 
     this.container.classList.add('focus-container');
     this.container.innerHTML = '';
@@ -46,6 +47,9 @@ export class TrueFocus {
       span.style.setProperty('--border-color', borderColor);
       span.style.setProperty('--glow-color', glowColor);
       span.style.transition = `filter ${animationDuration}s ease`;
+      if (wordColors && wordColors.length) {
+        span.style.color = wordColors[index % wordColors.length];
+      }
       span.addEventListener('mouseenter', () => this.handleMouseEnter(index));
       span.addEventListener('mouseleave', () => this.handleMouseLeave());
       this.container.appendChild(span);
