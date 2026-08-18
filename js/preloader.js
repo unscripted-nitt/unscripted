@@ -8,7 +8,7 @@
 // it from the DOM.
 import { gsap } from 'gsap';
 
-const MIN_VISIBLE_MS = 2000;
+const MIN_VISIBLE_MS = 3000;
 
 /** Resolves once the window's `load` event has fired (or immediately if it already has). */
 function whenPageLoaded() {
@@ -29,13 +29,15 @@ function whenMinimumTimeElapsed(since, ms) {
 
 function playEntranceAnimation(textEl, reduceMotion) {
   if (reduceMotion) {
-    gsap.set(textEl, { opacity: 1, scale: 1, color: '#FF5722' });
+    gsap.set(textEl, { opacity: 1, scale: 1 });
+    textEl.classList.add('shine');
     return Promise.resolve();
   }
+  // Solid text that slowly fades/scales in, then starts a looping shine
+  // sweep for the rest of the preloader's time on screen.
   return gsap.timeline()
-    .to(textEl, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' })
-    .to(textEl, { color: '#FF5722', duration: 0.6, ease: 'power2.out' }, '+=0.3')
-    .then(() => {});
+    .to(textEl, { opacity: 1, scale: 1, duration: 1.3, ease: 'power2.out' })
+    .then(() => { textEl.classList.add('shine'); });
 }
 
 function dismiss(overlayEl) {
