@@ -156,6 +156,22 @@
         <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">—</div></div>
         <div class="stat-box"><div class="label">Avg Attendance</div><div class="num" id="insightAvgAtt">—</div></div>
         <div class="stat-box"><div class="label">Total Events</div><div class="num" id="insightEvents">—</div></div>
+        <div class="stat-box"><div class="label">Perfect Attendance</div><div class="num" id="insightPerfectAtt">—</div></div>
+        <div class="stat-box"><div class="label">Total Roles Filled</div><div class="num" id="insightTotalRoles">—</div></div>
+        <div class="stat-box"><div class="label">Avg Points / Member</div><div class="num" id="insightAvgPoints">—</div></div>
+        <div class="stat-box"><div class="label">Meets This Month</div><div class="num" id="insightMeetsMonth">—</div></div>
+      </div>
+      <div class="admin-grid-2">
+        <div class="card">
+          <h3><i class="fa-solid fa-ranking-star" style="color:var(--orange);margin-right:0.4rem;"></i>Top Contributors</h3>
+          <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">By total leaderboard points — updates with the Activity Matrix.</p>
+          <div id="insightTopContributors"><p style="color:var(--text-mid);">Loading...</p></div>
+        </div>
+        <div class="card">
+          <h3><i class="fa-solid fa-route" style="color:var(--orange);margin-right:0.4rem;"></i>Pathway Distribution</h3>
+          <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">Active members grouped by their current pathway.</p>
+          <div id="insightPathwayDist"><p style="color:var(--text-mid);">Loading...</p></div>
+        </div>
       </div>
       <div class="card">
         <h3>Upcoming Meet Roles</h3>
@@ -1135,6 +1151,9 @@ async function loadAllData() {
     allUsers = []; snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
     // Load events FIRST so allEventsCache is populated before the table renders
     await loadEvents();
+    // req 1: backfill brand-new members as "ineligible" (not "absent") in
+    // every event that already existed before they joined.
+    await backfillNewMemberEligibility();
     loadGuestTokensList();
     loadGuestExperienceFeedback();
     // Now render everything that depends on allEventsCache
@@ -1148,6 +1167,44 @@ async function loadAllData() {
     loadRoleGuides();
     loadDocs();
   } catch(e) { console.warn('loadAllData error',e); }
+}
+
+// req 1: a member is only ever "absent" from a past event if an admin
+// explicitly ticked A for them via the attendance checklist. A member who
+// has NEVER once appeared in ANY event's attended[] or ineligible[] array is,
+// by definition, brand new — they simply didn't exist yet when older events
+// took attendance. Mark them "ineligible" (excluded from their own %, not
+// counted against them) in every existing event instead of letting them
+// silently fall through to "absent" by omission.
+//
+// This only ever ADDS a never-before-seen uid into an event's ineligible[]
+// array — it never touches any uid that already appears in either array for
+// that event — so it can't retroactively change any existing member's real
+// attendance history, no matter how many times it runs.
+async function backfillNewMemberEligibility() {
+  try {
+    const activeUsers = allUsers.filter(u => u.isActive !== false);
+    if (!activeUsers.length || !allEventsCache.length) return;
+    const recordedUids = new Set();
+    allEventsCache.forEach(e => {
+      (e.attended || []).forEach(uid => recordedUids.add(uid));
+      (e.ineligible || []).forEach(uid => recordedUids.add(uid));
+    });
+    const brandNew = activeUsers.filter(u => !recordedUids.has(u.id));
+    if (!brandNew.length) return;
+    await Promise.all(allEventsCache.map(async ev => {
+      const ineligibleSet = new Set(ev.ineligible || []);
+      let changed = false;
+      brandNew.forEach(u => {
+        if (!ineligibleSet.has(u.id)) { ineligibleSet.add(u.id); changed = true; }
+      });
+      if (!changed) return;
+      const arr = [...ineligibleSet];
+      ev.ineligible = arr; // keep local cache in sync for this render pass
+      try { await updateDoc(doc(db, 'events', ev.id), { ineligible: arr }); }
+      catch(err) { console.warn('Could not backfill eligibility for event', ev.id, err); }
+    }));
+  } catch(e) { console.warn('backfillNewMemberEligibility error', e); }
 }
 
 // ── INSIGHTS ─────────────────────────────────────────────
@@ -1167,18 +1224,77 @@ function updateInsights() {
 
   // Avg Attendance — active members only, computed from event.attended arrays
   // Average of each active member's individual attendance percentage
-const attPcts = activeUsers.map(u => {
+const attStats = activeUsers.map(u => {
   const eligible = allEventsCache.filter(e => !(e.ineligible||[]).includes(u.id));
-  if (!eligible.length) return 0;
-  const present = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
-  return present / eligible.length * 100;
+  const present  = eligible.filter(e => (e.attended||[]).includes(u.id)).length;
+  return { pct: eligible.length ? present / eligible.length * 100 : 0, eligibleCount: eligible.length };
 });
+const attPcts = attStats.map(s => s.pct);
 const avgAtt = attPcts.length
   ? Math.round(attPcts.reduce((a, b) => a + b, 0) / attPcts.length)
   : 0;
 document.getElementById('insightAvgAtt').textContent = avgAtt + '%';
 
   document.getElementById('insightEvents').textContent = allEventsCache.length;
+
+  // Perfect Attendance — active members with a 100% record across at least
+  // one eligible meet (so a brand-new member with 0 eligible meets doesn't
+  // trivially count as "perfect").
+  const perfectCount = attStats.filter(s => s.eligibleCount > 0 && s.pct === 100).length;
+  document.getElementById('insightPerfectAtt').textContent = perfectCount;
+
+  // Meets This Month — events dated in the current calendar month/year
+  const now = new Date();
+  const meetsThisMonth = allEventsCache.filter(e => {
+    if (!e.date) return false;
+    try {
+      const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } catch(_) { return false; }
+  }).length;
+  document.getElementById('insightMeetsMonth').textContent = meetsThisMonth;
+
+  // ── Stats derived from the Activity Matrix (rolesDataList) ──────────────
+  // rolesDataList is (re)built by loadMeetRoles(), which calls updateInsights()
+  // again once it's ready — so these fill in a beat after the stats above,
+  // and stay in sync with the Leaderboard Matrix / Danger Zone reset with no
+  // separate recomputation logic to keep in sync by hand.
+  if (rolesDataList && rolesDataList.length) {
+    const totalRolesFilled = rolesDataList.reduce((a, r) => a + (parseInt(r.totalRoles) || 0), 0);
+    document.getElementById('insightTotalRoles').textContent = totalRolesFilled;
+
+    const totalPoints = rolesDataList.reduce((a, r) => a + (parseInt(r.points) || 0), 0);
+    const avgPoints = Math.round(totalPoints / rolesDataList.length);
+    document.getElementById('insightAvgPoints').textContent = avgPoints;
+
+    const top3 = [...rolesDataList].sort((a,b) => (parseInt(b.points)||0) - (parseInt(a.points)||0)).slice(0,3);
+    const medal = ['🥇','🥈','🥉'];
+    document.getElementById('insightTopContributors').innerHTML = top3.length
+      ? top3.map((r,i) => `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0;${i<top3.length-1?'border-bottom:1px solid var(--border);':''}">
+          <span style="font-weight:700;">${medal[i]||''} ${r.name}</span>
+          <span style="font-size:0.82rem;color:var(--text-mid);">${r.points||0} pts &middot; ${r.totalRoles||0} roles</span>
+        </div>`).join('')
+      : '<p style="color:var(--text-mid);">No role activity yet.</p>';
+  }
+
+  // Pathway Distribution — active members grouped by pathwayKey
+  const pathwayLabels = { L1:'Level 1', L2:'Level 2', L3K:'L3 Keynote', L3H:'L3 Humorous' };
+  const pathwayCounts = { L1:0, L2:0, L3K:0, L3H:0 };
+  activeUsers.forEach(u => {
+    const key = pathwayCounts.hasOwnProperty(u.pathwayKey) ? u.pathwayKey : 'L1';
+    pathwayCounts[key]++;
+  });
+  const maxCount = Math.max(1, ...Object.values(pathwayCounts));
+  document.getElementById('insightPathwayDist').innerHTML = Object.entries(pathwayCounts).map(([key,count]) => `
+    <div style="margin-bottom:0.7rem;">
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.25rem;">
+        <span style="font-weight:700;">${pathwayLabels[key]}</span>
+        <span style="color:var(--text-mid);">${count}</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:100px;height:8px;overflow:hidden;">
+        <div style="background:var(--orange);height:100%;width:${(count/maxCount*100)}%;border-radius:100px;"></div>
+      </div>
+    </div>`).join('');
 }
 
 // ── USER TABLE ───────────────────────────────────────────
@@ -1624,8 +1740,9 @@ function renderAttendanceChecklist() {
     return;
   }
   const activeUsers = allUsers.filter(u => u.isActive !== false);
-  // Default all to absent
-  activeUsers.forEach(u => { attState[u.id] = 'absent'; });
+  // Default all to ineligible until a real event is picked — matches the
+  // new "unset means ineligible, not absent" rule (req 1).
+  activeUsers.forEach(u => { attState[u.id] = 'ineligible'; });
  
   list.innerHTML = activeUsers.map(u => `
     <div id="attrow-${u.id}" style="display:flex;align-items:center;justify-content:space-between;
@@ -1641,13 +1758,13 @@ function renderAttendanceChecklist() {
                  cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">P</button>
         <button onclick="setAttState('${u.id}','absent')"
           id="attbtn-${u.id}-absent"
-          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #f44336;
-                 background:rgba(244,67,54,0.1);cursor:pointer;font-size:0.75rem;font-weight:800;
-                 color:#f44336;transition:0.15s;">A</button>
+          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
+                 cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">A</button>
         <button onclick="setAttState('${u.id}','ineligible')"
           id="attbtn-${u.id}-ineligible"
-          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
-                 cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">—</button>
+          style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #9e9e9e;
+                 background:rgba(158,158,158,0.15);cursor:pointer;font-size:0.75rem;font-weight:800;
+                 color:#555;transition:0.15s;">—</button>
       </div>
     </div>`).join('');
 }
@@ -1829,7 +1946,13 @@ window.saveEvent = async () => {
         updated:serverTimestamp()
       };
     if (id) await updateDoc(doc(db,'events',id), data);
-    else await addDoc(collection(db,'events'), {...data,isActive:false,created:serverTimestamp()});
+    else {
+      // req 1: a brand-new event starts with every currently-active member
+      // marked "ineligible" (not decided yet) — NOT "absent". Absent should
+      // only ever mean "an admin explicitly checked A" for that member.
+      const activeUserIds = allUsers.filter(u => u.isActive !== false).map(u => u.id);
+      await addDoc(collection(db,'events'), {...data, isActive:false, created:serverTimestamp(), attended:[], ineligible:activeUserIds});
+    }
     alert(id?'Event updated!':'Event added!');
     toggleEventForm(false); loadEvents();
   } catch(e) { alert('Error: '+e.message); }
@@ -2180,6 +2303,11 @@ async function loadMeetRoles() {
        r.listener, r.grammarian, r.attendance, r.mom, r._pts || '', r.totalRoles]
       .map(v => `<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
   </tr>`).join('');
+
+  // Refresh Club Insights now that rolesDataList (points/roles totals) is
+  // populated — keeps Top Contributors / Total Roles Filled / Avg Points in
+  // lockstep with the Activity Matrix and its Danger Zone reset.
+  updateInsights();
 }
 
 window.exportMatrixCSV = () => {
