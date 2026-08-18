@@ -1,8 +1,15 @@
 /* css/stack-gallery.css — draggable photo stack, ported from the Stack component */
 .gallery-stack-wrap {
-  width: 260px;
-  height: 260px;
+  width: min(85vw, 480px);
+  height: min(85vw, 480px);
   margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .gallery-stack-wrap {
+    width: min(90vw, 360px);
+    height: min(90vw, 360px);
+  }
 }
 
 .stack-container {
