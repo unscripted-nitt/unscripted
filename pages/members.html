@@ -139,47 +139,42 @@ async function loadMembers() {
 }
 
 function getMemberCard(m, colorIdx) {
-  const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const color = m.avatarColor || COLORS[colorIdx % COLORS.length];
-  const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
-  const roleColor = (m.role === 'core' || m.role === 'admin') ? 'var(--orange)' : 'var(--text-light)';
-  const avatarContent = m.photoUrl
-    ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
-    : initials;
-  return `<div class="member-card fade-up visible">
-    <div class="avatar pixel-avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
-    <h3>${m.name||'Member'}</h3>
-    <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
-    ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
-    <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
-  </div>`;
+  return `<div class="member-card pixel-avatar fade-up visible"></div>`;
 }
 
-// Mounts the PixelTransition hover animation on every rendered .pixel-avatar,
-// in the same order the member cards were written to the DOM. On hover (or
-// tap, on touch devices) each avatar pixel-dissolves from photo/initials
-// into a role badge.
+// Mounts the PixelTransition hover animation on every rendered .pixel-avatar
+// member-card, in the same order the cards were written to the DOM. At rest
+// the card is fully covered by the member's photo (or colored initials if
+// no photo). On hover (or tap, on touch devices) it pixel-dissolves in white
+// into an overlay showing name, department/batch, degree, and role.
 function initPixelAvatars(orderedMembers, colorOffset = 0) {
-  const avatarEls = document.querySelectorAll('#membersGrid .pixel-avatar');
-  avatarEls.forEach((el, i) => {
+  const cardEls = document.querySelectorAll('#membersGrid .pixel-avatar');
+  cardEls.forEach((el, i) => {
     const m = orderedMembers[i];
     if (!m) return;
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const color = m.avatarColor || COLORS[(i + colorOffset) % COLORS.length];
     const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
-    const avatarContent = m.photoUrl
+    const deptLine = `${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}`;
+
+    const firstContent = m.photoUrl
       ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
-      : initials;
-    const roleReveal = `<div style="width:100%;height:100%;display:grid;place-items:center;background:${color};">
-      <span style="font-weight:800;font-size:0.62rem;color:#fff;text-align:center;line-height:1.2;padding:0 4px;">${roleLabel}</span>
+      : `<div class="member-photo-fallback" style="background:${color};">${initials}</div>`;
+
+    const secondContent = `<div class="member-overlay">
+      <h3>${m.name||'Member'}</h3>
+      <div class="dept">${deptLine}</div>
+      ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+      <div class="role">${roleLabel}</div>
     </div>`;
+
     new PixelTransition(el, {
-      firstContent: avatarContent,
-      secondContent: roleReveal,
-      gridSize: 6,
-      pixelColor: '#ff570e',
+      firstContent,
+      secondContent,
+      gridSize: 8,
+      pixelColor: '#ffffff',
       once: false,
-      animationStepDuration: 0.35
+      animationStepDuration: 0.4
     });
   });
 }
