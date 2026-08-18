@@ -21,16 +21,8 @@
     if (btn) btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   }
 
-  // Apply immediately, before first paint — no stored choice means "follow system".
-  var theme = getStoredTheme() || getSystemTheme();
+  var theme = getStoredTheme() || 'dark';
   applyTheme(theme);
-
-  // Live-follow the OS setting for as long as the user hasn't picked a theme themselves.
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-      if (!getStoredTheme()) applyTheme(e.matches ? 'dark' : 'light');
-    });
-  }
 
   function bindToggleButton() {
     var btn = document.getElementById('themeToggleBtn');
