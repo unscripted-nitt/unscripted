@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
+  <link rel="stylesheet" href="../css/pixel-transition.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <style>
   .navbar {
@@ -112,6 +113,7 @@
 <script type="module">
 import { db } from '../js/firebase-config.js';
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { PixelTransition } from '../js/pixel-transition.js';
 
 const COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315'];
 let allMembers = [];
@@ -145,12 +147,41 @@ function getMemberCard(m, colorIdx) {
     ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
     : initials;
   return `<div class="member-card fade-up visible">
-    <div class="avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
+    <div class="avatar pixel-avatar" style="background:${m.photoUrl?'transparent':color}">${avatarContent}</div>
     <h3>${m.name||'Member'}</h3>
     <div class="dept">${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}</div>
     ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
     <div class="video-meta" style="color:${roleColor};margin-top:0.4rem;">${roleLabel}</div>
   </div>`;
+}
+
+// Mounts the PixelTransition hover animation on every rendered .pixel-avatar,
+// in the same order the member cards were written to the DOM. On hover (or
+// tap, on touch devices) each avatar pixel-dissolves from photo/initials
+// into a role badge.
+function initPixelAvatars(orderedMembers, colorOffset = 0) {
+  const avatarEls = document.querySelectorAll('#membersGrid .pixel-avatar');
+  avatarEls.forEach((el, i) => {
+    const m = orderedMembers[i];
+    if (!m) return;
+    const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const color = m.avatarColor || COLORS[(i + colorOffset) % COLORS.length];
+    const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
+    const avatarContent = m.photoUrl
+      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
+      : initials;
+    const roleReveal = `<div style="width:100%;height:100%;display:grid;place-items:center;background:${color};">
+      <span style="font-weight:800;font-size:0.62rem;color:#fff;text-align:center;line-height:1.2;padding:0 4px;">${roleLabel}</span>
+    </div>`;
+    new PixelTransition(el, {
+      firstContent: avatarContent,
+      secondContent: roleReveal,
+      gridSize: 6,
+      pixelColor: '#ff570e',
+      once: false,
+      animationStepDuration: 0.35
+    });
+  });
 }
 
 function renderMembers(members) {
@@ -165,6 +196,7 @@ function renderMembers(members) {
       return;
     }
     container.innerHTML = `<div class="members-grid">${members.map((m,i) => getMemberCard(m,i)).join('')}</div>`;
+    initPixelAvatars(members);
     return;
   }
 
@@ -190,8 +222,10 @@ function renderMembers(members) {
     return b.localeCompare(a);
   });
 
+  const flatOrder = [];
   container.innerHTML = sortedBatches.map(batch => {
     const items = batchMap[batch];
+    flatOrder.push(...items.map(({m}) => m));
     const safeId = 'batch_' + batch.replace(/[^a-zA-Z0-9]/g, '_');
     return `
       <div style="margin-bottom:1rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
@@ -212,6 +246,7 @@ function renderMembers(members) {
         </div>
       </div>`;
   }).join('');
+  initPixelAvatars(flatOrder);
 }
 
 window.toggleBatchSection = function(safeId, batch) {
