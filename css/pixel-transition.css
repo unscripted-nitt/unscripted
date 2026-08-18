@@ -34,11 +34,11 @@
 }
 
 /* ── Unscripted members grid override ─────────────────────────
-   Applied to each member's .avatar circle: hovering (or tapping,
-   on touch) pixel-dissolves the photo/initials into a role badge.
-   .avatar already has border-radius:50% + overflow:hidden, so the
-   layers above are clipped into the circle automatically. */
-.avatar.pixel-avatar {
+   Applied to each member-card: hovering (or tapping, on touch)
+   pixel-dissolves the full-bleed photo into the name/role overlay.
+   .member-card already has border-radius + overflow:hidden, so the
+   layers above are clipped to the card shape automatically. */
+.member-card.pixel-avatar {
   position: relative;
 }
 .pixel-avatar .pixel-transition__default img {
