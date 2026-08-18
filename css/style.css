@@ -1648,3 +1648,29 @@ tr:hover td { background: var(--surface2); }
 .justify-between { justify-content: space-between; }
 .w-full { width: 100%; }
 .hidden { display: none !important; }
+
+/* ── Compact leaderboard tables (member dashboard + admin matrix) ──
+   Both tables render their <th>/<td> with inline styles from JS, so
+   overrides here need !important to actually take effect. */
+#leaderboardTable th,
+#rolesTable th {
+  padding: 0.4rem 0.35rem !important;
+  font-size: 0.68rem !important;
+  height: 90px !important;
+}
+
+#leaderboardTable td,
+#rolesTable td {
+  padding: 0.4rem 0.5rem !important;
+  font-size: 0.78rem !important;
+}
+
+#leaderboardTable,
+#rolesTable {
+  border-collapse: collapse;
+}
+
+#leaderboardTable tr,
+#rolesTable tr {
+  border-bottom: 1px solid var(--border);
+}
