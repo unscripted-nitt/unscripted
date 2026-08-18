@@ -832,6 +832,26 @@ h2 { font-size: clamp(1.8rem, 4vw, 2.75rem); margin-bottom: 1.25rem; }
 .member-overlay .dept { font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 600; }
 .member-overlay .role { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); font-weight: 700; margin-top: 0.25rem; }
 
+/* Hint that the card is revealable — shown on the default (text) face.
+   Hover wording for mice/trackpads, tap wording for touch, picked by
+   pointer type so the hint always matches how this device actually reveals it. */
+.member-overlay .reveal-hint {
+  margin-top: 0.65rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #FF5722;
+  background: rgba(255,87,34,0.16);
+  padding: 0.3rem 0.7rem;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.member-overlay .reveal-hint .hint-tap { display: none; }
+@media (pointer: coarse) {
+  .member-overlay .reveal-hint .hint-hover { display: none; }
+  .member-overlay .reveal-hint .hint-tap { display: inline; }
+}
+
 /* ═══════════════════════════════════════════════════════════
    VIDEOS GRID
    ═══════════════════════════════════════════════════════════ */
