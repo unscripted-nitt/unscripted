@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>(function(){try{var t=localStorage.getItem("unscripted-theme")||"dark";document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unscripted — Public Speaking &amp; Leadership Club, NIT Trichy</title>
   <meta name="description" content="Unscripted is the official public speaking and leadership club of NIT Trichy. Join us to speak, lead, and inspire." />
-  <!-- Must be a plain, non-deferred script so the theme is set before first paint (no flash) -->
   <script type="module" src="js/theme-toggle.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,6 +36,7 @@
 </head>
 <body>
 
+<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
 <script type="module" src="js/preloader.js"></script>
 
 <!-- NEW VISITOR POPUP -->
@@ -78,10 +79,10 @@
     <span class="effect text"></span>
   </div>
   <div class="nav-actions">
-  <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle theme">
-    <span class="theme-toggle-icon"></span>
-  </button>
-  <button class="btn-login" onclick="window.location.href='pages/login.html'">Member Login</button>
+    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle theme">
+      <span class="theme-toggle-icon"></span>
+    </button>
+    <button class="btn-login" onclick="window.location.href='pages/login.html'">Member Login</button>
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
@@ -197,11 +198,11 @@
     <span class="section-tag">Gallery</span>
     <h2>Moments Worth Remembering</h2>
     <div class="gallery-stack-wrap">
-  <div id="galleryPreview">
-    <div class="gallery-placeholder">Loading moments...</div>
-  </div>
-</div>
-<p class="gallery-hint">Swipe a photo to see the next &middot; tap to view full-size</p>
+      <div id="galleryPreview">
+        <div class="gallery-placeholder">Loading moments...</div>
+      </div>
+    </div>
+    <p class="gallery-hint">Swipe a photo to see the next &middot; tap to view full-size</p>
   </div>
 </section>
 
