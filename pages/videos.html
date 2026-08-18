@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script type="module" src="../js/theme-toggle.js"></script>
+  <script>(function(){try{var t=localStorage.getItem("unscripted-theme")||"dark";document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
+  <script type="module" src="../js/theme-toggle.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Speeches — Unscripted NITT</title>
@@ -50,10 +52,10 @@
     <a href="videos.html" style="color:var(--orange);">Speeches</a>
   </div>
   <div class="nav-actions">
-  <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle theme">
-    <span class="theme-toggle-icon"></span>
-  </button>
-  <button class="btn-login" onclick="window.location.href='pages/login.html'">Member Login</button>
+    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle theme">
+      <span class="theme-toggle-icon"></span>
+    </button>
+    <button class="btn-login" onclick="window.location.href='login.html'">Member Login</button>
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
