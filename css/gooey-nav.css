@@ -59,6 +59,24 @@
   transform: scale(1);
 }
 
+/* The site's original (pre-gooey) navbar CSS has `.nav-links a:hover { color:
+   var(--orange) }`, which is specific enough to override this nav's intended
+   text colors on hover. Left alone, hovering the active tab (which already
+   has a solid orange pill background from li.active::after above) turned its
+   text orange too — orange text on an orange background, unreadable. These
+   rules are deliberately scoped/specific enough to win over that old rule:
+   a non-active tab gets orange text on hover (its background stays
+   transparent, so that's fine); the active tab's text stays white so it
+   stays readable against its own solid orange pill. */
+.gooey-nav-container nav ul li a:hover {
+  color: var(--orange);
+  background: transparent;
+}
+
+.gooey-nav-container nav ul li.active a:hover {
+  color: #fff;
+}
+
 .gooey-nav-container .effect {
   position: absolute;
   left: 0;
