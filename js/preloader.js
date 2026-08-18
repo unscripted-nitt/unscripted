@@ -1,22 +1,10 @@
-// js/preloader.js — shows a full-screen "UNSCRIPTED" intro while the page's
-// real data is still loading, instead of dash placeholders.
 import { gsap } from 'gsap';
 
 const MIN_DISPLAY_MS = 2000;
-const TEXT = 'UNSCRIPTED';
-
-function buildPreloader() {
-  const wrap = document.createElement('div');
-  wrap.id = 'app-preloader';
-  wrap.setAttribute('aria-hidden', 'true');
-  wrap.innerHTML = `<div class="preloader-text">${TEXT}</div>`;
-  document.body.prepend(wrap);
-  return wrap;
-}
 
 function initPreloader() {
-  if (document.getElementById('app-preloader')) return;
-  const el = buildPreloader();
+  const el = document.getElementById('app-preloader');
+  if (!el) return;
   const text = el.querySelector('.preloader-text');
 
   const started = Date.now();
@@ -44,4 +32,8 @@ function initPreloader() {
   else window.addEventListener('load', hide, { once: true });
 }
 
-initPreloader();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPreloader);
+} else {
+  initPreloader();
+}
