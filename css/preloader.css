@@ -1,11 +1,9 @@
 /* css/preloader.css — full-screen "UNSCRIPTED" intro.
-   Plain CSS text + -webkit-text-stroke, NOT an SVG stroke-dasharray path
-   animation. The dasharray approach requires knowing the exact outline
-   perimeter of the stroked glyphs (getComputedTextLength() only gives the
-   typographic advance width, not that perimeter), and guessing it wrong
-   produces small disconnected artifacts inside letters like R. Plain text
-   rendering has no such path-length dependency, so this class of bug is
-   structurally impossible here. */
+   Solid brand-orange text (no outline/stroke) that fades + scales in
+   slowly, then plays a looping diagonal shine sweep for the rest of the
+   preloader's time on screen. The sweep uses a background-clip: text
+   gradient rather than a pseudo-element mask, so it works on the exact
+   glyph shapes with no extra DOM nodes. */
 #app-preloader {
   position: fixed;
   inset: 0;
@@ -31,14 +29,36 @@
   line-height: 1;
   white-space: nowrap;
   text-align: center;
-  color: transparent;
-  -webkit-text-stroke: 2.5px #FF5722;
-  text-stroke: 2.5px #FF5722;
+  color: #FF5722;
   opacity: 0;
   transform: scale(0.92);
+}
+
+/* Looping shine sweep — added by JS once the fade/scale-in has finished. */
+#app-preloader .preloader-text.shine {
+  background-image: linear-gradient(
+    115deg,
+    #FF5722 0%,
+    #FF5722 40%,
+    #FFCCB0 50%,
+    #FF5722 60%,
+    #FF5722 100%
+  );
+  background-size: 250% 100%;
+  background-position: 200% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: preloader-shine 2.2s ease-in-out infinite;
+}
+
+@keyframes preloader-shine {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -100% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #app-preloader { transition: none; }
   #app-preloader .preloader-text { opacity: 1; transform: none; }
+  #app-preloader .preloader-text.shine { animation: none; background: none; -webkit-text-fill-color: initial; color: #FF5722; }
 }
