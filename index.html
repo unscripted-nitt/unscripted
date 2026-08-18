@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/theme-toggle.css" />
   <link rel="stylesheet" href="css/gooey-nav.css" />
   <link rel="stylesheet" href="css/stack-gallery.css" />
+  <link rel="stylesheet" href="css/true-focus.css" />
   <link rel="icon" href="icons/favicon.png" type="image/png" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#FF5722" />
@@ -100,11 +101,7 @@
   <div class="hero-content">
     <p class="hero-eyebrow">Official Public Speaking &amp; Leadership Club &mdash; NIT Trichy</p>
     <div class="hero-motto-container">
-      <h1 class="hero-title">
-        <span class="line1">Excellence,</span>
-        <span class="line2">In All,</span>
-        <span class="line3">Through Fun.</span>
-      </h1>
+      <h1 class="hero-title hero-title-focus" id="heroTrueFocus"></h1>
     </div>
     <p class="hero-sub" style="margin-top:2rem;color:#fff;">Your spotlight starts here.</p>
   </div>
@@ -302,6 +299,20 @@
   import { GooeyNav } from './js/gooey-nav.js';
   const navLinks = document.getElementById('navLinks');
   if (navLinks) new GooeyNav(navLinks, { initialActiveIndex: 0 });
+</script>
+<script type="module">
+  import { TrueFocus } from './js/true-focus.js';
+  const heroTrueFocus = document.getElementById('heroTrueFocus');
+  if (heroTrueFocus) {
+    new TrueFocus(heroTrueFocus, {
+      sentence: 'Excellence, In All, Through Fun.',
+      manualMode: false,
+      blurAmount: 5,
+      borderColor: '#ff570e',
+      animationDuration: 0.5,
+      pauseBetweenAnimations: 1
+    });
+  }
 </script>
 <script>
   function closeVisitorPopup() {
