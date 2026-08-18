@@ -305,11 +305,13 @@
   const heroTrueFocus = document.getElementById('heroTrueFocus');
   if (heroTrueFocus) {
     new TrueFocus(heroTrueFocus, {
-      sentence: 'Excellence, In All, Through Fun.',
+      sentence: 'Excellence,|In All,|Through Fun.',
+      separator: '|',
       manualMode: false,
       blurAmount: 5,
       borderColor: '#ff570e',
-      animationDuration: 0.5,
+      wordColors: ['#ffffff', '#ff570e', '#ffb74d'],
+      animationDuration: 0.25,
       pauseBetweenAnimations: 1
     });
   }
