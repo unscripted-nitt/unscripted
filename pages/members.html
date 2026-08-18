@@ -144,9 +144,10 @@ function getMemberCard(m, colorIdx) {
 
 // Mounts the PixelTransition hover animation on every rendered .pixel-avatar
 // member-card, in the same order the cards were written to the DOM. At rest
-// the card is fully covered by the member's photo (or colored initials if
-// no photo). On hover (or tap, on touch devices) it pixel-dissolves in white
-// into an overlay showing name, department/batch, degree, and role.
+// the card shows name, department/batch, degree, and role as text (plus a
+// small hint that it's revealable). On hover (or tap, on touch devices) it
+// pixel-dissolves in white into the member's photo (or colored initials if
+// no photo).
 function initPixelAvatars(orderedMembers, colorOffset = 0) {
   const cardEls = document.querySelectorAll('#membersGrid .pixel-avatar');
   cardEls.forEach((el, i) => {
@@ -157,16 +158,20 @@ function initPixelAvatars(orderedMembers, colorOffset = 0) {
     const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
     const deptLine = `${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}`;
 
-    const firstContent = m.photoUrl
-      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
-      : `<div class="member-photo-fallback" style="background:${color};">${initials}</div>`;
-
-    const secondContent = `<div class="member-overlay">
+    const firstContent = `<div class="member-overlay">
       <h3>${m.name||'Member'}</h3>
       <div class="dept">${deptLine}</div>
       ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
       <div class="role">${roleLabel}</div>
+      <div class="reveal-hint">
+        <span class="hint-hover">&#128070; Hover to reveal photo</span>
+        <span class="hint-tap">&#128070; Tap to reveal photo</span>
+      </div>
     </div>`;
+
+    const secondContent = m.photoUrl
+      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
+      : `<div class="member-photo-fallback" style="background:${color};">${initials}</div>`;
 
     new PixelTransition(el, {
       firstContent,
