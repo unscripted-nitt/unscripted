@@ -1,39 +1,71 @@
+// js/preloader.js — animates and dismisses the "UNSCRIPTED" intro screen.
+//
+// The overlay itself is static HTML (the very first thing in <body> on
+// every page), styled by the render-blocking preloader.css stylesheet —
+// so it's already on screen before this script even runs. This file's only
+// job is: play a small entrance animation, wait for the real page to be
+// ready (and a minimum display time), then fade the overlay out and remove
+// it from the DOM.
 import { gsap } from 'gsap';
 
-const MIN_DISPLAY_MS = 2000;
+const MIN_VISIBLE_MS = 2000;
 
-function initPreloader() {
-  const el = document.getElementById('app-preloader');
-  if (!el) return;
-  const text = el.querySelector('.preloader-text');
+/** Resolves once the window's `load` event has fired (or immediately if it already has). */
+function whenPageLoaded() {
+  return new Promise((resolve) => {
+    if (document.readyState === 'complete') {
+      resolve();
+      return;
+    }
+    window.addEventListener('load', () => resolve(), { once: true });
+  });
+}
 
-  const started = Date.now();
-  const hide = () => {
-    const elapsed = Date.now() - started;
-    const wait = Math.max(0, MIN_DISPLAY_MS - elapsed);
-    setTimeout(() => {
-      el.classList.add('hide');
-      setTimeout(() => el.remove(), 550);
-    }, wait);
-  };
+/** Resolves after at least `ms` milliseconds have passed since `since`. */
+function whenMinimumTimeElapsed(since, ms) {
+  const remaining = ms - (Date.now() - since);
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, remaining)));
+}
 
-  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReducedMotion) {
-    if (document.readyState === 'complete') hide();
-    else window.addEventListener('load', hide, { once: true });
-    return;
+function playEntranceAnimation(textEl, reduceMotion) {
+  if (reduceMotion) {
+    gsap.set(textEl, { opacity: 1, scale: 1, color: '#FF5722' });
+    return Promise.resolve();
   }
+  return gsap.timeline()
+    .to(textEl, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' })
+    .to(textEl, { color: '#FF5722', duration: 0.6, ease: 'power2.out' }, '+=0.3')
+    .then(() => {});
+}
 
-  gsap.timeline()
-    .to(text, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' })
-    .to(text, { color: '#FF5722', duration: 0.6, ease: 'power2.out' }, '+=0.3');
+function dismiss(overlayEl) {
+  overlayEl.classList.add('hide');
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      overlayEl.remove();
+      resolve();
+    }, 550); // matches the CSS transition duration on .hide
+  });
+}
 
-  if (document.readyState === 'complete') hide();
-  else window.addEventListener('load', hide, { once: true });
+async function runPreloader() {
+  const overlay = document.getElementById('app-preloader');
+  if (!overlay) return; // page is missing the static markup — nothing to do
+
+  const textEl = overlay.querySelector('.preloader-text');
+  const reduceMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const shownAt = Date.now();
+
+  await Promise.all([
+    playEntranceAnimation(textEl, reduceMotion),
+    whenPageLoaded(),
+  ]);
+  await whenMinimumTimeElapsed(shownAt, MIN_VISIBLE_MS);
+  await dismiss(overlay);
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPreloader);
+  document.addEventListener('DOMContentLoaded', runPreloader);
 } else {
-  initPreloader();
+  runPreloader();
 }
