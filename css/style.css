@@ -803,28 +803,34 @@ h2 { font-size: clamp(1.8rem, 4vw, 2.75rem); margin-bottom: 1.25rem; }
   gap: 1.5rem;
 }
 .member-card {
-  padding: 2rem 1.5rem;
+  position: relative;
+  aspect-ratio: 3 / 4;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  text-align: center;
+  overflow: hidden;
   transition: all var(--transition);
 }
 .member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: rgba(255,87,34,0.2); }
-.member-card h3 { font-size: 1rem; margin: 0.85rem 0 0.25rem; font-family: var(--font-body); }
-.dept { font-size: 0.78rem; color: var(--text-light); font-weight: 600; }
-.avatar {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  margin: 0 auto;
+.member-photo-fallback {
+  width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
+  font-size: 2.4rem;
   font-weight: 800;
   color: #fff;
-  overflow: hidden;
   font-family: var(--font-display);
 }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.member-overlay {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: rgba(15,15,15,0.82);
+}
+.member-overlay h3 { font-size: 1.05rem; margin: 0; font-family: var(--font-body); color: #fff; }
+.member-overlay .dept { font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 600; }
+.member-overlay .role { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); font-weight: 700; margin-top: 0.25rem; }
 
 /* ═══════════════════════════════════════════════════════════
    VIDEOS GRID
@@ -1654,23 +1660,39 @@ tr:hover td { background: var(--surface2); }
    overrides here need !important to actually take effect. */
 #leaderboardTable th,
 #rolesTable th {
-  padding: 0.4rem 0.35rem !important;
-  font-size: 0.68rem !important;
-  height: 90px !important;
+  padding: 0.35rem 0.5rem !important;
+  font-size: 0.65rem !important;
+  height: 70px !important;
 }
 
 #leaderboardTable td,
 #rolesTable td {
-  padding: 0.4rem 0.5rem !important;
+  padding: 0.35rem 0.6rem !important;
   font-size: 0.78rem !important;
 }
 
 #leaderboardTable,
 #rolesTable {
   border-collapse: collapse;
+  width: auto;
+  table-layout: auto;
 }
 
 #leaderboardTable tr,
 #rolesTable tr {
   border-bottom: 1px solid var(--border);
+}
+
+/* Vertical grid lines to match the horizontal row borders */
+#leaderboardTable th,
+#leaderboardTable td,
+#rolesTable th,
+#rolesTable td {
+  border-right: 1px solid var(--border);
+}
+#leaderboardTable th:last-child,
+#leaderboardTable td:last-child,
+#rolesTable th:last-child,
+#rolesTable td:last-child {
+  border-right: none;
 }
