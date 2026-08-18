@@ -67,16 +67,19 @@
 /* ── Unscripted hero override ─────────────────────────────────
    The hero uses TrueFocus in place of the static "Excellence, In
    All, Through Fun." heading, so it needs to inherit the site's
-   display font/size instead of the component's own defaults. */
+   display font/size instead of the component's own defaults, and
+   stack each phrase on its own line. Text color per word is set
+   inline by TrueFocus (wordColors option) rather than here. */
 .hero-title-focus.focus-container {
+  flex-direction: column;
   justify-content: center;
-  gap: 0.28em;
-  row-gap: 0.1em;
+  align-items: center;
+  gap: 0.12em;
 }
 .hero-title-focus .focus-word {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 8vw, 6rem);
   font-weight: 900;
-  color: #ffffff;
   letter-spacing: -0.01em;
+  line-height: 1.05;
 }
