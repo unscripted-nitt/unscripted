@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
+  <link rel="stylesheet" href="../css/live-chat.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -69,6 +70,7 @@
       <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon"><i class="fa-solid fa-star"></i></span> Points Guide</a>
 
       <div class="sidebar-label">Club</div>
+      <a class="dash-nav-item" onclick="showSection('chat')"><span class="dash-nav-icon">💬</span> Live Chat</a>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
       <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Attendance</a>
       <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon"><i class="fa-regular fa-images"></i></span> Gallery</a>
@@ -308,6 +310,28 @@
       <p class="section-sub">Moments worth remembering (includes member-only photos)</p>
       <div class="card">
         <div id="dashGallery"><div class="gallery-placeholder">Loading moments...</div></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────────────── -->
+    <!-- SECTION: LIVE CHAT                                   -->
+    <!-- ──────────────────────────────────────────────────── -->
+    <div class="dash-section" id="section-chat">
+      <h2 class="section-title">💬 Live Chat 🎤</h2>
+      <p class="section-sub">Chat with the whole club in real time</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time) — click a folded row to expand it. Tap the reply icon on any message to tag it in your reply.</span>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div id="chatMessagesContainer" class="chat-messages"></div>
+        <div id="chatReplyPreview" class="chat-reply-preview" style="display:none;"></div>
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for new line)"></textarea>
+          <button class="btn-primary" id="chatSendBtn" onclick="sendChatMessage()" style="padding:0.75rem 1.4rem;flex-shrink:0;">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -652,7 +676,18 @@ window.showSection = function(id) {
   if (id === 'analysis' && !chartsRendered && userData) { loadAndRenderAnalysis(); chartsRendered = true; }
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
   if (id === 'events-dash') loadDashEvents();
+  if (id === 'chat') initChatSection(); else stopChatPolling();
 };
+
+// Pause polling whenever the browser tab itself isn't visible (saves RAM/
+// battery/reads even if the user just alt-tabs away without switching
+// dashboard sections), and resume it if they come back while Live Chat is
+// still the open section.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { stopChatPolling(); return; }
+  const chatSection = document.getElementById('section-chat');
+  if (chatSection && chatSection.classList.contains('active')) startChatPolling();
+});
 
 async function loadRoleGuidesForPointsPage() {
   try {
@@ -1999,6 +2034,335 @@ window.onclick = function(event) {
   if (event.target === document.getElementById('settingsModal')) closeSettingsModal();
   if (event.target === document.getElementById('commonNotifModal')) dismissCommonNotif();
 };
+
+// ═══════════════════════════════════════════════════════════
+// LIVE CHAT
+//
+// Stored in the `chatMessages` Firestore collection:
+//   { text, senderUid, senderName, senderPhoto, createdAt, replyTo }
+// replyTo is either null or { id, name, text } (a short snippet of the
+// tagged message).
+//
+// Behaviour (per spec):
+//  - Polls for new messages once a second, but ONLY while the Live Chat
+//    section is the active dashboard tab AND the browser tab is visible —
+//    otherwise the interval is cleared outright (no background timers
+//    ticking away, no RAM/battery/read cost while nobody's looking).
+//  - Each poll only asks Firestore for messages newer than the last one
+//    already loaded (`where('createdAt','>', chatLastTimestamp)`), so a
+//    quiet chat costs a cheap near-empty query, not a full re-fetch.
+//  - History folds by Indian Standard Time calendar boundaries: today's
+//    messages are always shown live and flat; earlier days in the current
+//    month collapse into a per-day row; once a month has fully passed its
+//    days collapse together under that month; once a year has fully
+//    passed its months collapse together under that year. Everything is
+//    plain nested <details>/<summary> so expand/collapse needs no JS.
+// ═══════════════════════════════════════════════════════════
+const CHAT_COLLECTION = 'chatMessages';
+const IST_TZ = 'Asia/Kolkata';
+let chatMessages = [];
+let chatLastTimestamp = null;
+let chatPollTimer = null;
+let chatInitialLoaded = false;
+let chatReplyingTo = null;
+
+function chatEscapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+function chatToDate(ts) {
+  if (!ts) return new Date();
+  return ts.toDate ? ts.toDate() : new Date(ts);
+}
+function chatIstParts(d) {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: IST_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(d);
+  const [y,m,day] = parts.split('-').map(Number);
+  return { y, m, d: day };
+}
+function chatIstTime(d) {
+  return new Intl.DateTimeFormat('en-IN', { timeZone: IST_TZ, hour:'numeric', minute:'2-digit', hour12:true }).format(d);
+}
+function chatIstDayLabel(d) {
+  return new Intl.DateTimeFormat('en-IN', { timeZone: IST_TZ, day:'numeric', month:'long', year:'numeric' }).format(d);
+}
+function chatIstMonthLabel(y,m) {
+  return new Intl.DateTimeFormat('en-IN', { timeZone: IST_TZ, month:'long', year:'numeric' }).format(new Date(Date.UTC(y, m-1, 15)));
+}
+
+window.initChatSection = async function() {
+  if (!chatInitialLoaded) {
+    chatInitialLoaded = true;
+    await chatLoadInitial();
+  }
+  startChatPolling();
+};
+
+function startChatPolling() {
+  stopChatPolling();
+  if (document.visibilityState !== 'visible') return;
+  chatPollTimer = setInterval(chatPoll, 1000);
+}
+function stopChatPolling() {
+  if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
+}
+
+async function chatLoadInitial() {
+  const container = document.getElementById('chatMessagesContainer');
+  container.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">Loading chat...</p>';
+  try {
+    const snap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(500)));
+    const docs = [];
+    snap.forEach(d => docs.push({ id:d.id, ...d.data() }));
+    docs.reverse(); // oldest → newest
+    chatMessages = docs;
+    if (docs.length) chatLastTimestamp = chatToDate(docs[docs.length-1].createdAt);
+    renderChatMessages(true);
+  } catch(e) {
+    console.warn('Chat load error', e);
+    container.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">Could not load chat. Ask an admin to check the chatMessages Firestore rules.</p>';
+  }
+}
+
+async function chatPoll() {
+  const chatSection = document.getElementById('section-chat');
+  if (!chatSection || !chatSection.classList.contains('active')) { stopChatPolling(); return; }
+  if (document.hidden) { stopChatPolling(); return; }
+  try {
+    let q;
+    if (chatLastTimestamp) {
+      q = query(collection(db, CHAT_COLLECTION), where('createdAt','>', chatLastTimestamp), orderBy('createdAt','asc'), limit(200));
+    } else {
+      q = query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(500));
+    }
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+    const fresh = [];
+    snap.forEach(d => fresh.push({ id:d.id, ...d.data() }));
+    if (!chatLastTimestamp) fresh.reverse();
+    const existingIds = new Set(chatMessages.map(m => m.id));
+    const newOnes = fresh.filter(m => !existingIds.has(m.id));
+    if (!newOnes.length) return;
+    chatMessages = chatMessages.concat(newOnes);
+    chatLastTimestamp = chatToDate(chatMessages[chatMessages.length-1].createdAt);
+    renderChatMessages(false);
+  } catch(e) { console.warn('Chat poll error', e); }
+}
+
+function renderChatMessages(scrollToBottom) {
+  const container = document.getElementById('chatMessagesContainer');
+  const wasNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+
+  const now = new Date();
+  const nowP = chatIstParts(now);
+
+  // Bucket every message by IST calendar day.
+  const dayMap = new Map(); // 'y-m-d' -> { y,m,d, messages:[] }
+  chatMessages.forEach(msg => {
+    const d = chatToDate(msg.createdAt);
+    const p = chatIstParts(d);
+    const key = `${p.y}-${p.m}-${p.d}`;
+    if (!dayMap.has(key)) dayMap.set(key, { y:p.y, m:p.m, d:p.d, messages: [] });
+    dayMap.get(key).messages.push(msg);
+  });
+
+  const todayKey = `${nowP.y}-${nowP.m}-${nowP.d}`;
+  const todayBucket = dayMap.get(todayKey);
+  const pastDays = [...dayMap.entries()]
+    .filter(([k]) => k !== todayKey)
+    .map(([,v]) => v)
+    .sort((a,b) => (a.y-b.y) || (a.m-b.m) || (a.d-b.d));
+
+  // Nest past days -> months (if not current month) -> years (if not current year)
+  const yearMap = new Map(); // y -> { y, months: Map(m -> {m, days:[]}), sameYearDays:[] }
+  pastDays.forEach(day => {
+    const sameYear  = day.y === nowP.y;
+    const sameMonth = sameYear && day.m === nowP.m;
+    if (sameMonth) {
+      // Standalone day group, rendered directly (not nested under month/year)
+      day._tier = 'day';
+      return;
+    }
+    if (!yearMap.has(day.y)) yearMap.set(day.y, { y: day.y, months: new Map() });
+    const yearEntry = yearMap.get(day.y);
+    if (sameYear) {
+      // Earlier month, same year → standalone month group
+      if (!yearEntry.months.has(day.m)) yearEntry.months.set(day.m, { m: day.m, days: [] });
+      yearEntry.months.get(day.m).days.push(day);
+      day._tier = 'monthday';
+    } else {
+      // Earlier year entirely → nested under the year group
+      if (!yearEntry.months.has(day.m)) yearEntry.months.set(day.m, { m: day.m, days: [] });
+      yearEntry.months.get(day.m).days.push(day);
+      day._tier = 'yearday';
+    }
+  });
+
+  let html = '';
+
+  // Fully past years, oldest first
+  const pastYears = [...yearMap.keys()].filter(y => y !== nowP.y).sort((a,b)=>a-b);
+  pastYears.forEach(y => {
+    const yearEntry = yearMap.get(y);
+    const monthCount = yearEntry.months.size;
+    const msgCount = [...yearEntry.months.values()].reduce((a,mo)=>a+mo.days.reduce((b,d)=>b+d.messages.length,0),0);
+    html += `<details class="chat-fold chat-fold-year">
+      <summary>📅 ${y} <span class="chat-fold-meta">${monthCount} month${monthCount!==1?'s':''} &middot; ${msgCount} message${msgCount!==1?'s':''}</span></summary>
+      <div class="chat-fold-body">`;
+    [...yearEntry.months.keys()].sort((a,b)=>a-b).forEach(m => {
+      const monthEntry = yearEntry.months.get(m);
+      const monthMsgCount = monthEntry.days.reduce((a,d)=>a+d.messages.length,0);
+      html += `<details class="chat-fold chat-fold-month">
+        <summary>🗓️ ${chatEscapeHtml(chatIstMonthLabel(y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
+        <div class="chat-fold-body">`;
+      monthEntry.days.forEach(day => { html += renderChatDayGroup(day); });
+      html += `</div></details>`;
+    });
+    html += `</div></details>`;
+  });
+
+  // Earlier months of the current year, standalone (not nested in a year fold)
+  if (yearMap.has(nowP.y)) {
+    const curYearEntry = yearMap.get(nowP.y);
+    [...curYearEntry.months.keys()].sort((a,b)=>a-b).forEach(m => {
+      const monthEntry = curYearEntry.months.get(m);
+      const monthMsgCount = monthEntry.days.reduce((a,d)=>a+d.messages.length,0);
+      html += `<details class="chat-fold chat-fold-month">
+        <summary>🗓️ ${chatEscapeHtml(chatIstMonthLabel(nowP.y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
+        <div class="chat-fold-body">`;
+      monthEntry.days.forEach(day => { html += renderChatDayGroup(day); });
+      html += `</div></details>`;
+    });
+  }
+
+  // Earlier days of the current month, standalone
+  pastDays.filter(d => d._tier === 'day').forEach(day => { html += renderChatDayGroup(day); });
+
+  // Today — always flat and expanded, the "live" feed
+  html += `<div class="chat-today-label">Today &middot; ${chatEscapeHtml(chatIstDayLabel(now))}</div>`;
+  if (todayBucket && todayBucket.messages.length) {
+    html += todayBucket.messages.map(renderChatBubble).join('');
+  } else {
+    html += `<p style="padding:1.5rem;text-align:center;color:var(--text-mid);font-size:0.85rem;">No messages yet today — say hi! 👋</p>`;
+  }
+
+  container.innerHTML = html || '<p style="padding:2rem;text-align:center;color:var(--text-mid);">No messages yet. Start the conversation!</p>';
+
+  if (scrollToBottom || wasNearBottom) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+function renderChatDayGroup(day) {
+  const label = chatIstDayLabel(new Date(Date.UTC(day.y, day.m-1, day.d, 12)));
+  return `<details class="chat-fold chat-fold-day">
+    <summary>📆 ${chatEscapeHtml(label)} <span class="chat-fold-meta">${day.messages.length} message${day.messages.length!==1?'s':''}</span></summary>
+    <div class="chat-fold-body">${day.messages.map(renderChatBubble).join('')}</div>
+  </details>`;
+}
+
+function renderChatBubble(msg) {
+  const isMe = userData && msg.senderUid === currentUid;
+  const initials = (msg.senderName||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const avatar = msg.senderPhoto
+    ? `<img src="${msg.senderPhoto}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
+    : initials;
+  const timeLabel = chatIstTime(chatToDate(msg.createdAt));
+  const dayLabel = chatIstDayLabel(chatToDate(msg.createdAt));
+  const replyHtml = msg.replyTo
+    ? `<div class="chat-reply-tag" onclick="scrollToChatMessage('${msg.replyTo.id}')">
+        <i class="fa-solid fa-reply"></i> <strong>${chatEscapeHtml(msg.replyTo.name)}</strong>: ${chatEscapeHtml(msg.replyTo.text)}
+      </div>`
+    : '';
+  const safeName = chatEscapeHtml(msg.senderName||'Member').replace(/'/g,"\\'");
+  const safeSnippet = chatEscapeHtml((msg.text||'').slice(0,120)).replace(/'/g,"\\'");
+  return `<div class="chat-msg ${isMe?'chat-msg-mine':''}" id="msg-${msg.id}">
+    <div class="dash-avatar chat-msg-avatar">${avatar}</div>
+    <div class="chat-msg-body">
+      <div class="chat-msg-meta">
+        <span class="chat-msg-name">${chatEscapeHtml(msg.senderName||'Member')}</span>
+        <span class="chat-msg-time" title="${chatEscapeHtml(dayLabel)}">${chatEscapeHtml(timeLabel)}</span>
+      </div>
+      ${replyHtml}
+      <div class="chat-msg-text">${chatEscapeHtml(msg.text||'')}</div>
+      <button class="chat-msg-reply-btn" onclick="replyToChatMessage('${msg.id}','${safeName}','${safeSnippet}')" title="Reply">
+        <i class="fa-solid fa-reply"></i>
+      </button>
+    </div>
+  </div>`;
+}
+
+window.scrollToChatMessage = function(id) {
+  const el = document.getElementById('msg-' + id);
+  if (!el) { alert('That message is further back in history than what\'s currently loaded.'); return; }
+  let node = el;
+  while (node && node.id !== 'chatMessagesContainer') {
+    if (node.tagName === 'DETAILS') node.open = true;
+    node = node.parentElement;
+  }
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  el.classList.add('chat-msg-highlight');
+  setTimeout(() => el.classList.remove('chat-msg-highlight'), 1600);
+};
+
+window.replyToChatMessage = function(id, name, text) {
+  chatReplyingTo = { id, name, text: text.length > 100 ? text.slice(0,100)+'…' : text };
+  renderChatReplyPreview();
+  document.getElementById('chatInput')?.focus();
+};
+window.cancelChatReply = function() {
+  chatReplyingTo = null;
+  renderChatReplyPreview();
+};
+function renderChatReplyPreview() {
+  const box = document.getElementById('chatReplyPreview');
+  if (!box) return;
+  if (!chatReplyingTo) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'flex';
+  box.innerHTML = `<div style="flex:1;overflow:hidden;">
+      <div class="chat-reply-preview-name">Replying to ${chatEscapeHtml(chatReplyingTo.name)}</div>
+      <div class="chat-reply-preview-text">${chatEscapeHtml(chatReplyingTo.text)}</div>
+    </div>
+    <button onclick="cancelChatReply()" title="Cancel reply"><i class="fa-solid fa-xmark"></i></button>`;
+}
+
+window.sendChatMessage = async function() {
+  const input = document.getElementById('chatInput');
+  const text = (input.value || '').trim();
+  if (!text || !userData) return;
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+  try {
+    await addDoc(collection(db, CHAT_COLLECTION), {
+      text,
+      senderUid: currentUid,
+      senderName: userData.name || 'Member',
+      senderPhoto: userData.photoUrl || '',
+      createdAt: serverTimestamp(),
+      replyTo: chatReplyingTo ? { id: chatReplyingTo.id, name: chatReplyingTo.name, text: chatReplyingTo.text } : null
+    });
+    input.value = '';
+    input.style.height = 'auto';
+    chatReplyingTo = null;
+    renderChatReplyPreview();
+    await chatPoll();
+  } catch(e) {
+    alert('Could not send message: ' + e.message);
+  } finally { btn.disabled = false; }
+};
+
+// Enter to send, Shift+Enter for newline; textarea grows with content.
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+  });
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  });
+});
 </script>
 </body>
 </html>
