@@ -1,0 +1,48 @@
+.pixel-transition {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.pixel-transition:focus {
+  outline: none;
+}
+.pixel-transition__default,
+.pixel-transition__active,
+.pixel-transition__pixels {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pixel-transition__default,
+.pixel-transition__active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pixel-transition__active {
+  z-index: 2;
+  display: none;
+}
+.pixel-transition__pixels {
+  pointer-events: none;
+  z-index: 3;
+}
+.pixel-transition__pixel {
+  display: none;
+  position: absolute;
+}
+
+/* ── Unscripted members grid override ─────────────────────────
+   Applied to each member's .avatar circle: hovering (or tapping,
+   on touch) pixel-dissolves the photo/initials into a role badge.
+   .avatar already has border-radius:50% + overflow:hidden, so the
+   layers above are clipped into the circle automatically. */
+.avatar.pixel-avatar {
+  position: relative;
+}
+.pixel-avatar .pixel-transition__default img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
