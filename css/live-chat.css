@@ -44,7 +44,7 @@
 }
 .chat-fold[open] > summary::before { transform: rotate(90deg); }
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
-.chat-fold-body { padding: 0.5rem 0.75rem 1.5rem; }
+.chat-fold-body { padding: 0.5rem 0.75rem 3rem; }
 
 /* Each opened fold gets its own tall, independently-scrollable box —
    otherwise a day/month/year with many messages just keeps growing and
@@ -60,15 +60,15 @@
    actively dragged, which otherwise looks identical to a broken, clipped
    box even when the content technically scrolls fine. */
 .chat-fold-day > .chat-fold-body {
-  max-height: 560px;
+  max-height: 700px;
   overflow-y: scroll;
 }
 .chat-fold-month > .chat-fold-body {
-  max-height: 660px;
+  max-height: 800px;
   overflow-y: scroll;
 }
 .chat-fold-year > .chat-fold-body {
-  max-height: 720px;
+  max-height: 880px;
   overflow-y: scroll;
 }
 /* A day fold nested inside an already-scrollable month/year fold shouldn't
