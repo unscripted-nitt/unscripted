@@ -46,6 +46,67 @@
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
 .chat-fold-body { padding: 0.5rem 0.75rem 0.75rem; }
 
+/* Each opened fold gets its own capped, independently-scrollable box —
+   otherwise a day/month/year with many messages just keeps growing and
+   gets visually cut off by whatever comes after it (e.g. "Today"), with
+   no scrollbar of its own to reveal the rest.
+   Using `scroll` (not `auto`) plus explicit scrollbar styling forces a
+   visible, themed scrollbar to always render here — default OS/overlay
+   scrollbars (macOS, some Windows dark themes) can stay invisible until
+   actively dragged, which otherwise looks identical to a broken, clipped
+   box even when the content technically scrolls fine. */
+.chat-fold-day > .chat-fold-body {
+  max-height: 320px;
+  overflow-y: scroll;
+}
+.chat-fold-month > .chat-fold-body {
+  max-height: 420px;
+  overflow-y: scroll;
+}
+.chat-fold-year > .chat-fold-body {
+  max-height: 480px;
+  overflow-y: scroll;
+}
+/* A day fold nested inside an already-scrollable month/year fold shouldn't
+   double up its own scrollbar inside another scrollbar — let it grow
+   naturally there instead, since the ancestor fold already scrolls it. */
+.chat-fold-month .chat-fold-day > .chat-fold-body,
+.chat-fold-year .chat-fold-day > .chat-fold-body {
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* Themed, always-visible scrollbar for the three fold levels above. */
+.chat-fold-day > .chat-fold-body,
+.chat-fold-month > .chat-fold-body,
+.chat-fold-year > .chat-fold-body {
+  scrollbar-width: thin;                                 /* Firefox */
+  scrollbar-color: var(--orange) var(--surface2);        /* Firefox */
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar {
+  width: 9px;
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-track,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-track,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-track {
+  background: var(--surface2);
+  border-radius: 8px;
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb {
+  background: var(--orange);
+  border-radius: 8px;
+  border: 2px solid var(--surface2);
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb:hover,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb:hover,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb:hover {
+  background: var(--orange-dark, var(--orange));
+}
+
 .chat-fold-year  > summary { background: var(--orange-light); }
 .chat-fold-month > summary { background: var(--surface2); }
 .chat-fold-day   > summary { background: var(--surface2); }
