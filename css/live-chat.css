@@ -59,7 +59,7 @@
 }
 .chat-fold[open] > summary::before { transform: rotate(90deg); }
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
-.chat-fold-body { padding: 0.5rem 0.75rem 5rem; }
+.chat-fold-body { padding: 0.5rem 0.75rem 8rem; }
 
 /* Each opened fold gets its own scrollable "pop-up" window, sized to
    half the height of the main "Today" window above (.chat-messages) —
