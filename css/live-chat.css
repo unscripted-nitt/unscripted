@@ -4,8 +4,8 @@
    messages always render flat below the folds as the live feed. */
 
 .chat-messages {
-  max-height: 85vh;
-  min-height: 600px;
+  max-height: 90vh;
+  min-height: 640px;
   overflow-y: scroll;
   padding: 1.25rem 1.25rem 2rem;
   display: flex;
@@ -31,7 +31,7 @@
 
 /* ── Fold accordions (day / month / year) ─────────────────── */
 .chat-fold {
-  margin: 0.4rem 0;
+  margin: 0.4rem 0.6rem 0.4rem 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -59,26 +59,32 @@
 }
 .chat-fold[open] > summary::before { transform: rotate(90deg); }
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
-.chat-fold-body { padding: 0.5rem 0.75rem 3rem; }
+.chat-fold-body { padding: 0.5rem 0.75rem 5rem; }
 
 /* Each opened fold gets its own scrollable "pop-up" window, sized to
    half the height of the main "Today" window above (.chat-messages) —
    this keeps it meaningfully smaller than its outer scroll container so
    it always sits fully within view, with its own scrollbar confined to
    its own box. Generous bottom padding on .chat-fold-body (above) keeps
-   the last message from ever sitting flush against that scroll edge. */
+   the last message from ever sitting flush against that scroll edge —
+   several lines of empty space below the last bubble once fully
+   scrolled down.
+   The fold sits with a right-hand margin (.chat-fold, above) and its
+   scrollbar is a muted grey rather than orange, so it reads as a
+   clearly separate, inset bar next to the main window's orange one —
+   not a continuation of it. */
 .chat-fold-day > .chat-fold-body,
 .chat-fold-month > .chat-fold-body,
 .chat-fold-year > .chat-fold-body {
-  max-height: 42vh;
+  max-height: 45vh;
   overflow-y: scroll;
   scrollbar-width: thin;                                 /* Firefox */
-  scrollbar-color: var(--orange) var(--surface2);        /* Firefox */
+  scrollbar-color: var(--text-light) var(--surface2);    /* Firefox */
 }
 .chat-fold-day > .chat-fold-body::-webkit-scrollbar,
 .chat-fold-month > .chat-fold-body::-webkit-scrollbar,
 .chat-fold-year > .chat-fold-body::-webkit-scrollbar {
-  width: 9px;
+  width: 7px;
 }
 .chat-fold-day > .chat-fold-body::-webkit-scrollbar-track,
 .chat-fold-month > .chat-fold-body::-webkit-scrollbar-track,
@@ -89,14 +95,14 @@
 .chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb,
 .chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb,
 .chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb {
-  background: var(--orange);
+  background: var(--text-light);
   border-radius: 8px;
   border: 2px solid var(--surface2);
 }
 .chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb:hover,
 .chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb:hover,
 .chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb:hover {
-  background: var(--orange-dark, var(--orange));
+  background: var(--orange);
 }
 /* A day fold nested inside an already-scrollable month/year fold
    shouldn't get a third, doubled-up scrollbar inside the month/year
