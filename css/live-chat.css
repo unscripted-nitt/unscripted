@@ -36,6 +36,20 @@
   border-radius: var(--radius-sm);
   background: var(--surface);
   overflow: hidden;
+  /* .chat-messages is a flex column container, and this element is a flex
+     item. Chrome/Blink has a layout bug where a <details> element used as a
+     flex item, whose <summary> child is itself display:flex (needed below
+     for the icon/label/count row), gets its intrinsic auto-height
+     mis-measured by the flex sizing algorithm and collapses to ~1-2px even
+     though its actual rendered content (the summary row, and — when open —
+     the message list) is normal height. It's not hidden and not zero
+     content, it's a sizing bug: the flex item's automatic minimum size
+     (flex-basis: auto → content size) comes out wrong specifically for a
+     <details>+flex-summary combination. flex-shrink: 0 opts this item out
+     of that shrink-to-fit calculation entirely and forces the browser to
+     size it off its actual rendered content instead, which is the standard
+     fix for this bug. */
+  flex-shrink: 0;
 }
 .chat-fold summary {
   list-style: none;
