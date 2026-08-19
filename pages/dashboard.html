@@ -1389,6 +1389,42 @@ const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
 // Runs once whenever the person opens the Notifications section: marks any
 // unread personal notifications as read and remembers the latest common
 // announcement as seen, so the bell/sidebar badge clears without a reload.
+//
+// Durability note: marking something "seen" ultimately means writing to
+// Firestore (updateDoc / lastSeenCommonNotifId), but that write is a network
+// round-trip. If the page gets reloaded a moment after opening the tab —
+// before that write has actually reached the server — the reload cancels
+// the in-flight request, the server never learns it was read, and the
+// personal/common popup would come back on the next login. To make "seen"
+// durable immediately (not just once the network catches up), we also
+// stamp a local, per-user record in localStorage the instant something is
+// shown/marked seen. That local record survives reloads unconditionally,
+// and both the login-popup logic and the badge logic check it in addition
+// to the Firestore fields.
+function notifSeenPersonalKey(uid) { return `unscripted-seen-personal-${uid}`; }
+function notifSeenCommonKey(uid) { return `unscripted-seen-common-${uid}`; }
+
+function getLocallySeenPersonalIds(uid) {
+  try { return new Set(JSON.parse(localStorage.getItem(notifSeenPersonalKey(uid)) || '[]')); }
+  catch(e) { return new Set(); }
+}
+function markLocallySeenPersonalIds(uid, ids) {
+  if (!ids.length) return;
+  try {
+    const set = getLocallySeenPersonalIds(uid);
+    ids.forEach(id => set.add(id));
+    localStorage.setItem(notifSeenPersonalKey(uid), JSON.stringify([...set]));
+  } catch(e) { /* localStorage unavailable — Firestore read flag still applies */ }
+}
+function getLocallySeenCommonId(uid) {
+  try { return localStorage.getItem(notifSeenCommonKey(uid)) || ''; }
+  catch(e) { return ''; }
+}
+function markLocallySeenCommonId(uid, id) {
+  try { localStorage.setItem(notifSeenCommonKey(uid), id); }
+  catch(e) { /* localStorage unavailable — Firestore lastSeenCommonNotifId still applies */ }
+}
+
 let notifPollTimer = null;
 async function markNotificationsSeen() {
   // Instant UI feedback: clear the badges and the "unread" highlight in the
@@ -1407,8 +1443,12 @@ async function markNotificationsSeen() {
   try {
     const pSnap = await getDocs(query(collection(db,'notifications'),
       where('type','==','personal'), where('targetUid','==',currentUid), where('read','==',false)));
-    const updates = [];
-    pSnap.forEach(d => updates.push(updateDoc(doc(db,'notifications',d.id), {read:true})));
+    const unreadIds = [];
+    pSnap.forEach(d => unreadIds.push(d.id));
+    // Stamp these as locally seen right away — before the writes below even
+    // start — so a reload mid-write still keeps them from popping up again.
+    markLocallySeenPersonalIds(currentUid, unreadIds);
+    const updates = unreadIds.map(id => updateDoc(doc(db,'notifications',id), {read:true}));
     if (updates.length) await Promise.all(updates);
 
     const cSnap = await getDocs(query(collection(db,'notifications'), where('type','==','common')));
@@ -1418,6 +1458,7 @@ async function markNotificationsSeen() {
     if (allCommon.length && userData && userData.lastSeenCommonNotifId !== allCommon[0].id) {
       _lastCommonNotifId = allCommon[0].id;
       userData.lastSeenCommonNotifId = allCommon[0].id;
+      markLocallySeenCommonId(currentUid, allCommon[0].id);
       updateDoc(doc(db,'users',currentUid), { lastSeenCommonNotifId: allCommon[0].id })
         .catch(e => console.warn('Could not save lastSeenCommonNotifId', e));
     }
@@ -1450,17 +1491,25 @@ async function checkPersonalNotification() {
     const unread = [];
     snap.forEach(d => unread.push({id:d.id,...d.data()}));
     unread.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
-    const n = unread[0];
+    // Firestore says these are unread, but skip any we've already shown on
+    // this device (localStorage) — covers the case where a previous
+    // mark-as-read write was still in flight when the page last reloaded.
+    const locallySeen = getLocallySeenPersonalIds(currentUid);
+    const n = unread.find(x => !locallySeen.has(x.id));
+    if (n) {
     document.getElementById('pnModalTitle').textContent = n.title;
     document.getElementById('pnModalBody').textContent = n.body;
     document.getElementById('pnModalTime').textContent = formatTime(n.createdAt);
     document.getElementById('personalNotifModal').classList.add('open');
+    markLocallySeenPersonalIds(currentUid, [n.id]);
     await updateDoc(doc(db,'notifications',n.id), {read:true});
+    }
     }
   } catch(e) { console.warn('Personal notif check error',e); }
   // Show latest common notification as popup if not seen yet
   try {
     const lastSeen = userData.lastSeenCommonNotifId || '';
+    const lastSeenLocal = getLocallySeenCommonId(currentUid);
     const cSnap = await getDocs(query(collection(db,'notifications'),
   where('type','==','common')));
 const allCommon = [];
@@ -1468,8 +1517,9 @@ cSnap.forEach(d => allCommon.push({id:d.id,...d.data()}));
 allCommon.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
 if (allCommon.length > 0) {
   const cn = allCommon[0];
-      if (cn.id !== lastSeen) {
+      if (cn.id !== lastSeen && cn.id !== lastSeenLocal) {
         _lastCommonNotifId = cn.id;
+        markLocallySeenCommonId(currentUid, cn.id);
         document.getElementById('cnModalTitle').textContent = cn.title;
         document.getElementById('cnModalBody').textContent = cn.body;
         document.getElementById('cnModalTime').textContent = formatTime(cn.createdAt);
@@ -2165,6 +2215,31 @@ let chatUnreadWatcherTimer = null;
 // doesn't silently snap them back closed mid-read.
 let chatOpenFolds = new Set();
 
+// Message IDs with a reaction write currently in flight to Firestore. While
+// a message's id is in this set, chatPoll's refresh-window merge (below)
+// leaves that message's local copy alone instead of overwriting it with
+// whatever the server still has — otherwise a reaction added by the user
+// could get wiped out by the very next poll tick if that tick's read of the
+// server happened to land before the write did.
+let chatPendingReactionMsgIds = new Set();
+
+// Cheap fingerprint of the fields that actually affect what's rendered for
+// a message. Used instead of comparing whole Firestore doc objects, since
+// re-fetching the same unchanged document can still produce a new object
+// reference (and Timestamp fields don't always serialize identically
+// between reads) — comparing those directly caused a full re-render, and a
+// visible flicker of every bubble, once a second even when nothing had
+// actually changed.
+function chatMsgSignature(m) {
+  const reactionsStr = m.reactions
+    ? Object.keys(m.reactions).sort().map(uid => uid + ':' + m.reactions[uid]).join(',')
+    : '';
+  const editedMillis = m.editedAt?.toMillis?.() ?? '';
+  const replyStr = m.replyTo ? `${m.replyTo.id}|${m.replyTo.name}|${m.replyTo.text}` : '';
+  const mentionsStr = (m.mentions||[]).map(x => x.uid).join(',');
+  return [m.text||'', reactionsStr, m.deleted?1:0, m.deletedBy||'', m.deletedByName||'', editedMillis, replyStr, mentionsStr].join('§');
+}
+
 const CHAT_QUICK_REACTIONS = ['👍','❤️','😂','😮','😢','🙏','🔥','🎉'];
 const CHAT_EMOJI_LIST = [
   '😀','😁','😂','🤣','😊','😇','🙂','🙃','😉','😍','😘','😜','🤪','🤔','😎','🥳',
@@ -2280,24 +2355,41 @@ async function chatLoadInitial() {
   }
 }
 
-// How many of the most-recent messages to re-fetch and diff on every poll
-// tick, in addition to the "what's new" query below. Reactions, edits, and
+// How many of the most-recent messages to re-fetch and diff on refresh
+// ticks, in addition to the "what's new" query below. Reactions, edits, and
 // deletes update a message in place without touching its createdAt, so the
 // watermark query (`createdAt > chatLastTimestamp`) never re-fetches that
 // message again once it's already loaded — which meant a reaction someone
 // else added only ever showed up for the person who clicked it, and
 // everyone else needed a full page reload to see it. Re-diffing a recent
-// window on every tick catches those in-place updates for everyone.
+// window catches those in-place updates for everyone.
 const CHAT_REFRESH_WINDOW = 100;
+// Only run the (more expensive) refresh-window diff every Nth tick — the
+// cheap "what's new" query still runs every tick for near-instant delivery
+// of brand-new messages, but reactions/edits updating in place don't need
+// sub-second latency, and diffing 100 docs every single second was the
+// other half of the "glitching" bug: even with signature-based comparison
+// removing false positives, doing the full round trip that often adds
+// unnecessary Firestore reads and jitter for no real benefit.
+const CHAT_REFRESH_EVERY_N_TICKS = 3;
+let chatPollTickCount = 0;
+// Debounce: never let two poll ticks run concurrently. If a tick is still
+// waiting on Firestore when the next one would fire (slow network), skip
+// the new one rather than stacking overlapping requests that can resolve
+// out of order and stomp on each other.
+let chatPollInProgress = false;
 
 async function chatPoll() {
   const chatSection = document.getElementById('section-chat');
   if (!chatSection || !chatSection.classList.contains('active')) { stopChatPolling(); return; }
   if (document.hidden) { stopChatPolling(); return; }
+  if (chatPollInProgress) return;
+  chatPollInProgress = true;
   try {
     let changed = false;
 
-    // 1) Anything brand new beyond the last message we've loaded.
+    // 1) Anything brand new beyond the last message we've loaded — cheap,
+    //    runs every tick.
     let q;
     if (chatLastTimestamp) {
       q = query(collection(db, CHAT_COLLECTION), where('createdAt','>', chatLastTimestamp), orderBy('createdAt','asc'), limit(200));
@@ -2320,18 +2412,28 @@ async function chatPoll() {
     }
 
     // 2) In-place updates (reactions, edits, deletes) on messages already
-    //    loaded — see CHAT_REFRESH_WINDOW comment above.
-    const refreshSnap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(CHAT_REFRESH_WINDOW)));
-    const refreshMap = new Map();
-    refreshSnap.forEach(d => refreshMap.set(d.id, { id:d.id, ...d.data() }));
-    chatMessages = chatMessages.map(m => {
-      const updated = refreshMap.get(m.id);
-      if (updated && JSON.stringify(updated) !== JSON.stringify(m)) { changed = true; return updated; }
-      return m;
-    });
+    //    loaded — see CHAT_REFRESH_WINDOW / CHAT_REFRESH_EVERY_N_TICKS
+    //    comments above. Only every Nth tick, and skips signature-identical
+    //    docs so this never forces a re-render by itself.
+    chatPollTickCount++;
+    if (chatPollTickCount % CHAT_REFRESH_EVERY_N_TICKS === 0) {
+      const refreshSnap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(CHAT_REFRESH_WINDOW)));
+      const refreshMap = new Map();
+      refreshSnap.forEach(d => refreshMap.set(d.id, { id:d.id, ...d.data() }));
+      chatMessages = chatMessages.map(m => {
+        // Don't let a server read that started before our own reaction
+        // write landed clobber the optimistic local state.
+        if (chatPendingReactionMsgIds.has(m.id)) return m;
+        const updated = refreshMap.get(m.id);
+        if (!updated) return m;
+        if (chatMsgSignature(updated) !== chatMsgSignature(m)) { changed = true; return updated; }
+        return m;
+      });
+    }
 
     if (changed) renderChatMessages(false);
   } catch(e) { console.warn('Chat poll error', e); }
+  finally { chatPollInProgress = false; }
 }
 
 function renderChatMessages(scrollToBottom) {
@@ -2703,21 +2805,49 @@ window.reactToChatMessage = async function(id, emoji) {
   if (!userData) return;
   const msg = chatMessages.find(m => m.id === id);
   if (!msg || msg.deleted) return;
+  // Debounce: ignore taps on a message that already has a reaction write
+  // in flight, so mashing an emoji (or the picker re-opening mid-click)
+  // can't fire overlapping writes that race each other.
+  if (chatPendingReactionMsgIds.has(id)) return;
+
   const current = (msg.reactions||{})[currentUid];
   const removing = current === emoji;
   chatOpenReactionPickerId = null;
+
+  // Optimistic local update: show the reaction instantly rather than
+  // waiting on the round-trip, and mark this message "pending" so the
+  // background poll (chatPoll) won't overwrite it with a pre-write copy of
+  // the server doc before our own write has landed.
+  chatPendingReactionMsgIds.add(id);
+  if (removing) {
+    if (msg.reactions) delete msg.reactions[currentUid];
+  } else {
+    msg.reactions = msg.reactions || {};
+    msg.reactions[currentUid] = emoji;
+  }
+  renderChatMessages(false);
+
   try {
     const field = `reactions.${currentUid}`;
     if (removing) {
       await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: deleteField() });
-      if (msg.reactions) delete msg.reactions[currentUid];
     } else {
       await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: emoji });
+    }
+  } catch(e) {
+    console.warn('Reaction error', e);
+    // Roll back the optimistic change if the write actually failed.
+    const stillCurrent = msg.reactions ? msg.reactions[currentUid] : undefined;
+    if (removing && stillCurrent === undefined) {
       msg.reactions = msg.reactions || {};
       msg.reactions[currentUid] = emoji;
+    } else if (!removing && stillCurrent === emoji) {
+      delete msg.reactions[currentUid];
     }
     renderChatMessages(false);
-  } catch(e) { console.warn('Reaction error', e); }
+  } finally {
+    chatPendingReactionMsgIds.delete(id);
+  }
 };
 
 // ── req 1: emoji picker in the typing area ─────────────────────
