@@ -574,8 +574,8 @@ body.has-warning .sidebar nav { padding-bottom: 12rem; }
 import { auth, db } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, getDocs, collection, query, orderBy, where,
-  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit, deleteField
+  doc, getDoc, getDocs, collection, collectionGroup, query, orderBy, where,
+  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Session timeout
@@ -1339,8 +1339,9 @@ async function loadNotifications() {
     const pCard = document.getElementById('personalNotifsCard');
     if (personalNotifs.length) {
       pCard.style.display = 'block';
+      const locallySeenForList = currentUid ? getLocallySeenPersonalIds(currentUid) : new Set();
       pList.innerHTML = personalNotifs.map(n => `
-        <div class="notif-item ${n.read?'':'unread'}">
+        <div class="notif-item ${(n.read || locallySeenForList.has(n.id))?'':'unread'}">
           <div class="notif-title">${n.title}</div>
           <div class="notif-body">${n.body}</div>
           <div class="notif-time">${formatTime(n.createdAt)}</div>
@@ -1365,12 +1366,24 @@ async function loadNotifications() {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
     }
 
+    // Bug fix: this used to trust the Firestore `read` flag alone. If the
+    // updateDoc that marks a notification read is ever rejected or delayed
+    // (slow network, a permissions hiccup, a reload racing the write — see
+    // markNotificationsSeen's durability note below) then a poll tick that
+    // re-runs loadNotifications a second later would see the server still
+    // reporting unread and pop the badge back — exactly the "seen it, it
+    // vanished, then it came right back" loop. locallySeen is written
+    // synchronously the instant something is shown/marked seen and survives
+    // regardless of whether the Firestore write ever lands, so folding it in
+    // here (not just in the login-popup logic) makes "seen" actually stick.
+    const locallySeenPersonal = currentUid ? getLocallySeenPersonalIds(currentUid) : new Set();
     let commonUnread = 0;
-if (commonNotifs.length > 0) {
-  const lastSeen = userData.lastSeenCommonNotifId || '';
-  if (commonNotifs[0].id !== lastSeen) commonUnread = 1;
-}
-const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
+    if (commonNotifs.length > 0) {
+      const lastSeen = userData.lastSeenCommonNotifId || '';
+      const lastSeenLocal = currentUid ? getLocallySeenCommonId(currentUid) : '';
+      if (commonNotifs[0].id !== lastSeen && commonNotifs[0].id !== lastSeenLocal) commonUnread = 1;
+    }
+    const unread = personalNotifs.filter(n => !n.read && !locallySeenPersonal.has(n.id)).length + commonUnread;
     const notifCount = document.getElementById('notifCount');
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
     if (unread > 0) {
@@ -1440,17 +1453,34 @@ async function markNotificationsSeen() {
   if (sidebarBadge) sidebarBadge.style.display = 'none';
   document.querySelectorAll('#personalNotifsList .notif-item.unread').forEach(el => el.classList.remove('unread'));
 
+  // Personal and common notifs are handled in their own try/catch blocks so
+  // that a failure in one (e.g. the `read:true` write getting rejected)
+  // can't skip the other, or skip the final loadNotifications() refresh —
+  // previously a single failure anywhere in this function left the badge
+  // logic never re-run, which is a second way the badge could get stuck
+  // reappearing.
   try {
+    // Query on just type+targetUid (same shape loadNotifications already
+    // uses successfully) rather than adding a third `read==false` clause —
+    // filtering unread client-side avoids relying on a separate compound
+    // index existing for that exact combination.
     const pSnap = await getDocs(query(collection(db,'notifications'),
-      where('type','==','personal'), where('targetUid','==',currentUid), where('read','==',false)));
+      where('type','==','personal'), where('targetUid','==',currentUid)));
     const unreadIds = [];
-    pSnap.forEach(d => unreadIds.push(d.id));
-    // Stamp these as locally seen right away — before the writes below even
-    // start — so a reload mid-write still keeps them from popping up again.
+    pSnap.forEach(d => { if (d.data().read === false) unreadIds.push(d.id); });
+    // Stamp these as locally seen right away, before the writes below even
+    // start — this is what actually makes "seen" stick immediately: even if
+    // the updateDoc below fails or is slow, loadNotifications() now checks
+    // this local record too, so the badge won't pop back for these ids.
     markLocallySeenPersonalIds(currentUid, unreadIds);
-    const updates = unreadIds.map(id => updateDoc(doc(db,'notifications',id), {read:true}));
-    if (updates.length) await Promise.all(updates);
+    if (unreadIds.length) {
+      await Promise.all(unreadIds.map(id =>
+        updateDoc(doc(db,'notifications',id), {read:true})
+          .catch(e => console.warn('Could not persist read:true for', id, e))));
+    }
+  } catch(e) { console.warn('markNotificationsSeen (personal) error', e); }
 
+  try {
     const cSnap = await getDocs(query(collection(db,'notifications'), where('type','==','common')));
     const allCommon = [];
     cSnap.forEach(d => allCommon.push({id:d.id,...d.data()}));
@@ -1458,13 +1488,14 @@ async function markNotificationsSeen() {
     if (allCommon.length && userData && userData.lastSeenCommonNotifId !== allCommon[0].id) {
       _lastCommonNotifId = allCommon[0].id;
       userData.lastSeenCommonNotifId = allCommon[0].id;
+      // Stamped locally first, same reasoning as above.
       markLocallySeenCommonId(currentUid, allCommon[0].id);
       updateDoc(doc(db,'users',currentUid), { lastSeenCommonNotifId: allCommon[0].id })
         .catch(e => console.warn('Could not save lastSeenCommonNotifId', e));
     }
+  } catch(e) { console.warn('markNotificationsSeen (common) error', e); }
 
-    await loadNotifications();
-  } catch(e) { console.warn('markNotificationsSeen error', e); }
+  try { await loadNotifications(); } catch(e) { console.warn('markNotificationsSeen refresh error', e); }
 }
 
 // Poll the Notifications section every 1s while it's open, so newly-arrived
@@ -2204,7 +2235,36 @@ let chatEditingId = null;
 let chatPendingMentions = [];
 let chatMentionState = null;      // { start, end, query }
 let chatOpenReactionPickerId = null;
+let chatOpenReactionNamesKey = null; // `${msgId}__${emoji}` of the reactor-names dropdown currently open, if any
 let _chatSendInProgress = false;  // debounce lock — same pattern as _voteSubmissionInProgress
+
+// ── req 2 fix: reactions live in their own subcollection ──────────────
+// Reactions used to be a `reactions: {uid: emoji}` map field written
+// directly onto the chatMessages/{id} document. That meant reacting to
+// someone else's message required *update* permission on a document you
+// don't own — most chat security rules only let the sender (or an admin)
+// write to a message, the same way only the sender can edit their own
+// text here. So reacting to someone else's message got silently rejected
+// by Firestore: the tap showed the reaction optimistically for a moment,
+// then the write failed and the rollback in reactToChatMessage removed it
+// again — and since the write never actually reached the server, nobody
+// else ever saw it either.
+// Each reaction now lives as its own doc at
+// chatMessages/{msgId}/reactions/{uid}, written only by that uid. This
+// needs a Firestore rule allowing a signed-in user to write only their own
+// doc in that subcollection, e.g.:
+//   match /chatMessages/{msgId}/reactions/{uid} {
+//     allow read: if request.auth != null;
+//     allow write: if request.auth != null && request.auth.uid == uid;
+//   }
+// and, since reactions are fetched with a collectionGroup query across all
+// messages, a matching collection-group read rule:
+//   match /{path=**}/reactions/{uid} {
+//     allow read: if request.auth != null;
+//   }
+const CHAT_REACTIONS_SUBCOLLECTION = 'reactions';
+let chatReactionsMap = {};       // { [msgId]: { [uid]: {emoji,name,photoUrl} } }
+let chatReactionsSignature = ''; // cheap fingerprint of the last fetch, to skip no-op re-renders
 
 // Lightweight "new message" watcher state (independent of chat polling above)
 let chatUnreadCount = 0;
@@ -2215,12 +2275,14 @@ let chatUnreadWatcherTimer = null;
 // doesn't silently snap them back closed mid-read.
 let chatOpenFolds = new Set();
 
-// Message IDs with a reaction write currently in flight to Firestore. While
-// a message's id is in this set, chatPoll's refresh-window merge (below)
-// leaves that message's local copy alone instead of overwriting it with
-// whatever the server still has — otherwise a reaction added by the user
-// could get wiped out by the very next poll tick if that tick's read of the
-// server happened to land before the write did.
+// Message IDs where *this user's own* reaction write is currently in
+// flight to Firestore. While a message's id is in this set,
+// chatFetchAllReactions keeps our own local optimistic entry for it
+// instead of overwriting it with whatever the server still has —
+// otherwise our own reaction could flash and get wiped out by the very
+// next poll tick if that tick's read of the server happened to land
+// before our write did. It doesn't need to protect anyone else's
+// reactions, since those are each written to their own separate document.
 let chatPendingReactionMsgIds = new Set();
 
 // Cheap fingerprint of the fields that actually affect what's rendered for
@@ -2232,7 +2294,7 @@ let chatPendingReactionMsgIds = new Set();
 // actually changed.
 function chatMsgSignature(m) {
   const reactionsStr = m.reactions
-    ? Object.keys(m.reactions).sort().map(uid => uid + ':' + m.reactions[uid]).join(',')
+    ? Object.keys(m.reactions).sort().map(uid => uid + ':' + m.reactions[uid].emoji).join(',')
     : '';
   const editedMillis = m.editedAt?.toMillis?.() ?? '';
   const replyStr = m.replyTo ? `${m.replyTo.id}|${m.replyTo.name}|${m.replyTo.text}` : '';
@@ -2338,6 +2400,64 @@ window.clearChatUnreadBadge = function() {
   updateChatNavBadge();
 };
 
+// Back-compat: earlier versions stored reactions inline on the message
+// document as {uid: 'emoji'}. Converts that old shape into the new
+// {uid: {emoji,name,photoUrl}} shape so reactions added before this fix
+// don't just disappear from view. Returns undefined if there's nothing
+// (or nothing usable) to convert.
+function chatLegacyReactionsFrom(raw) {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out = {};
+  let any = false;
+  Object.entries(raw).forEach(([uid, val]) => {
+    if (typeof val === 'string') {
+      const u = allUsersCache.find(x => x.id === uid);
+      out[uid] = { emoji: val, name: (u && u.name) || 'Member', photoUrl: (u && u.photoUrl) || '' };
+      any = true;
+    }
+  });
+  return any ? out : undefined;
+}
+
+// Fetches every reaction across every message in one shot (reactions live
+// in a chatMessages/{id}/reactions/{uid} subcollection — see the note by
+// chatReactionsMap above) and applies them onto chatMessages. Returns
+// whether anything actually changed, so callers can skip a no-op render.
+async function chatFetchAllReactions() {
+  try {
+    const snap = await getDocs(collectionGroup(db, CHAT_REACTIONS_SUBCOLLECTION));
+    const rows = [];
+    const map = {};
+    snap.forEach(d => {
+      const msgRef = d.ref.parent && d.ref.parent.parent;
+      if (!msgRef) return;
+      const msgId = msgRef.id;
+      const uid = d.id;
+      const data = d.data();
+      rows.push(`${msgId}|${uid}|${data.emoji}`);
+      if (!map[msgId]) map[msgId] = {};
+      map[msgId][uid] = { emoji: data.emoji, name: data.name || 'Member', photoUrl: data.photoUrl || '' };
+    });
+    // Keep this user's own in-flight reaction exactly as set locally until
+    // the write lands, so a poll tick reading the server mid-write can't
+    // make it flash and disappear.
+    chatPendingReactionMsgIds.forEach(msgId => {
+      const localMine = (chatReactionsMap[msgId] || {})[currentUid];
+      if (localMine) { map[msgId] = map[msgId] || {}; map[msgId][currentUid] = localMine; }
+      else if (map[msgId]) { delete map[msgId][currentUid]; }
+    });
+    const signature = rows.sort().join(',');
+    const changed = signature !== chatReactionsSignature;
+    chatReactionsSignature = signature;
+    chatReactionsMap = map;
+    chatMessages.forEach(m => {
+      const fromSub = chatReactionsMap[m.id];
+      m.reactions = (fromSub && Object.keys(fromSub).length) ? fromSub : m._legacyReactions;
+    });
+    return changed;
+  } catch(e) { console.warn('Reactions fetch error', e); return false; }
+}
+
 async function chatLoadInitial() {
   const container = document.getElementById('chatMessagesContainer');
   container.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">Loading chat...</p>';
@@ -2346,8 +2466,10 @@ async function chatLoadInitial() {
     const docs = [];
     snap.forEach(d => docs.push({ id:d.id, ...d.data() }));
     docs.reverse(); // oldest → newest
+    docs.forEach(m => { m._legacyReactions = chatLegacyReactionsFrom(m.reactions); delete m.reactions; });
     chatMessages = docs;
     if (docs.length) chatLastTimestamp = chatToDate(docs[docs.length-1].createdAt);
+    await chatFetchAllReactions();
     renderChatMessages(true);
   } catch(e) {
     console.warn('Chat load error', e);
@@ -2401,6 +2523,7 @@ async function chatPoll() {
       const fresh = [];
       snap.forEach(d => fresh.push({ id:d.id, ...d.data() }));
       if (!chatLastTimestamp) fresh.reverse();
+      fresh.forEach(m => { m._legacyReactions = chatLegacyReactionsFrom(m.reactions); delete m.reactions; });
       const existingIds = new Set(chatMessages.map(m => m.id));
       const newOnes = fresh.filter(m => !existingIds.has(m.id));
       if (newOnes.length) {
@@ -2411,21 +2534,37 @@ async function chatPoll() {
       }
     }
 
-    // 2) In-place updates (reactions, edits, deletes) on messages already
-    //    loaded — see CHAT_REFRESH_WINDOW / CHAT_REFRESH_EVERY_N_TICKS
-    //    comments above. Only every Nth tick, and skips signature-identical
-    //    docs so this never forces a re-render by itself.
+    // 1.5) Reactions — fetched every tick (not every Nth like the window
+    //      below) since this is the exact fix for the "reaction appears
+    //      then vanishes / others never see it" bug: reactions now live in
+    //      their own per-user subcollection doc (see chatReactionsMap
+    //      above), so this needs to run often enough that a reaction shows
+    //      up for everyone within one poll interval.
+    if (await chatFetchAllReactions()) changed = true;
+
+    // 2) In-place updates (edits, deletes) on messages already loaded —
+    //    see CHAT_REFRESH_WINDOW / CHAT_REFRESH_EVERY_N_TICKS comments
+    //    above. Only every Nth tick, and skips signature-identical docs so
+    //    this never forces a re-render by itself. Reactions are excluded
+    //    here (handled by chatFetchAllReactions above) since they no
+    //    longer live on the message document itself.
     chatPollTickCount++;
     if (chatPollTickCount % CHAT_REFRESH_EVERY_N_TICKS === 0) {
       const refreshSnap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(CHAT_REFRESH_WINDOW)));
       const refreshMap = new Map();
-      refreshSnap.forEach(d => refreshMap.set(d.id, { id:d.id, ...d.data() }));
+      refreshSnap.forEach(d => {
+        const data = { id:d.id, ...d.data() };
+        data._legacyReactions = chatLegacyReactionsFrom(data.reactions);
+        delete data.reactions;
+        refreshMap.set(d.id, data);
+      });
       chatMessages = chatMessages.map(m => {
-        // Don't let a server read that started before our own reaction
-        // write landed clobber the optimistic local state.
-        if (chatPendingReactionMsgIds.has(m.id)) return m;
         const updated = refreshMap.get(m.id);
         if (!updated) return m;
+        // Carry the current (subcollection-sourced) reactions over onto the
+        // freshly-fetched doc before comparing/swapping, so this step never
+        // undoes what chatFetchAllReactions just applied.
+        updated.reactions = m.reactions;
         if (chatMsgSignature(updated) !== chatMsgSignature(m)) { changed = true; return updated; }
         return m;
       });
@@ -2578,18 +2717,32 @@ function chatRenderText(msg) {
   return escaped;
 }
 
-// Aggregates the { uid: emoji } reaction map into emoji chips with counts
-// (req 2), highlighting the ones the current user picked.
+// Aggregates the { uid: {emoji,name} } reaction map into emoji chips with
+// counts (req 2), highlighting the one the current user picked. Clicking a
+// chip opens a small dropdown listing who reacted with that emoji, rather
+// than reacting — reacting/un-reacting stays on the 😊 picker button so the
+// two actions (react vs. see who reacted) don't fight over the same click.
 function chatBuildReactionsHtml(msg) {
   if (!msg.reactions) return '';
-  const counts = {};
-  Object.values(msg.reactions).forEach(emo => { counts[emo] = (counts[emo]||0) + 1; });
-  const entries = Object.entries(counts);
+  const groups = {}; // emoji -> [names]
+  Object.values(msg.reactions).forEach(r => {
+    if (!r || !r.emoji) return;
+    (groups[r.emoji] = groups[r.emoji] || []).push(r.name || 'Member');
+  });
+  const entries = Object.entries(groups);
   if (!entries.length) return '';
-  const mineEmoji = userData ? msg.reactions[currentUid] : null;
-  return `<div class="chat-reactions-row">` + entries.map(([emo,count]) => {
+  const mineEmoji = (userData && msg.reactions[currentUid]) ? msg.reactions[currentUid].emoji : null;
+  return `<div class="chat-reactions-row">` + entries.map(([emo, names]) => {
     const mine = mineEmoji === emo;
-    return `<button type="button" class="chat-reaction-chip ${mine?'mine':''}" onclick="reactToChatMessage('${msg.id}','${emo}')">${emo}<span>${count}</span></button>`;
+    const key = `${msg.id}__${emo}`;
+    const namesHtml = names.map(n => `<div class="chat-reaction-name-item">${chatEscapeHtml(n)}</div>`).join('');
+    const dropdownHtml = chatOpenReactionNamesKey === key
+      ? `<div class="chat-reaction-names-dropdown">${namesHtml}</div>`
+      : '';
+    return `<span class="chat-reaction-chip-wrap">
+        <button type="button" class="chat-reaction-chip ${mine?'mine':''}" onclick="toggleChatReactionNames(event,'${msg.id}','${emo}')">${emo}<span>${names.length}</span></button>
+        ${dropdownHtml}
+      </span>`;
   }).join('') + `</div>`;
 }
 
@@ -2801,6 +2954,16 @@ window.openChatReactionPicker = function(id) {
 window.closeChatReactionPicker = function() {
   if (chatOpenReactionPickerId !== null) { chatOpenReactionPickerId = null; renderChatMessages(false); }
 };
+// req 2: clicking a reaction chip shows who reacted, instead of reacting.
+window.toggleChatReactionNames = function(e, msgId, emoji) {
+  if (e) e.stopPropagation();
+  const key = `${msgId}__${emoji}`;
+  chatOpenReactionNamesKey = (chatOpenReactionNamesKey === key) ? null : key;
+  renderChatMessages(false);
+};
+window.closeChatReactionNames = function() {
+  if (chatOpenReactionNamesKey !== null) { chatOpenReactionNamesKey = null; renderChatMessages(false); }
+};
 window.reactToChatMessage = async function(id, emoji) {
   if (!userData) return;
   const msg = chatMessages.find(m => m.id === id);
@@ -2810,40 +2973,49 @@ window.reactToChatMessage = async function(id, emoji) {
   // can't fire overlapping writes that race each other.
   if (chatPendingReactionMsgIds.has(id)) return;
 
-  const current = (msg.reactions||{})[currentUid];
+  const current = (msg.reactions && msg.reactions[currentUid]) ? msg.reactions[currentUid].emoji : null;
   const removing = current === emoji;
   chatOpenReactionPickerId = null;
 
   // Optimistic local update: show the reaction instantly rather than
   // waiting on the round-trip, and mark this message "pending" so the
-  // background poll (chatPoll) won't overwrite it with a pre-write copy of
-  // the server doc before our own write has landed.
+  // background poll (chatFetchAllReactions) won't overwrite it with a
+  // pre-write copy of the server data before our own write has landed.
   chatPendingReactionMsgIds.add(id);
+  const mine = { emoji, name: userData.name || 'Member', photoUrl: userData.photoUrl || '' };
   if (removing) {
-    if (msg.reactions) delete msg.reactions[currentUid];
+    if (msg.reactions) { delete msg.reactions[currentUid]; if (!Object.keys(msg.reactions).length) msg.reactions = undefined; }
   } else {
     msg.reactions = msg.reactions || {};
-    msg.reactions[currentUid] = emoji;
+    msg.reactions[currentUid] = mine;
   }
+  chatReactionsMap[id] = msg.reactions ? { ...msg.reactions } : undefined;
   renderChatMessages(false);
 
+  // Reactions live at chatMessages/{id}/reactions/{uid} — each person only
+  // ever writes their own doc here, rather than updating a `reactions`
+  // field on the message document itself (which only the sender/an admin
+  // has permission to touch). That's what makes reacting to someone else's
+  // message actually work: see the note by chatReactionsMap above.
+  const reactionRef = doc(db, CHAT_COLLECTION, id, CHAT_REACTIONS_SUBCOLLECTION, currentUid);
   try {
-    const field = `reactions.${currentUid}`;
     if (removing) {
-      await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: deleteField() });
+      await deleteDoc(reactionRef);
     } else {
-      await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: emoji });
+      await setDoc(reactionRef, { emoji, name: userData.name || 'Member', photoUrl: userData.photoUrl || '', reactedAt: serverTimestamp() });
     }
   } catch(e) {
     console.warn('Reaction error', e);
     // Roll back the optimistic change if the write actually failed.
-    const stillCurrent = msg.reactions ? msg.reactions[currentUid] : undefined;
-    if (removing && stillCurrent === undefined) {
+    const stillMine = msg.reactions ? msg.reactions[currentUid] : undefined;
+    if (removing && !stillMine) {
       msg.reactions = msg.reactions || {};
-      msg.reactions[currentUid] = emoji;
-    } else if (!removing && stillCurrent === emoji) {
+      msg.reactions[currentUid] = mine;
+    } else if (!removing && stillMine && stillMine.emoji === emoji) {
       delete msg.reactions[currentUid];
+      if (!Object.keys(msg.reactions).length) msg.reactions = undefined;
     }
+    chatReactionsMap[id] = msg.reactions ? { ...msg.reactions } : undefined;
     renderChatMessages(false);
   } finally {
     chatPendingReactionMsgIds.delete(id);
@@ -3036,6 +3208,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (chatOpenReactionPickerId !== null && !e.target.closest('.chat-reaction-picker') && !e.target.closest('.chat-msg-react-btn')) {
       closeChatReactionPicker();
+    }
+    if (chatOpenReactionNamesKey !== null && !e.target.closest('.chat-reaction-chip-wrap')) {
+      closeChatReactionNames();
     }
   });
 });
