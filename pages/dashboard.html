@@ -2455,7 +2455,15 @@ async function chatFetchAllReactions() {
       m.reactions = (fromSub && Object.keys(fromSub).length) ? fromSub : m._legacyReactions;
     });
     return changed;
-  } catch(e) { console.warn('Reactions fetch error', e); return false; }
+  } catch(e) {
+    // A 'permission-denied' code here means the chatMessages/{id}/reactions
+    // collectionGroup query is being rejected by Firestore rules — check
+    // that firestore.rules has a `match /{path=**}/reactions/{uid}` block
+    // (a nested match inside chatMessages/{id} is NOT enough for a
+    // collectionGroup query) and that it's actually been deployed.
+    console.warn('Reactions fetch error (if code is "permission-denied", check the {path=**}/reactions rule in firestore.rules is deployed):', e);
+    return false;
+  }
 }
 
 async function chatLoadInitial() {
