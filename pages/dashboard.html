@@ -2607,6 +2607,24 @@ function renderChatMessages(scrollToBottom) {
     .map(([,v]) => v)
     .sort((a,b) => (a.y-b.y) || (a.m-b.m) || (a.d-b.d));
 
+  // TEMP DIAGNOSTIC — remove once the missing-fold issue is confirmed
+  // fixed. Logs exactly what renderChatMessages computed this pass: how
+  // many total messages it has to work with, which IST day each one
+  // landed in, and which of those days are "today" vs. folded history.
+  // If a day you expect to see folded is missing from dayBuckets below,
+  // the messages for it either aren't in `chatMessages` (a load/fetch
+  // problem) or their createdAt isn't parsing the way you'd expect (open
+  // one of those message docs in the Firestore console and check its
+  // createdAt field is a real Timestamp, not a string/number/null) —
+  // rather than a bug in the fold-rendering code itself, which this log
+  // will show is bucketing correctly whatever it *did* receive.
+  console.debug('[chat fold debug]', {
+    totalMessages: chatMessages.length,
+    todayKey,
+    dayBuckets: [...dayMap.entries()].map(([k,v]) => `${k}: ${v.messages.length} msg(s)`),
+    pastDaysComputed: pastDays.map(d => `${d.y}-${d.m}-${d.d}`),
+  });
+
   // Nest past days -> months (if not current month) -> years (if not current year)
   const yearMap = new Map(); // y -> { y, months: Map(m -> {m, days:[]}), sameYearDays:[] }
   pastDays.forEach(day => {
