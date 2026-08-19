@@ -61,20 +61,49 @@
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
 .chat-fold-body { padding: 0.5rem 0.75rem 3rem; }
 
-/* Folds no longer get their own inner scrollbar — nesting a scrollable
-   box inside the already-scrollable .chat-messages caused exactly the
-   glitch this replaced: once an inner fold's box got close to (or
-   taller than) the outer window's own visible height, its bottom edge
-   would scroll out of the outer view while its scrollbar kept
-   rendering, making the scrollbar look like it hung past the box.
-   Two competing scrollbars is the wrong model here. A fold now just
-   grows to its natural content height, and the ONE scrollbar — on the
-   outer .chat-messages window below — handles reaching every message,
-   in every fold, all the way down to "Today". Simpler, and nothing can
-   get clipped or look detached from its own box. */
+/* Each opened fold gets its own scrollable "pop-up" window, sized to
+   half the height of the main "Today" window above (.chat-messages) —
+   this keeps it meaningfully smaller than its outer scroll container so
+   it always sits fully within view, with its own scrollbar confined to
+   its own box. Generous bottom padding on .chat-fold-body (above) keeps
+   the last message from ever sitting flush against that scroll edge. */
 .chat-fold-day > .chat-fold-body,
 .chat-fold-month > .chat-fold-body,
 .chat-fold-year > .chat-fold-body {
+  max-height: 42vh;
+  overflow-y: scroll;
+  scrollbar-width: thin;                                 /* Firefox */
+  scrollbar-color: var(--orange) var(--surface2);        /* Firefox */
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar {
+  width: 9px;
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-track,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-track,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-track {
+  background: var(--surface2);
+  border-radius: 8px;
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb {
+  background: var(--orange);
+  border-radius: 8px;
+  border: 2px solid var(--surface2);
+}
+.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb:hover,
+.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb:hover,
+.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb:hover {
+  background: var(--orange-dark, var(--orange));
+}
+/* A day fold nested inside an already-scrollable month/year fold
+   shouldn't get a third, doubled-up scrollbar inside the month/year
+   one — let it grow naturally there instead, since the ancestor fold
+   already scrolls it. */
+.chat-fold-month .chat-fold-day > .chat-fold-body,
+.chat-fold-year .chat-fold-day > .chat-fold-body {
   max-height: none;
   overflow-y: visible;
 }
