@@ -667,7 +667,7 @@ if (userData.isActive === false) {
   await checkPersonalNotification();
 });
 
-window.doLogout = async () => { stopChatPolling(); stopChatUnreadWatcher(); await signOut(auth); window.location.href = 'login.html'; };
+window.doLogout = async () => { stopChatPolling(); stopChatUnreadWatcher(); stopNotifPolling(); await signOut(auth); window.location.href = 'login.html'; };
 
 window.toggleSidebar = () => {
   document.getElementById('sidebar').classList.toggle('open');
@@ -684,6 +684,7 @@ window.showSection = function(id) {
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
   if (id === 'events-dash') loadDashEvents();
   if (id === 'chat') { initChatSection(); clearChatUnreadBadge(); } else stopChatPolling();
+  if (id === 'notifications') { markNotificationsSeen(); startNotifPolling(); } else stopNotifPolling();
 };
 
 // Pause polling whenever the browser tab itself isn't visible (saves RAM/
@@ -691,9 +692,11 @@ window.showSection = function(id) {
 // dashboard sections), and resume it if they come back while Live Chat is
 // still the open section.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { stopChatPolling(); return; }
+  if (document.hidden) { stopChatPolling(); stopNotifPolling(); return; }
   const chatSection = document.getElementById('section-chat');
   if (chatSection && chatSection.classList.contains('active')) startChatPolling();
+  const notifSection = document.getElementById('section-notifications');
+  if (notifSection && notifSection.classList.contains('active')) startNotifPolling();
 });
 
 async function loadRoleGuidesForPointsPage() {
@@ -1372,6 +1375,50 @@ const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
       sidebarBadge.textContent = unread; sidebarBadge.style.display = 'inline-block';
     }
   } catch(e) { console.warn('Notifications error',e); }
+}
+
+// ── Auto mark-as-read + live refresh for the Notifications section ─────
+// Runs once whenever the person opens the Notifications section: marks any
+// unread personal notifications as read and remembers the latest common
+// announcement as seen, so the bell/sidebar badge clears without a reload.
+let notifPollTimer = null;
+async function markNotificationsSeen() {
+  try {
+    const pSnap = await getDocs(query(collection(db,'notifications'),
+      where('type','==','personal'), where('targetUid','==',currentUid), where('read','==',false)));
+    const updates = [];
+    pSnap.forEach(d => updates.push(updateDoc(doc(db,'notifications',d.id), {read:true})));
+    if (updates.length) await Promise.all(updates);
+
+    const cSnap = await getDocs(query(collection(db,'notifications'), where('type','==','common')));
+    const allCommon = [];
+    cSnap.forEach(d => allCommon.push({id:d.id,...d.data()}));
+    allCommon.sort((a,b) => (b.createdAt?.toMillis?.()??0) - (a.createdAt?.toMillis?.()??0));
+    if (allCommon.length && userData && userData.lastSeenCommonNotifId !== allCommon[0].id) {
+      _lastCommonNotifId = allCommon[0].id;
+      userData.lastSeenCommonNotifId = allCommon[0].id;
+      updateDoc(doc(db,'users',currentUid), { lastSeenCommonNotifId: allCommon[0].id })
+        .catch(e => console.warn('Could not save lastSeenCommonNotifId', e));
+    }
+
+    // Clear the bell/sidebar badges immediately, then refresh the list.
+    const notifCount = document.getElementById('notifCount');
+    const sidebarBadge = document.getElementById('sidebarNotifBadge');
+    if (notifCount) notifCount.style.display = 'none';
+    if (sidebarBadge) sidebarBadge.style.display = 'none';
+    await loadNotifications();
+  } catch(e) { console.warn('markNotificationsSeen error', e); }
+}
+
+// Poll the Notifications section every 1s while it's open, so newly-arrived
+// notifications (and the read state above) show up without a page reload.
+function startNotifPolling() {
+  stopNotifPolling();
+  if (document.visibilityState !== 'visible') return;
+  notifPollTimer = setInterval(loadNotifications, 1000);
+}
+function stopNotifPolling() {
+  if (notifPollTimer) { clearInterval(notifPollTimer); notifPollTimer = null; }
 }
 
 // req 4: Personal notification as FIRST SCREEN on login
