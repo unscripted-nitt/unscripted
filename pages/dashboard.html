@@ -2466,14 +2466,50 @@ async function chatFetchAllReactions() {
   }
 }
 
+// Start of "today" in IST, expressed as the equivalent UTC instant. India
+// has a fixed UTC+5:30 offset (no DST), so this is safe to compute with a
+// constant 19,800,000ms (5h30m) shift rather than needing a timezone lib.
+function chatIstStartOfTodayUTC(now) {
+  const p = chatIstParts(now);
+  return new Date(Date.UTC(p.y, p.m - 1, p.d, 0, 0, 0) - 19800000);
+}
+
+// req: history (older days/months/years) was silently disappearing from the
+// fold dropdown even though the messages were still sitting untouched in
+// Firestore. Root cause: this used to be ONE query — the 500 most recent
+// messages overall (`orderBy('createdAt','desc'), limit(500)`) — with no
+// separation between "today" and "history". Once today's live volume (this
+// chat polls every second and is used heavily) pushed past 500 messages,
+// every message from before today fell outside that single top-500 window
+// and never got fetched at all, even though nothing was wrong with the data
+// or the fold-rendering logic below (see renderChatMessages) — there was
+// simply nothing from earlier days left in `chatMessages` to bucket.
+//
+// Fix: split into two independent queries so today's volume can never crowd
+// out history. Today's messages are fetched with NO cap (today is always
+// meant to be the live, complete, flat feed) using a >= start-of-day-IST
+// boundary. Everything from before today gets its own dedicated 500-message
+// budget, ordered newest-first then reversed. That means "today" and
+// "history" can never compete with each other for the same 500 slots.
 async function chatLoadInitial() {
   const container = document.getElementById('chatMessagesContainer');
   container.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">Loading chat...</p>';
   try {
-    const snap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(500)));
-    const docs = [];
-    snap.forEach(d => docs.push({ id:d.id, ...d.data() }));
-    docs.reverse(); // oldest → newest
+    const startOfTodayIST = chatIstStartOfTodayUTC(new Date());
+
+    const [todaySnap, historySnap] = await Promise.all([
+      getDocs(query(collection(db, CHAT_COLLECTION), where('createdAt','>=', startOfTodayIST), orderBy('createdAt','asc'))),
+      getDocs(query(collection(db, CHAT_COLLECTION), where('createdAt','<', startOfTodayIST), orderBy('createdAt','desc'), limit(500)))
+    ]);
+
+    const historyDocs = [];
+    historySnap.forEach(d => historyDocs.push({ id:d.id, ...d.data() }));
+    historyDocs.reverse(); // oldest → newest
+
+    const todayDocs = [];
+    todaySnap.forEach(d => todayDocs.push({ id:d.id, ...d.data() }));
+
+    const docs = historyDocs.concat(todayDocs); // already oldest → newest overall
     docs.forEach(m => { m._legacyReactions = chatLegacyReactionsFrom(m.reactions); delete m.reactions; });
     chatMessages = docs;
     if (docs.length) chatLastTimestamp = chatToDate(docs[docs.length-1].createdAt);
@@ -2607,17 +2643,11 @@ function renderChatMessages(scrollToBottom) {
     .map(([,v]) => v)
     .sort((a,b) => (a.y-b.y) || (a.m-b.m) || (a.d-b.d));
 
-  // TEMP DIAGNOSTIC — remove once the missing-fold issue is confirmed
-  // fixed. Logs exactly what renderChatMessages computed this pass: how
-  // many total messages it has to work with, which IST day each one
-  // landed in, and which of those days are "today" vs. folded history.
-  // If a day you expect to see folded is missing from dayBuckets below,
-  // the messages for it either aren't in `chatMessages` (a load/fetch
-  // problem) or their createdAt isn't parsing the way you'd expect (open
-  // one of those message docs in the Firestore console and check its
-  // createdAt field is a real Timestamp, not a string/number/null) —
-  // rather than a bug in the fold-rendering code itself, which this log
-  // will show is bucketing correctly whatever it *did* receive.
+  // Lightweight debug trail — was used to confirm the missing-history-fold
+  // bug (root cause: chatLoadInitial's single top-500 query let a busy
+  // "today" starve out everything older; fixed by giving today and history
+  // separate query budgets, see chatLoadInitial above). Kept at debug level
+  // for future troubleshooting; harmless in production.
   console.debug('[chat fold debug]', {
     totalMessages: chatMessages.length,
     todayKey,
