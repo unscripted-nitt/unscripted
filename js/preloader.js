@@ -8,7 +8,7 @@
 // it from the DOM.
 import { gsap } from 'gsap';
 
-const MIN_VISIBLE_MS = 3000;
+const MIN_VISIBLE_MS = 5000;
 
 /** Resolves once the window's `load` event has fired (or immediately if it already has). */
 function whenPageLoaded() {
