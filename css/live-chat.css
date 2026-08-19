@@ -4,8 +4,8 @@
    messages always render flat below the folds as the live feed. */
 
 .chat-messages {
-  max-height: 60vh;
-  min-height: 320px;
+  max-height: 78vh;
+  min-height: 520px;
   overflow-y: auto;
   padding: 1.25rem 1.25rem 0.5rem;
   display: flex;
@@ -25,9 +25,9 @@
 .chat-fold summary {
   list-style: none;
   cursor: pointer;
-  padding: 0.65rem 1rem;
+  padding: 0.5rem 0.9rem;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -56,15 +56,15 @@
    actively dragged, which otherwise looks identical to a broken, clipped
    box even when the content technically scrolls fine. */
 .chat-fold-day > .chat-fold-body {
-  max-height: 320px;
+  max-height: 520px;
   overflow-y: scroll;
 }
 .chat-fold-month > .chat-fold-body {
-  max-height: 420px;
+  max-height: 620px;
   overflow-y: scroll;
 }
 .chat-fold-year > .chat-fold-body {
-  max-height: 480px;
+  max-height: 680px;
   overflow-y: scroll;
 }
 /* A day fold nested inside an already-scrollable month/year fold shouldn't
@@ -124,24 +124,24 @@
 /* ── Message bubble ────────────────────────────────────────── */
 .chat-msg {
   display: flex;
-  gap: 0.7rem;
-  padding: 0.5rem 0;
+  gap: 0.55rem;
+  padding: 0.3rem 0;
   position: relative;
 }
-.chat-msg-avatar { width: 34px; height: 34px; font-size: 0.72rem; }
+.chat-msg-avatar { width: 26px; height: 26px; font-size: 0.62rem; }
 .chat-msg-body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0.55rem 0.85rem;
-  max-width: min(520px, 80%);
+  padding: 0.35rem 0.6rem;
+  max-width: min(480px, 80%);
   position: relative;
 }
 .chat-msg-mine .chat-msg-body { background: var(--orange-light); border-color: rgba(255,87,34,0.25); }
-.chat-msg-meta { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.15rem; }
-.chat-msg-name { font-weight: 800; font-size: 0.82rem; color: var(--text); }
-.chat-msg-time { font-size: 0.68rem; color: var(--text-light); }
-.chat-msg-text { font-size: 0.9rem; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-msg-meta { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.1rem; }
+.chat-msg-name { font-weight: 800; font-size: 0.74rem; color: var(--text); }
+.chat-msg-time { font-size: 0.6rem; color: var(--text-light); }
+.chat-msg-text { font-size: 0.8rem; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* ── Message action toolbar (reply / react / copy / edit / delete) ── */
 .chat-msg-actions {
