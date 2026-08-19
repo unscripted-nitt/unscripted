@@ -153,8 +153,16 @@
   gap: 0.3rem;
   opacity: 0;
   transition: opacity var(--transition);
+  z-index: 4;
 }
 .chat-msg:hover .chat-msg-actions { opacity: 1; }
+/* Lift the whole hovered row (and its floating toolbar) above the
+   sibling message that follows it in the DOM — otherwise, on short
+   bubbles, the next message's opaque background paints over the
+   lower toolbar buttons since later DOM siblings stack on top by
+   default. */
+.chat-msg { z-index: 1; }
+.chat-msg:hover { z-index: 3; }
 .chat-msg-actions button {
   background: var(--surface2);
   border: 1px solid var(--border);
