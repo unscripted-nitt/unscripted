@@ -2473,6 +2473,20 @@ function chatIstStartOfTodayUTC(now) {
   const p = chatIstParts(now);
   return new Date(Date.UTC(p.y, p.m - 1, p.d, 0, 0, 0) - 19800000);
 }
+// Helper: midnight-IST boundary for an arbitrary y/m/d, same conversion.
+function chatIstDateBoundaryUTC(y, m, d) {
+  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - 19800000);
+}
+
+// Live Chat's actual start date — the club's first chat message was sent on
+// 18 August 2026 (IST). Everything the app needs to show — today's live
+// feed AND every folded day/month/year of history — exists at or after this
+// instant, never before it. Anchoring the history query explicitly to this
+// date (rather than an unbounded "everything before today" query) means the
+// fetch for 18th Aug's messages doesn't depend on guessing a safe row count
+// or window — it's a direct, named range: from the day chat began, up to
+// (not including) today.
+const CHAT_START_DATE_UTC = chatIstDateBoundaryUTC(2026, 8, 18);
 
 // req: history (older days/months/years) was silently disappearing from the
 // fold dropdown even though the messages were still sitting untouched in
@@ -2486,11 +2500,15 @@ function chatIstStartOfTodayUTC(now) {
 // simply nothing from earlier days left in `chatMessages` to bucket.
 //
 // Fix: split into two independent queries so today's volume can never crowd
-// out history. Today's messages are fetched with NO cap (today is always
-// meant to be the live, complete, flat feed) using a >= start-of-day-IST
-// boundary. Everything from before today gets its own dedicated 500-message
-// budget, ordered newest-first then reversed. That means "today" and
-// "history" can never compete with each other for the same 500 slots.
+// out history, AND anchor the history query to CHAT_START_DATE_UTC (18 Aug
+// 2026) instead of an open-ended "give me up to N of whatever's before
+// today" query — that removes any dependency on a row-count cap ever being
+// large enough to reach back to day one. Today's messages are fetched with
+// NO cap (today is always meant to be the live, complete, flat feed) using
+// a >= start-of-day-IST boundary. History is fetched as an explicit range —
+// [chat start date, start of today) — ordered ascending, so it's the full
+// history from the very first message onward, not a "most recent 500"
+// window that could still clip the earliest days as more accumulates.
 async function chatLoadInitial() {
   const container = document.getElementById('chatMessagesContainer');
   container.innerHTML = '<p style="padding:2rem;text-align:center;color:var(--text-mid);">Loading chat...</p>';
@@ -2499,12 +2517,11 @@ async function chatLoadInitial() {
 
     const [todaySnap, historySnap] = await Promise.all([
       getDocs(query(collection(db, CHAT_COLLECTION), where('createdAt','>=', startOfTodayIST), orderBy('createdAt','asc'))),
-      getDocs(query(collection(db, CHAT_COLLECTION), where('createdAt','<', startOfTodayIST), orderBy('createdAt','desc'), limit(500)))
+      getDocs(query(collection(db, CHAT_COLLECTION), where('createdAt','>=', CHAT_START_DATE_UTC), where('createdAt','<', startOfTodayIST), orderBy('createdAt','asc')))
     ]);
 
     const historyDocs = [];
     historySnap.forEach(d => historyDocs.push({ id:d.id, ...d.data() }));
-    historyDocs.reverse(); // oldest → newest
 
     const todayDocs = [];
     todaySnap.forEach(d => todayDocs.push({ id:d.id, ...d.data() }));
@@ -2513,6 +2530,7 @@ async function chatLoadInitial() {
     docs.forEach(m => { m._legacyReactions = chatLegacyReactionsFrom(m.reactions); delete m.reactions; });
     chatMessages = docs;
     if (docs.length) chatLastTimestamp = chatToDate(docs[docs.length-1].createdAt);
+    console.debug('[chat load]', { historyCount: historyDocs.length, todayCount: todayDocs.length, chatStart: CHAT_START_DATE_UTC.toISOString(), startOfToday: startOfTodayIST.toISOString() });
     await chatFetchAllReactions();
     renderChatMessages(true);
   } catch(e) {
