@@ -2685,6 +2685,22 @@ function renderChatMessages(scrollToBottom) {
       if (!key) return;
       if (el.open) chatOpenFolds.add(key); else chatOpenFolds.delete(key);
     });
+    // req 1 fix: `.chat-fold summary` is styled with `display:flex` (for the
+    // ▶ arrow + meta count layout). WebKit/Safari has a long-standing bug
+    // where a <summary> with display:flex/grid no longer responds to click
+    // for the browser's native <details> toggle — the row looks clickable
+    // (cursor:pointer, hover states all work) but nothing opens. Rather than
+    // depend on that native behaviour, toggle `open` ourselves on click and
+    // suppress the native action so we don't double-toggle on browsers
+    // where the native behaviour still works fine.
+    const summary = el.querySelector(':scope > summary');
+    if (summary) {
+      summary.addEventListener('click', (e) => {
+        e.preventDefault();
+        el.open = !el.open;
+        el.dispatchEvent(new Event('toggle'));
+      });
+    }
   });
 
   if (scrollToBottom || wasNearBottom) {
