@@ -41,8 +41,10 @@
 .member-card.pixel-avatar {
   position: relative;
 }
-.pixel-avatar .pixel-transition__default img {
+.pixel-avatar .pixel-transition__default img,
+.pixel-avatar .pixel-transition__active img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
