@@ -684,7 +684,10 @@ window.showSection = function(id) {
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
   if (id === 'events-dash') loadDashEvents();
   if (id === 'chat') { initChatSection(); clearChatUnreadBadge(); } else stopChatPolling();
-  if (id === 'notifications') { markNotificationsSeen(); startNotifPolling(); } else stopNotifPolling();
+  if (id === 'notifications') {
+    stopNotifPolling();
+    markNotificationsSeen().then(startNotifPolling);
+  } else stopNotifPolling();
 };
 
 // Pause polling whenever the browser tab itself isn't visible (saves RAM/
@@ -1373,6 +1376,11 @@ const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
     if (unread > 0) {
       notifCount.textContent = unread; notifCount.style.display = 'inline-block';
       sidebarBadge.textContent = unread; sidebarBadge.style.display = 'inline-block';
+    } else {
+      // Explicitly hide (not just "skip showing") so a poll tick that runs
+      // after the badge was already cleared can't leave it in a stale state.
+      notifCount.style.display = 'none';
+      sidebarBadge.style.display = 'none';
     }
   } catch(e) { console.warn('Notifications error',e); }
 }
@@ -1383,6 +1391,19 @@ const unread = personalNotifs.filter(n=>!n.read).length + commonUnread;
 // announcement as seen, so the bell/sidebar badge clears without a reload.
 let notifPollTimer = null;
 async function markNotificationsSeen() {
+  // Instant UI feedback: clear the badges and the "unread" highlight in the
+  // list the moment the tab is opened, rather than waiting on the Firestore
+  // round-trip below. Without this, the badge could sit visible for as long
+  // as the write took to reach the server, and — because polling used to be
+  // started at the same time as this function, not after it — a poll tick
+  // could re-fetch stale (still-unread) data mid-write and pop the badge
+  // back, making it look like nothing short of a page refresh cleared it.
+  const notifCount = document.getElementById('notifCount');
+  const sidebarBadge = document.getElementById('sidebarNotifBadge');
+  if (notifCount) notifCount.style.display = 'none';
+  if (sidebarBadge) sidebarBadge.style.display = 'none';
+  document.querySelectorAll('#personalNotifsList .notif-item.unread').forEach(el => el.classList.remove('unread'));
+
   try {
     const pSnap = await getDocs(query(collection(db,'notifications'),
       where('type','==','personal'), where('targetUid','==',currentUid), where('read','==',false)));
@@ -1401,17 +1422,15 @@ async function markNotificationsSeen() {
         .catch(e => console.warn('Could not save lastSeenCommonNotifId', e));
     }
 
-    // Clear the bell/sidebar badges immediately, then refresh the list.
-    const notifCount = document.getElementById('notifCount');
-    const sidebarBadge = document.getElementById('sidebarNotifBadge');
-    if (notifCount) notifCount.style.display = 'none';
-    if (sidebarBadge) sidebarBadge.style.display = 'none';
     await loadNotifications();
   } catch(e) { console.warn('markNotificationsSeen error', e); }
 }
 
 // Poll the Notifications section every 1s while it's open, so newly-arrived
 // notifications (and the read state above) show up without a page reload.
+// Only starts once markNotificationsSeen's writes have actually landed
+// (see showSection below), so a poll tick can no longer race the
+// mark-as-read call and re-show a badge that was just cleared.
 function startNotifPolling() {
   stopNotifPolling();
   if (document.visibilityState !== 'visible') return;
@@ -2261,11 +2280,24 @@ async function chatLoadInitial() {
   }
 }
 
+// How many of the most-recent messages to re-fetch and diff on every poll
+// tick, in addition to the "what's new" query below. Reactions, edits, and
+// deletes update a message in place without touching its createdAt, so the
+// watermark query (`createdAt > chatLastTimestamp`) never re-fetches that
+// message again once it's already loaded — which meant a reaction someone
+// else added only ever showed up for the person who clicked it, and
+// everyone else needed a full page reload to see it. Re-diffing a recent
+// window on every tick catches those in-place updates for everyone.
+const CHAT_REFRESH_WINDOW = 100;
+
 async function chatPoll() {
   const chatSection = document.getElementById('section-chat');
   if (!chatSection || !chatSection.classList.contains('active')) { stopChatPolling(); return; }
   if (document.hidden) { stopChatPolling(); return; }
   try {
+    let changed = false;
+
+    // 1) Anything brand new beyond the last message we've loaded.
     let q;
     if (chatLastTimestamp) {
       q = query(collection(db, CHAT_COLLECTION), where('createdAt','>', chatLastTimestamp), orderBy('createdAt','asc'), limit(200));
@@ -2273,17 +2305,32 @@ async function chatPoll() {
       q = query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(500));
     }
     const snap = await getDocs(q);
-    if (snap.empty) return;
-    const fresh = [];
-    snap.forEach(d => fresh.push({ id:d.id, ...d.data() }));
-    if (!chatLastTimestamp) fresh.reverse();
-    const existingIds = new Set(chatMessages.map(m => m.id));
-    const newOnes = fresh.filter(m => !existingIds.has(m.id));
-    if (!newOnes.length) return;
-    chatMessages = chatMessages.concat(newOnes);
-    chatLastTimestamp = chatToDate(chatMessages[chatMessages.length-1].createdAt);
-    chatLastSeenId = chatMessages[chatMessages.length-1].id;
-    renderChatMessages(false);
+    if (!snap.empty) {
+      const fresh = [];
+      snap.forEach(d => fresh.push({ id:d.id, ...d.data() }));
+      if (!chatLastTimestamp) fresh.reverse();
+      const existingIds = new Set(chatMessages.map(m => m.id));
+      const newOnes = fresh.filter(m => !existingIds.has(m.id));
+      if (newOnes.length) {
+        chatMessages = chatMessages.concat(newOnes);
+        chatLastTimestamp = chatToDate(chatMessages[chatMessages.length-1].createdAt);
+        chatLastSeenId = chatMessages[chatMessages.length-1].id;
+        changed = true;
+      }
+    }
+
+    // 2) In-place updates (reactions, edits, deletes) on messages already
+    //    loaded — see CHAT_REFRESH_WINDOW comment above.
+    const refreshSnap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(CHAT_REFRESH_WINDOW)));
+    const refreshMap = new Map();
+    refreshSnap.forEach(d => refreshMap.set(d.id, { id:d.id, ...d.data() }));
+    chatMessages = chatMessages.map(m => {
+      const updated = refreshMap.get(m.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(m)) { changed = true; return updated; }
+      return m;
+    });
+
+    if (changed) renderChatMessages(false);
   } catch(e) { console.warn('Chat poll error', e); }
 }
 
