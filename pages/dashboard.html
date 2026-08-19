@@ -6,7 +6,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Unscripted NITT</title>
+  <title>Dashboard 😉 — Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
@@ -70,7 +70,10 @@
       <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon"><i class="fa-solid fa-star"></i></span> Points Guide</a>
 
       <div class="sidebar-label">Club</div>
-      <a class="dash-nav-item" onclick="showSection('chat')"><span class="dash-nav-icon">💬</span> Live Chat</a>
+      <a class="dash-nav-item" onclick="showSection('chat')">
+        <span class="dash-nav-icon">💬</span> Live Chat
+        <span id="chatNavBadge" style="display:none;margin-left:auto;" class="notif-badge"></span>
+      </a>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
       <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Attendance</a>
       <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon"><i class="fa-regular fa-images"></i></span> Gallery</a>
@@ -317,17 +320,20 @@
     <!-- SECTION: LIVE CHAT                                   -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-chat">
-      <h2 class="section-title">💬 Live Chat 🎤</h2>
+      <h2 class="section-title">💬 Live Chat 😉</h2>
       <p class="section-sub">Chat with the whole club in real time</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
         <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time) — click a folded row to expand it. Tap the reply icon on any message to tag it in your reply.</span>
+        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time) — click a folded row to expand it. Tap the reply icon on any message to tag it in your reply, react with an emoji, copy the text, or (for your own messages) edit/delete it. Type @ to tag any member, even inactive ones.</span>
       </div>
       <div class="card" style="padding:0;overflow:hidden;">
         <div id="chatMessagesContainer" class="chat-messages"></div>
         <div id="chatReplyPreview" class="chat-reply-preview" style="display:none;"></div>
-        <div class="chat-input-row">
-          <textarea id="chatInput" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for new line)"></textarea>
+        <div class="chat-input-row" style="position:relative;">
+          <div id="chatMentionDropdown" class="chat-mention-dropdown" style="display:none;"></div>
+          <div id="chatEmojiPicker" class="chat-emoji-picker" style="display:none;"></div>
+          <button type="button" class="chat-emoji-btn" id="chatEmojiBtn" onclick="toggleChatEmojiPicker()" title="Insert emoji">😊</button>
+          <textarea id="chatInput" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for new line, @ to tag someone)"></textarea>
           <button class="btn-primary" id="chatSendBtn" onclick="sendChatMessage()" style="padding:0.75rem 1.4rem;flex-shrink:0;">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -569,7 +575,7 @@ import { auth, db } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, query, orderBy, where,
-  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
+  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit, deleteField
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Session timeout
@@ -655,12 +661,13 @@ if (userData.isActive === false) {
   loadVoting();
   loadDashEvents();
   loadRoleGuidesForPointsPage();
+  startChatUnreadWatcher();
 
   // req 4: Personal notification modal on login
   await checkPersonalNotification();
 });
 
-window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
+window.doLogout = async () => { stopChatPolling(); stopChatUnreadWatcher(); await signOut(auth); window.location.href = 'login.html'; };
 
 window.toggleSidebar = () => {
   document.getElementById('sidebar').classList.toggle('open');
@@ -676,7 +683,7 @@ window.showSection = function(id) {
   if (id === 'analysis' && !chartsRendered && userData) { loadAndRenderAnalysis(); chartsRendered = true; }
   if (window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
   if (id === 'events-dash') loadDashEvents();
-  if (id === 'chat') initChatSection(); else stopChatPolling();
+  if (id === 'chat') { initChatSection(); clearChatUnreadBadge(); } else stopChatPolling();
 };
 
 // Pause polling whenever the browser tab itself isn't visible (saves RAM/
@@ -2039,9 +2046,12 @@ window.onclick = function(event) {
 // LIVE CHAT
 //
 // Stored in the `chatMessages` Firestore collection:
-//   { text, senderUid, senderName, senderPhoto, createdAt, replyTo }
+//   { text, senderUid, senderName, senderPhoto, createdAt, replyTo,
+//     mentions, reactions, editedAt, deleted, deletedAt, deletedBy, deletedByName }
 // replyTo is either null or { id, name, text } (a short snippet of the
-// tagged message).
+// tagged message). mentions is an array of { uid, name } picked from the
+// @-tag dropdown. reactions is a map of { [uid]: emoji } — one emoji per
+// user, toggled on/off by clicking the same reaction again.
 //
 // Behaviour (per spec):
 //  - Polls for new messages once a second, but ONLY while the Live Chat
@@ -2057,6 +2067,15 @@ window.onclick = function(event) {
 //    days collapse together under that month; once a year has fully
 //    passed its months collapse together under that year. Everything is
 //    plain nested <details>/<summary> so expand/collapse needs no JS.
+//  - A lightweight separate watcher (chatUnreadCheck) polls once every
+//    20s, independent of which dashboard section is open, just to badge
+//    the "Live Chat" sidebar link when new messages arrive elsewhere.
+//    Being @-mentioned additionally writes a real entry into the existing
+//    `notifications` collection, so it shows up in the bell/Notifications
+//    page/login popup like any other personal notification.
+//  - Sending is debounced with the same synchronous-lock pattern used for
+//    vote/feedback submission, so mashing the send button can't post the
+//    same message multiple times.
 // ═══════════════════════════════════════════════════════════
 const CHAT_COLLECTION = 'chatMessages';
 const IST_TZ = 'Asia/Kolkata';
@@ -2065,12 +2084,32 @@ let chatLastTimestamp = null;
 let chatPollTimer = null;
 let chatInitialLoaded = false;
 let chatReplyingTo = null;
+let chatEditingId = null;
+let chatPendingMentions = [];
+let chatMentionState = null;      // { start, end, query }
+let chatOpenReactionPickerId = null;
+let _chatSendInProgress = false;  // debounce lock — same pattern as _voteSubmissionInProgress
+
+// Lightweight "new message" watcher state (independent of chat polling above)
+let chatUnreadCount = 0;
+let chatLastSeenId = null;
+let chatUnreadWatcherTimer = null;
+
+const CHAT_QUICK_REACTIONS = ['👍','❤️','😂','😮','😢','🙏','🔥','🎉'];
+const CHAT_EMOJI_LIST = [
+  '😀','😁','😂','🤣','😊','😇','🙂','🙃','😉','😍','😘','😜','🤪','🤔','😎','🥳',
+  '😢','😭','😡','😱','🥺','😴','🤗','🤝','👍','👎','👏','🙌','🙏','💪','🔥','🎉',
+  '❤️','💔','⭐','✅','❌','💯','👋','🫡','🤯','🥲','😅','🎂'
+];
+
+function isChatAdmin() { return !!(userData && ['admin','core'].includes(userData.role)); }
 
 function chatEscapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str == null ? '' : String(str);
   return d.innerHTML;
 }
+function chatEscapeRegex(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function chatToDate(ts) {
   if (!ts) return new Date();
   return ts.toDate ? ts.toDate() : new Date(ts);
@@ -2089,12 +2128,17 @@ function chatIstDayLabel(d) {
 function chatIstMonthLabel(y,m) {
   return new Intl.DateTimeFormat('en-IN', { timeZone: IST_TZ, month:'long', year:'numeric' }).format(new Date(Date.UTC(y, m-1, 15)));
 }
+// Full date + time in IST, used for the "edited" tooltip (req 5).
+function chatIstDateTime(d) {
+  return new Intl.DateTimeFormat('en-IN', { timeZone: IST_TZ, day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true }).format(d);
+}
 
 window.initChatSection = async function() {
   if (!chatInitialLoaded) {
     chatInitialLoaded = true;
     await chatLoadInitial();
   }
+  if (chatMessages.length) chatLastSeenId = chatMessages[chatMessages.length-1].id;
   startChatPolling();
 };
 
@@ -2106,6 +2150,48 @@ function startChatPolling() {
 function stopChatPolling() {
   if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
 }
+
+// ── req 6: lightweight cross-tab "new message" watcher ─────
+// Polls only the single newest message doc every 20s (cheap), independent
+// of whether the Live Chat section is even open, and badges the sidebar
+// link when something new has landed from someone else.
+function startChatUnreadWatcher() {
+  stopChatUnreadWatcher();
+  chatUnreadWatcherTimer = setInterval(chatUnreadCheck, 20000);
+  chatUnreadCheck();
+}
+function stopChatUnreadWatcher() {
+  if (chatUnreadWatcherTimer) { clearInterval(chatUnreadWatcherTimer); chatUnreadWatcherTimer = null; }
+}
+async function chatUnreadCheck() {
+  if (document.hidden) return;
+  try {
+    const snap = await getDocs(query(collection(db, CHAT_COLLECTION), orderBy('createdAt','desc'), limit(1)));
+    if (snap.empty) return;
+    let latest = null;
+    snap.forEach(d => { latest = { id:d.id, ...d.data() }; });
+    if (!latest) return;
+    if (chatLastSeenId === null) { chatLastSeenId = latest.id; return; } // first run just seeds the baseline
+    if (latest.id === chatLastSeenId) return;
+    const chatSection = document.getElementById('section-chat');
+    const chatIsOpen = chatSection && chatSection.classList.contains('active');
+    if (latest.senderUid !== currentUid && !chatIsOpen) {
+      chatUnreadCount++;
+      updateChatNavBadge();
+    }
+    chatLastSeenId = latest.id;
+  } catch(e) { console.warn('Chat unread check error', e); }
+}
+function updateChatNavBadge() {
+  const badge = document.getElementById('chatNavBadge');
+  if (!badge) return;
+  if (chatUnreadCount > 0) { badge.textContent = chatUnreadCount; badge.style.display = 'inline-block'; }
+  else { badge.style.display = 'none'; }
+}
+window.clearChatUnreadBadge = function() {
+  chatUnreadCount = 0;
+  updateChatNavBadge();
+};
 
 async function chatLoadInitial() {
   const container = document.getElementById('chatMessagesContainer');
@@ -2145,6 +2231,7 @@ async function chatPoll() {
     if (!newOnes.length) return;
     chatMessages = chatMessages.concat(newOnes);
     chatLastTimestamp = chatToDate(chatMessages[chatMessages.length-1].createdAt);
+    chatLastSeenId = chatMessages[chatMessages.length-1].id;
     renderChatMessages(false);
   } catch(e) { console.warn('Chat poll error', e); }
 }
@@ -2261,33 +2348,119 @@ function renderChatDayGroup(day) {
   </details>`;
 }
 
+// Highlights "@Name" substrings that correspond to this message's tagged
+// mentions (req 9). Operates on already-HTML-escaped text so both sides of
+// the match are escaped consistently.
+function chatRenderText(msg) {
+  let escaped = chatEscapeHtml(msg.text||'');
+  if (msg.mentions && msg.mentions.length) {
+    const names = [...new Set(msg.mentions.map(m => m.name))]
+      .sort((a,b) => b.length - a.length)
+      .map(n => chatEscapeRegex(chatEscapeHtml(n)));
+    if (names.length) {
+      const re = new RegExp('@(' + names.join('|') + ')\\b', 'g');
+      escaped = escaped.replace(re, '<span class="chat-mention">@$1</span>');
+    }
+  }
+  return escaped;
+}
+
+// Aggregates the { uid: emoji } reaction map into emoji chips with counts
+// (req 2), highlighting the ones the current user picked.
+function chatBuildReactionsHtml(msg) {
+  if (!msg.reactions) return '';
+  const counts = {};
+  Object.values(msg.reactions).forEach(emo => { counts[emo] = (counts[emo]||0) + 1; });
+  const entries = Object.entries(counts);
+  if (!entries.length) return '';
+  const mineEmoji = userData ? msg.reactions[currentUid] : null;
+  return `<div class="chat-reactions-row">` + entries.map(([emo,count]) => {
+    const mine = mineEmoji === emo;
+    return `<button type="button" class="chat-reaction-chip ${mine?'mine':''}" onclick="reactToChatMessage('${msg.id}','${emo}')">${emo}<span>${count}</span></button>`;
+  }).join('') + `</div>`;
+}
+
 function renderChatBubble(msg) {
   const isMe = userData && msg.senderUid === currentUid;
+  const isAdminUser = isChatAdmin();
   const initials = (msg.senderName||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const avatar = msg.senderPhoto
     ? `<img src="${msg.senderPhoto}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
     : initials;
   const timeLabel = chatIstTime(chatToDate(msg.createdAt));
   const dayLabel = chatIstDayLabel(chatToDate(msg.createdAt));
+  const safeName = chatEscapeHtml(msg.senderName||'Member').replace(/'/g,"\\'");
+  const safeSnippet = chatEscapeHtml((msg.text||'').slice(0,120)).replace(/'/g,"\\'");
+
+  // req 5: soft-deleted placeholder — no text, reactions, or further actions.
+  if (msg.deleted) {
+    const byAdmin = msg.deletedBy && msg.deletedBy !== msg.senderUid;
+    const label = byAdmin
+      ? `This message was deleted by an admin${msg.deletedByName ? ' ('+chatEscapeHtml(msg.deletedByName)+')' : ''}.`
+      : 'This message was deleted.';
+    return `<div class="chat-msg ${isMe?'chat-msg-mine':''}" id="msg-${msg.id}">
+      <div class="dash-avatar chat-msg-avatar">${avatar}</div>
+      <div class="chat-msg-body chat-msg-deleted">
+        <div class="chat-msg-meta">
+          <span class="chat-msg-name">${chatEscapeHtml(msg.senderName||'Member')}</span>
+          <span class="chat-msg-time" title="${chatEscapeHtml(dayLabel)}">${chatEscapeHtml(timeLabel)}</span>
+        </div>
+        <div class="chat-msg-text chat-msg-text-deleted"><i class="fa-solid fa-ban"></i> ${label}</div>
+      </div>
+    </div>`;
+  }
+
   const replyHtml = msg.replyTo
     ? `<div class="chat-reply-tag" onclick="scrollToChatMessage('${msg.replyTo.id}')">
         <i class="fa-solid fa-reply"></i> <strong>${chatEscapeHtml(msg.replyTo.name)}</strong>: ${chatEscapeHtml(msg.replyTo.text)}
       </div>`
     : '';
-  const safeName = chatEscapeHtml(msg.senderName||'Member').replace(/'/g,"\\'");
-  const safeSnippet = chatEscapeHtml((msg.text||'').slice(0,120)).replace(/'/g,"\\'");
+
+  // req 5: "edited" tag with the IST edit timestamp in the tooltip.
+  const editedHtml = msg.editedAt
+    ? `<span class="chat-msg-edited" title="Edited ${chatEscapeHtml(chatIstDateTime(chatToDate(msg.editedAt)))} IST">edited</span>`
+    : '';
+
+  const isEditing = chatEditingId === msg.id;
+  const bodyHtml = isEditing
+    ? `<div class="chat-edit-box">
+        <textarea id="editBox-${msg.id}" rows="2">${chatEscapeHtml(msg.text||'')}</textarea>
+        <div class="chat-edit-actions">
+          <button type="button" onclick="saveEditChatMessage('${msg.id}')" class="btn-primary" style="padding:0.35rem 0.9rem;font-size:0.78rem;">Save</button>
+          <button type="button" onclick="cancelEditChatMessage()" style="padding:0.35rem 0.9rem;font-size:0.78rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text);">Cancel</button>
+        </div>
+      </div>`
+    : `<div class="chat-msg-text">${chatRenderText(msg)}</div>`;
+
+  // req 5/7: only the author can edit; author OR an admin/core member can delete.
+  const canEdit = isMe;
+  const canDelete = isMe || isAdminUser;
+
+  const reactionPickerHtml = chatOpenReactionPickerId === msg.id
+    ? `<div class="chat-reaction-picker">${CHAT_QUICK_REACTIONS.map(e=>`<button type="button" onclick="reactToChatMessage('${msg.id}','${e}')">${e}</button>`).join('')}</div>`
+    : '';
+
+  const actionsHtml = isEditing ? '' : `<div class="chat-msg-actions">
+      <button type="button" onclick="replyToChatMessage('${msg.id}','${safeName}','${safeSnippet}')" title="Reply"><i class="fa-solid fa-reply"></i></button>
+      <button type="button" class="chat-msg-react-btn" onclick="openChatReactionPicker('${msg.id}')" title="React">😊</button>
+      <button type="button" id="copyBtn-${msg.id}" onclick="copyChatMessage('${msg.id}')" title="Copy"><i class="fa-regular fa-copy"></i></button>
+      ${canEdit ? `<button type="button" onclick="startEditChatMessage('${msg.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
+      ${canDelete ? `<button type="button" class="danger" onclick="deleteChatMessage('${msg.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+    </div>`;
+
   return `<div class="chat-msg ${isMe?'chat-msg-mine':''}" id="msg-${msg.id}">
     <div class="dash-avatar chat-msg-avatar">${avatar}</div>
     <div class="chat-msg-body">
       <div class="chat-msg-meta">
         <span class="chat-msg-name">${chatEscapeHtml(msg.senderName||'Member')}</span>
         <span class="chat-msg-time" title="${chatEscapeHtml(dayLabel)}">${chatEscapeHtml(timeLabel)}</span>
+        ${editedHtml}
       </div>
       ${replyHtml}
-      <div class="chat-msg-text">${chatEscapeHtml(msg.text||'')}</div>
-      <button class="chat-msg-reply-btn" onclick="replyToChatMessage('${msg.id}','${safeName}','${safeSnippet}')" title="Reply">
-        <i class="fa-solid fa-reply"></i>
-      </button>
+      ${bodyHtml}
+      ${chatBuildReactionsHtml(msg)}
+      ${actionsHtml}
+      ${reactionPickerHtml}
     </div>
   </div>`;
 }
@@ -2326,41 +2499,303 @@ function renderChatReplyPreview() {
     <button onclick="cancelChatReply()" title="Cancel reply"><i class="fa-solid fa-xmark"></i></button>`;
 }
 
+// ── req 5: edit own message ─────────────────────────────────
+window.startEditChatMessage = function(id) {
+  const msg = chatMessages.find(m => m.id === id);
+  if (!msg || msg.deleted) return;
+  if (!(userData && msg.senderUid === currentUid)) return; // only the author can edit
+  chatEditingId = id;
+  renderChatMessages(false);
+  setTimeout(() => {
+    const ta = document.getElementById('editBox-'+id);
+    if (ta) { ta.focus(); ta.selectionStart = ta.value.length; ta.selectionEnd = ta.value.length; }
+  }, 0);
+};
+window.cancelEditChatMessage = function() {
+  chatEditingId = null;
+  renderChatMessages(false);
+};
+window.saveEditChatMessage = async function(id) {
+  const ta = document.getElementById('editBox-'+id);
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (!newText) { alert('Message cannot be empty.'); return; }
+  try {
+    await updateDoc(doc(db, CHAT_COLLECTION, id), { text: newText, editedAt: serverTimestamp() });
+    const idx = chatMessages.findIndex(m => m.id === id);
+    if (idx !== -1) { chatMessages[idx].text = newText; chatMessages[idx].editedAt = new Date(); }
+    chatEditingId = null;
+    renderChatMessages(false);
+  } catch(e) { alert('Could not save edit: ' + e.message); }
+};
+
+// ── req 5 + 7: delete own message, or (if admin/core) anyone's ─────
+window.deleteChatMessage = async function(id) {
+  const msg = chatMessages.find(m => m.id === id);
+  if (!msg || msg.deleted) return;
+  const isOwner = userData && msg.senderUid === currentUid;
+  if (!isOwner && !isChatAdmin()) return;
+  if (!confirm('Delete this message? This cannot be undone.')) return;
+  try {
+    await updateDoc(doc(db, CHAT_COLLECTION, id), {
+      deleted: true,
+      deletedAt: serverTimestamp(),
+      deletedBy: currentUid,
+      deletedByName: userData.name || 'Member'
+    });
+    const idx = chatMessages.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      chatMessages[idx].deleted = true;
+      chatMessages[idx].deletedBy = currentUid;
+      chatMessages[idx].deletedByName = userData.name || 'Member';
+    }
+    if (chatEditingId === id) chatEditingId = null;
+    renderChatMessages(false);
+  } catch(e) { alert('Could not delete message: ' + e.message); }
+};
+
+// ── req 8: copy message text ─────────────────────────────────
+window.copyChatMessage = function(id) {
+  const msg = chatMessages.find(m => m.id === id);
+  if (!msg || msg.deleted) return;
+  const text = msg.text || '';
+  const btn = document.getElementById('copyBtn-'+id);
+  const flash = () => {
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    setTimeout(() => { if (btn) btn.innerHTML = orig; }, 1200);
+  };
+  const fallbackCopy = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(_) {}
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(flash).catch(() => { fallbackCopy(); flash(); });
+  } else {
+    fallbackCopy(); flash();
+  }
+};
+
+// ── req 2: react to a message with a single emoji ─────────────
+window.openChatReactionPicker = function(id) {
+  chatOpenReactionPickerId = (chatOpenReactionPickerId === id) ? null : id;
+  renderChatMessages(false);
+};
+window.closeChatReactionPicker = function() {
+  if (chatOpenReactionPickerId !== null) { chatOpenReactionPickerId = null; renderChatMessages(false); }
+};
+window.reactToChatMessage = async function(id, emoji) {
+  if (!userData) return;
+  const msg = chatMessages.find(m => m.id === id);
+  if (!msg || msg.deleted) return;
+  const current = (msg.reactions||{})[currentUid];
+  const removing = current === emoji;
+  chatOpenReactionPickerId = null;
+  try {
+    const field = `reactions.${currentUid}`;
+    if (removing) {
+      await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: deleteField() });
+      if (msg.reactions) delete msg.reactions[currentUid];
+    } else {
+      await updateDoc(doc(db, CHAT_COLLECTION, id), { [field]: emoji });
+      msg.reactions = msg.reactions || {};
+      msg.reactions[currentUid] = emoji;
+    }
+    renderChatMessages(false);
+  } catch(e) { console.warn('Reaction error', e); }
+};
+
+// ── req 1: emoji picker in the typing area ─────────────────────
+window.toggleChatEmojiPicker = function() {
+  const panel = document.getElementById('chatEmojiPicker');
+  if (!panel) return;
+  closeChatMentionDropdown();
+  const willOpen = panel.style.display === 'none' || !panel.style.display;
+  if (willOpen) {
+    panel.innerHTML = CHAT_EMOJI_LIST.map(e => `<button type="button" onclick="insertChatEmoji('${e}')">${e}</button>`).join('');
+    panel.style.display = 'grid';
+  } else {
+    panel.style.display = 'none';
+  }
+};
+window.insertChatEmoji = function(emoji) {
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? input.value.length;
+  input.value = input.value.slice(0,start) + emoji + input.value.slice(end);
+  const pos = start + emoji.length;
+  input.focus();
+  input.setSelectionRange(pos,pos);
+  input.dispatchEvent(new Event('input'));
+};
+
+// ── req 9: @-tag members, including inactive ones ────────────
+// allUsersCache (loaded once at login, see loadAllUsers()) includes every
+// user document regardless of isActive, so inactive members can be tagged
+// just like active ones.
+function chatUpdateMentionDropdown() {
+  const input = document.getElementById('chatInput');
+  const box = document.getElementById('chatMentionDropdown');
+  if (!input || !box) return;
+  const cursor = input.selectionStart;
+  const text = input.value;
+  const uptoCursor = text.slice(0, cursor);
+  const atIdx = uptoCursor.lastIndexOf('@');
+  if (atIdx === -1) { closeChatMentionDropdown(); return; }
+  const charBefore = atIdx > 0 ? uptoCursor[atIdx-1] : ' ';
+  if (!/\s/.test(charBefore) && atIdx !== 0) { closeChatMentionDropdown(); return; }
+  const queryStr = uptoCursor.slice(atIdx+1);
+  if (/\s/.test(queryStr)) { closeChatMentionDropdown(); return; } // a space ends the mention query
+  chatMentionState = { start: atIdx, end: cursor, query: queryStr.toLowerCase() };
+  const matches = allUsersCache
+    .filter(u => u.id !== currentUid && (u.name||'').toLowerCase().includes(chatMentionState.query))
+    .slice(0, 8);
+  if (!matches.length) { closeChatMentionDropdown(); return; }
+  box.innerHTML = matches.map(u => {
+    const initials = (u.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const inactiveTag = u.isActive === false ? '<span class="chat-mention-inactive">inactive</span>' : '';
+    return `<button type="button" class="chat-mention-item" onclick="pickChatMention('${u.id}')">
+      <span class="chat-mention-avatar">${u.photoUrl ? `<img src="${u.photoUrl}"/>` : initials}</span>
+      <span class="chat-mention-name">${chatEscapeHtml(u.name||'Member')}</span>
+      ${inactiveTag}
+    </button>`;
+  }).join('');
+  box.style.display = 'block';
+}
+function closeChatMentionDropdown() {
+  chatMentionState = null;
+  const box = document.getElementById('chatMentionDropdown');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+}
+window.pickChatMention = function(uid) {
+  const user = allUsersCache.find(u => u.id === uid);
+  const input = document.getElementById('chatInput');
+  if (!user || !input || !chatMentionState) return;
+  const name = user.name || 'Member';
+  const before = input.value.slice(0, chatMentionState.start);
+  const after = input.value.slice(chatMentionState.end);
+  const insertion = '@' + name + ' ';
+  input.value = before + insertion + after;
+  const pos = before.length + insertion.length;
+  chatPendingMentions.push({ uid: user.id, name });
+  closeChatMentionDropdown();
+  input.focus();
+  input.setSelectionRange(pos,pos);
+  input.dispatchEvent(new Event('input'));
+};
+// Resolves which of the explicitly-picked mentions are still actually
+// present in the final message text (in case the user deleted the @tag).
+function chatResolveMentions(text) {
+  const found = [];
+  const seen = new Set();
+  chatPendingMentions.forEach(m => {
+    if (seen.has(m.uid)) return;
+    const re = new RegExp('@' + chatEscapeRegex(m.name) + '(\\s|$)');
+    if (re.test(text)) { found.push(m); seen.add(m.uid); }
+  });
+  return found;
+}
+
+// ── req 10: debounced send — mirrors the vote/feedback submission lock ──
 window.sendChatMessage = async function() {
+  // Synchronous guard: blocks any re-entrant call instantly, no matter how
+  // fast the send button is mashed (same pattern as _voteSubmissionInProgress).
+  if (_chatSendInProgress) return;
   const input = document.getElementById('chatInput');
   const text = (input.value || '').trim();
   if (!text || !userData) return;
+  _chatSendInProgress = true;
   const btn = document.getElementById('chatSendBtn');
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
   try {
+    const mentions = chatResolveMentions(text);
     await addDoc(collection(db, CHAT_COLLECTION), {
       text,
       senderUid: currentUid,
       senderName: userData.name || 'Member',
       senderPhoto: userData.photoUrl || '',
       createdAt: serverTimestamp(),
-      replyTo: chatReplyingTo ? { id: chatReplyingTo.id, name: chatReplyingTo.name, text: chatReplyingTo.text } : null
+      replyTo: chatReplyingTo ? { id: chatReplyingTo.id, name: chatReplyingTo.name, text: chatReplyingTo.text } : null,
+      mentions
     });
+    // req 6 (mentions): a real personal notification via the existing
+    // notifications collection, so it shows up in the bell / Notifications
+    // page / login popup like any other personal notification.
+    if (mentions.length) {
+      const senderName = userData.name || 'Member';
+      const snippet = text.length > 100 ? text.slice(0,100)+'…' : text;
+      await Promise.all(mentions.map(m => addDoc(collection(db,'notifications'), {
+        type: 'personal',
+        targetUid: m.uid,
+        title: `${senderName} mentioned you in Live Chat`,
+        body: snippet,
+        read: false,
+        createdAt: serverTimestamp()
+      }).catch(e => console.warn('Mention notify failed', e))));
+    }
     input.value = '';
     input.style.height = 'auto';
     chatReplyingTo = null;
+    chatPendingMentions = [];
     renderChatReplyPreview();
+    closeChatMentionDropdown();
+    const emojiPanel = document.getElementById('chatEmojiPicker');
+    if (emojiPanel) emojiPanel.style.display = 'none';
     await chatPoll();
   } catch(e) {
     alert('Could not send message: ' + e.message);
-  } finally { btn.disabled = false; }
+  } finally {
+    if (btn) btn.disabled = false;
+    _chatSendInProgress = false;
+  }
 };
 
-// Enter to send, Shift+Enter for newline; textarea grows with content.
+// Enter to send, Shift+Enter for newline; textarea grows with content;
+// @ triggers the mention dropdown; Escape/outside-click closes popovers.
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('chatInput');
   if (!input) return;
   input.addEventListener('keydown', (e) => {
+    const mentionBox = document.getElementById('chatMentionDropdown');
+    if (chatMentionState && mentionBox && mentionBox.style.display !== 'none') {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstItem = mentionBox.querySelector('.chat-mention-item');
+        if (firstItem) firstItem.click();
+        return;
+      }
+      if (e.key === 'Escape') { closeChatMentionDropdown(); return; }
+    }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
   });
   input.addEventListener('input', () => {
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    chatUpdateMentionDropdown();
+  });
+  input.addEventListener('click', chatUpdateMentionDropdown);
+  input.addEventListener('keyup', (e) => {
+    if (['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) chatUpdateMentionDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    const emojiPanel = document.getElementById('chatEmojiPicker');
+    const emojiBtn = document.getElementById('chatEmojiBtn');
+    if (emojiPanel && emojiPanel.style.display !== 'none' && !emojiPanel.contains(e.target) && e.target !== emojiBtn) {
+      emojiPanel.style.display = 'none';
+    }
+    const mentionBox = document.getElementById('chatMentionDropdown');
+    if (mentionBox && mentionBox.style.display !== 'none' && !mentionBox.contains(e.target) && e.target.id !== 'chatInput') {
+      closeChatMentionDropdown();
+    }
+    if (chatOpenReactionPickerId !== null && !e.target.closest('.chat-reaction-picker') && !e.target.closest('.chat-msg-react-btn')) {
+      closeChatReactionPicker();
+    }
   });
 });
 </script>
