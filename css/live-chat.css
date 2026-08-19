@@ -4,14 +4,29 @@
    messages always render flat below the folds as the live feed. */
 
 .chat-messages {
-  max-height: 82vh;
-  min-height: 560px;
-  overflow-y: auto;
-  padding: 1.25rem 1.25rem 0.5rem;
+  max-height: 85vh;
+  min-height: 600px;
+  overflow-y: scroll;
+  padding: 1.25rem 1.25rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   background: var(--bg);
+  scrollbar-width: thin;                                 /* Firefox */
+  scrollbar-color: var(--orange) var(--surface2);        /* Firefox */
+}
+.chat-messages::-webkit-scrollbar { width: 9px; }
+.chat-messages::-webkit-scrollbar-track {
+  background: var(--surface2);
+  border-radius: 8px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--orange);
+  border-radius: 8px;
+  border: 2px solid var(--surface2);
+}
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: var(--orange-dark, var(--orange));
 }
 
 /* ── Fold accordions (day / month / year) ─────────────────── */
@@ -46,71 +61,23 @@
 .chat-fold-meta { margin-left: auto; font-weight: 600; font-size: 0.72rem; color: var(--text-light); }
 .chat-fold-body { padding: 0.5rem 0.75rem 3rem; }
 
-/* Each opened fold gets its own tall, independently-scrollable box —
-   otherwise a day/month/year with many messages just keeps growing and
-   gets visually cut off by whatever comes after it (e.g. "Today"), with
-   no scrollbar of its own to reveal the rest.
-   Generous bottom padding on .chat-fold-body (above) keeps the last
-   message from ever sitting flush against the scroll boundary — that's
-   what previously made a fully-scrolled box look like it had clipped
-   the last bubble mid-way, when it had actually reached the bottom fine.
-   Using `scroll` (not `auto`) plus explicit scrollbar styling forces a
-   visible, themed scrollbar to always render here — default OS/overlay
-   scrollbars (macOS, some Windows dark themes) can stay invisible until
-   actively dragged, which otherwise looks identical to a broken, clipped
-   box even when the content technically scrolls fine. */
-.chat-fold-day > .chat-fold-body {
-  max-height: 700px;
-  overflow-y: scroll;
-}
-.chat-fold-month > .chat-fold-body {
-  max-height: 800px;
-  overflow-y: scroll;
-}
-.chat-fold-year > .chat-fold-body {
-  max-height: 880px;
-  overflow-y: scroll;
-}
-/* A day fold nested inside an already-scrollable month/year fold shouldn't
-   double up its own scrollbar inside another scrollbar — let it grow
-   naturally there instead, since the ancestor fold already scrolls it. */
-.chat-fold-month .chat-fold-day > .chat-fold-body,
-.chat-fold-year .chat-fold-day > .chat-fold-body {
-  max-height: none;
-  overflow-y: visible;
-}
-
-/* Themed, always-visible scrollbar for the three fold levels above. */
+/* Folds no longer get their own inner scrollbar — nesting a scrollable
+   box inside the already-scrollable .chat-messages caused exactly the
+   glitch this replaced: once an inner fold's box got close to (or
+   taller than) the outer window's own visible height, its bottom edge
+   would scroll out of the outer view while its scrollbar kept
+   rendering, making the scrollbar look like it hung past the box.
+   Two competing scrollbars is the wrong model here. A fold now just
+   grows to its natural content height, and the ONE scrollbar — on the
+   outer .chat-messages window below — handles reaching every message,
+   in every fold, all the way down to "Today". Simpler, and nothing can
+   get clipped or look detached from its own box. */
 .chat-fold-day > .chat-fold-body,
 .chat-fold-month > .chat-fold-body,
 .chat-fold-year > .chat-fold-body {
-  scrollbar-width: thin;                                 /* Firefox */
-  scrollbar-color: var(--orange) var(--surface2);        /* Firefox */
+  max-height: none;
+  overflow-y: visible;
 }
-.chat-fold-day > .chat-fold-body::-webkit-scrollbar,
-.chat-fold-month > .chat-fold-body::-webkit-scrollbar,
-.chat-fold-year > .chat-fold-body::-webkit-scrollbar {
-  width: 9px;
-}
-.chat-fold-day > .chat-fold-body::-webkit-scrollbar-track,
-.chat-fold-month > .chat-fold-body::-webkit-scrollbar-track,
-.chat-fold-year > .chat-fold-body::-webkit-scrollbar-track {
-  background: var(--surface2);
-  border-radius: 8px;
-}
-.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb,
-.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb,
-.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb {
-  background: var(--orange);
-  border-radius: 8px;
-  border: 2px solid var(--surface2);
-}
-.chat-fold-day > .chat-fold-body::-webkit-scrollbar-thumb:hover,
-.chat-fold-month > .chat-fold-body::-webkit-scrollbar-thumb:hover,
-.chat-fold-year > .chat-fold-body::-webkit-scrollbar-thumb:hover {
-  background: var(--orange-dark, var(--orange));
-}
-
 
 .chat-fold-year  > summary { background: var(--orange-light); }
 .chat-fold-month > summary { background: var(--surface2); }
