@@ -795,7 +795,7 @@
           <label class="form-label">Guest Name</label>
           <input type="text" id="guestNameInput" placeholder="e.g. Rahul Kumar" />
         </div>
-        <button class="btn-primary" onclick="generateGuestToken()"
+        <button class="btn-primary" id="generateOtpBtn" onclick="generateGuestToken()"
           style="width:100%;padding:1rem;border-radius:100px;">
           Generate OTP →
         </button>
@@ -967,21 +967,32 @@ function populateGuestEventSelect() {
     allEventsCache.map(e => `<option value="${e.id}" data-title="${e.title}">${e.title}</option>`).join('');
 }
 
+// req 2: debounce lock — same synchronous-guard pattern as _voteSubmissionInProgress
+let _guestTokenGenerationInProgress = false;
+
 window.generateGuestToken = async function() {
-  const sel = document.getElementById('guestEventSelect');
-  const eventId = sel.value;
-  const guestName = document.getElementById('guestNameInput').value.trim();
-  if (!eventId) { alert('Please select an event.'); return; }
-  if (!guestName) { alert('Please enter the guest name.'); return; }
-  const eventTitle = sel.options[sel.selectedIndex]?.dataset.title || '';
+  // ── Synchronous guard: blocks ANY re-entrant call instantly, no matter how fast the button is mashed ──
+  if (_guestTokenGenerationInProgress) return;
+  _guestTokenGenerationInProgress = true;
 
-  // Generate 6-digit OTP server-side randomness is approximated via crypto
-  const otp = Array.from(crypto.getRandomValues(new Uint32Array(1)))
-    .map(n => String(100000 + (n % 900000)))[0];
-
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const btn = document.getElementById('generateOtpBtn');
+  const originalBtnText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
 
   try {
+    const sel = document.getElementById('guestEventSelect');
+    const eventId = sel.value;
+    const guestName = document.getElementById('guestNameInput').value.trim();
+    if (!eventId) { alert('Please select an event.'); return; }
+    if (!guestName) { alert('Please enter the guest name.'); return; }
+    const eventTitle = sel.options[sel.selectedIndex]?.dataset.title || '';
+
+    // Generate 6-digit OTP server-side randomness is approximated via crypto
+    const otp = Array.from(crypto.getRandomValues(new Uint32Array(1)))
+      .map(n => String(100000 + (n % 900000)))[0];
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     await addDoc(collection(db, 'guestTokens'), {
       otp, guestName, eventId, eventTitle,
       createdAt: serverTimestamp(),
@@ -994,42 +1005,87 @@ window.generateGuestToken = async function() {
     document.getElementById('generatedOtpBox').style.display = 'block';
     document.getElementById('guestNameInput').value = '';
     loadGuestTokensList();
-  } catch(e) { alert('Failed to generate token: ' + e.message); }
+  } catch(e) {
+    alert('Failed to generate token: ' + e.message);
+  } finally {
+    // Always release the lock and restore the button, whether we succeeded, failed, or returned early on validation
+    if (btn) { btn.disabled = false; btn.textContent = originalBtnText || 'Generate OTP \u2192'; }
+    _guestTokenGenerationInProgress = false;
+  }
 };
+
+// req 3: single-item renderer shared by the first-30 list and the
+// "show more" scrollable dropdown below it, so both look identical.
+function renderGuestTokenRow(t, now) {
+  const exp = t.expiresAt?.toDate ? t.expiresAt.toDate() : new Date(t.expiresAt);
+  const active = exp > now;
+  return `<div style="padding:0.85rem 1rem;border:1px solid var(--border);
+            border-radius:var(--radius-sm);margin-bottom:0.5rem;
+            display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+    <div>
+      <div style="font-weight:700;">${t.guestName}</div>
+      <div style="font-size:0.72rem;color:var(--text-light);">
+        ${t.eventTitle}&nbsp;·&nbsp;OTP:&nbsp;<strong style="letter-spacing:0.15em;font-family:monospace;">${t.otp}</strong>
+      </div>
+    </div>
+    <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;
+      ${active ? 'background:rgba(76,175,80,0.1);color:#2e7d32;' : 'background:var(--surface2);color:var(--text-light);'}">
+      ${active ? 'Active' : 'Expired'}
+    </span>
+  </div>`;
+}
 
 async function loadGuestTokensList() {
   const container = document.getElementById('guestTokensList');
   if (!container) return;
   try {
-    const snap = await getDocs(query(collection(db,'guestTokens'), orderBy('createdAt','desc'), limit(30)));
+    // req 3: fetch ALL tokens, not just the most recent 30 — the first 30
+    // still render directly in the list, but everything after that is no
+    // longer dropped; it's now reachable via the scrollable dropdown below.
+    const snap = await getDocs(query(collection(db,'guestTokens'), orderBy('createdAt','desc')));
     if (snap.empty) {
       container.innerHTML = '<p style="color:var(--text-mid);">No guest tokens yet.</p>';
       return;
     }
     const now = new Date();
-    container.innerHTML = snap.docs.map(d => {
-      const t = d.data();
-      const exp = t.expiresAt?.toDate ? t.expiresAt.toDate() : new Date(t.expiresAt);
-      const active = exp > now;
-      return `<div style="padding:0.85rem 1rem;border:1px solid var(--border);
-                border-radius:var(--radius-sm);margin-bottom:0.5rem;
-                display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
-        <div>
-          <div style="font-weight:700;">${t.guestName}</div>
-          <div style="font-size:0.72rem;color:var(--text-light);">
-            ${t.eventTitle}&nbsp;·&nbsp;OTP:&nbsp;<strong style="letter-spacing:0.15em;font-family:monospace;">${t.otp}</strong>
-          </div>
-        </div>
-        <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;
-          ${active ? 'background:rgba(76,175,80,0.1);color:#2e7d32;' : 'background:var(--surface2);color:var(--text-light);'}">
-          ${active ? 'Active' : 'Expired'}
-        </span>
-      </div>`;
-    }).join('');
+    const docs = snap.docs.map(d => d.data());
+    const visible = docs.slice(0, 30);
+    const rest = docs.slice(30);
+
+    let html = visible.map(t => renderGuestTokenRow(t, now)).join('');
+
+    if (rest.length) {
+      // Collapsed by default; toggled open/closed without re-querying Firestore.
+      // max-height ~ 3.5 rows tall so the window shows 3-4 people and the
+      // remainder scrolls, per req 3.
+      html += `
+        <button type="button" class="btn-outline btn-sm" onclick="toggleGuestTokenOverflow()"
+          id="guestTokenOverflowToggle" style="width:100%;margin-top:0.25rem;">
+          Show ${rest.length} more &darr;
+        </button>
+        <div id="guestTokenOverflowList"
+          style="display:none;margin-top:0.5rem;max-height:230px;overflow-y:auto;
+                 padding-right:0.25rem;border-top:1px dashed var(--border);padding-top:0.5rem;">
+          ${rest.map(t => renderGuestTokenRow(t, now)).join('')}
+        </div>`;
+    }
+
+    container.innerHTML = html;
   } catch(e) {
     container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
   }
 }
+
+// req 3: expand/collapse the overflow dropdown in place — no re-fetch needed
+window.toggleGuestTokenOverflow = function() {
+  const list = document.getElementById('guestTokenOverflowList');
+  const toggle = document.getElementById('guestTokenOverflowToggle');
+  if (!list || !toggle) return;
+  const opening = list.style.display === 'none';
+  list.style.display = opening ? 'block' : 'none';
+  const count = list.children.length;
+  toggle.textContent = opening ? 'Show fewer \u2191' : `Show ${count} more \u2193`;
+};
 
 async function loadGuestExperienceFeedback() {
   const container = document.getElementById('guestFeedbackList');
