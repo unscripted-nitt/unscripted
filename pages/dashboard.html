@@ -1220,8 +1220,15 @@ async function loadLeaderboard() {
 // ── ATTENDANCE ────────────────────────────────────────────
 function loadAttendance() {
   try {
-    // Show all recorded events, not just "past" — type filter removed
-    const cells = allEventsCache.slice(0, 30);
+    // Show all recorded events, not just "past" — type filter removed.
+    // NOTE: this used to be allEventsCache.slice(0, 30), which silently
+    // capped both the calendar grid AND the Present/Total/% stats to the
+    // 30 most recent events. That cap made this section's Attendance %
+    // disagree with "My Progress" (renderProgress()), which has always
+    // computed its statAttPct over the FULL allEventsCache. Dropping the
+    // cap here makes both sections use the exact same event set, so the
+    // two percentages now always agree.
+    const cells = allEventsCache;
  
     let present = 0, eligible = 0;
     cells.forEach(e => {
@@ -2640,6 +2647,19 @@ async function chatPoll() {
 function renderChatMessages(scrollToBottom) {
   const container = document.getElementById('chatMessagesContainer');
   const wasNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+  // req 4: remember the exact scroll position before the innerHTML swap
+  // below. Replacing container.innerHTML tears down and rebuilds every
+  // node, which by itself resets scrollTop to 0 — previously nothing
+  // restored it unless wasNearBottom was true. That's what made opening the
+  // reaction picker (or a reaction chip's names dropdown) on a message
+  // inside a collapsed day fold "jump to the top": every click on 😊 (or a
+  // chip) calls renderChatMessages(false) to redraw the picker, the fold's
+  // open state is preserved (see chatOpenFolds below) so the message stayed
+  // visible, but at a completely different on-screen Y position. The user's
+  // very next click — meant for an emoji in the now-relocated picker —
+  // landed on whatever button happened to be under the cursor at that
+  // screen position instead, i.e. a different message reacted to.
+  const prevScrollTop = container.scrollTop;
 
   const now = new Date();
   const nowP = chatIstParts(now);
@@ -2779,6 +2799,10 @@ function renderChatMessages(scrollToBottom) {
 
   if (scrollToBottom || wasNearBottom) {
     container.scrollTop = container.scrollHeight;
+  } else {
+    // req 4: restore the pre-render scroll position instead of leaving it
+    // at the 0 the innerHTML replace reset it to.
+    container.scrollTop = prevScrollTop;
   }
 }
 
@@ -2826,8 +2850,17 @@ function chatBuildReactionsHtml(msg) {
     const mine = mineEmoji === emo;
     const key = `${msg.id}__${emo}`;
     const namesHtml = names.map(n => `<div class="chat-reaction-name-item">${chatEscapeHtml(n)}</div>`).join('');
+    // req 5: only the person who reacted sees a "Remove" action, and only
+    // inside their own reaction's dropdown — reactToChatMessage always
+    // writes/deletes the caller's own uid-scoped doc (enforced again
+    // server-side by the {path=**}/reactions rule requiring
+    // request.auth.uid == uid), so this can never remove anyone else's
+    // reaction, even if someone tampered with the onclick argument.
+    const removeHtml = mine
+      ? `<button type="button" class="chat-reaction-remove-btn" onclick="event.stopPropagation();reactToChatMessage('${msg.id}','${emo}')">Remove your reaction</button>`
+      : '';
     const dropdownHtml = chatOpenReactionNamesKey === key
-      ? `<div class="chat-reaction-names-dropdown">${namesHtml}</div>`
+      ? `<div class="chat-reaction-names-dropdown">${namesHtml}${removeHtml}</div>`
       : '';
     return `<span class="chat-reaction-chip-wrap">
         <button type="button" class="chat-reaction-chip ${mine?'mine':''}" onclick="toggleChatReactionNames(event,'${msg.id}','${emo}')">${emo}<span>${names.length}</span></button>
