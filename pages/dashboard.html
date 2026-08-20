@@ -2661,6 +2661,23 @@ function renderChatMessages(scrollToBottom) {
   // screen position instead, i.e. a different message reacted to.
   const prevScrollTop = container.scrollTop;
 
+  // req 4 (take 2): the fix above wasn't enough. Each *open* day/month/year
+  // fold gets its own separate scroll box — .chat-fold-body, styled with
+  // max-height:45vh + overflow-y:scroll in css/live-chat.css — independent
+  // of the outer .chat-messages scrollbar. That's the scrollbar you're
+  // actually looking at while scrolled down inside a fold. innerHTML replace
+  // destroys and recreates that inner box from scratch too, resetting ITS
+  // scrollTop to 0 regardless of what we do with the outer container above —
+  // which is exactly why the fix only addressed part of the bug. Capture
+  // every open fold's inner scroll position here, keyed by its stable
+  // data-fold-key, and restore each one after re-render below.
+  const prevFoldScrollTops = new Map();
+  container.querySelectorAll('details.chat-fold').forEach(el => {
+    const key = el.dataset.foldKey;
+    const body = el.querySelector(':scope > .chat-fold-body');
+    if (key && body) prevFoldScrollTops.set(key, body.scrollTop);
+  });
+
   const now = new Date();
   const nowP = chatIstParts(now);
 
@@ -2794,6 +2811,14 @@ function renderChatMessages(scrollToBottom) {
         el.open = !el.open;
         el.dispatchEvent(new Event('toggle'));
       });
+    }
+    // req 4 (take 2): restore this fold's own inner scroll position (see
+    // prevFoldScrollTops above) now that its body has been rebuilt and
+    // re-opened. Must happen after `el.open = true` above — a closed
+    // <details>'s body isn't laid out, so its scrollTop can't be set yet.
+    const body = el.querySelector(':scope > .chat-fold-body');
+    if (key && body && prevFoldScrollTops.has(key)) {
+      body.scrollTop = prevFoldScrollTops.get(key);
     }
   });
 
