@@ -273,6 +273,26 @@
   text-overflow: ellipsis;
 }
 
+/* req 5: "Remove your reaction" — only ever rendered inside the current
+   user's own reaction dropdown (see chatBuildReactionsHtml), never for
+   anyone else's. */
+.chat-reaction-remove-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-top: 0.2rem;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #c62828;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chat-reaction-remove-btn:hover { background: var(--surface2); }
+
 /* ── Edited tag & deleted placeholder (req 5) ──────────────────── */
 .chat-msg-edited {
   font-size: 0.64rem;
