@@ -94,6 +94,27 @@
 }
 .badge-item.legendary .badge-name { color: #b8860b; }
 
+/* ── Small numbered chip (top-left) — used on Speech Milestone badges so
+   16 near-identical mic icons are still visually distinguishable at a glance ── */
+.badge-num-chip {
+  position: absolute;
+  top: 10px; left: 10px;
+  min-width: 20px; height: 20px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: 0.62rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.badge-item.earned .badge-num-chip {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+
 /* ── Streak fire (My Progress page) ── */
 .streak-fire-card {
   position: relative;
