@@ -1,0 +1,183 @@
+/* ============================================================
+   CELEBRATIONS — confetti burst, broken-heart drop, streak fire,
+   and the extra "legendary" / "epic" badge tiers.
+   Loaded on dashboard.html (and reused wherever needed).
+   ============================================================ */
+
+/* ── Full-screen overlay canvas used by both confetti & hearts ── */
+#celebrationCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99999;
+}
+
+/* ── Celebration toast (slides in top-right, reuses theme vars) ── */
+.celeb-toast {
+  position: fixed;
+  top: 88px;
+  right: 20px;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  padding: 1.1rem 1.25rem;
+  z-index: 100000;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(.2,.9,.3,1.3), opacity 0.4s ease;
+}
+.celeb-toast.show { transform: translateX(0); opacity: 1; }
+.celeb-toast .celeb-toast-icon {
+  font-size: 1.9rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.celeb-toast .celeb-toast-title {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.celeb-toast .celeb-toast-body {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+.celeb-toast .celeb-toast-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  flex-shrink: 0;
+}
+.celeb-toast.badge-toast   { border-left: 4px solid #ffc400; }
+.celeb-toast.rankup-toast  { border-left: 4px solid #4CAF50; }
+.celeb-toast.rankdown-toast{ border-left: 4px solid #f44336; }
+
+@media (max-width: 640px) {
+  .celeb-toast { right: 12px; left: 12px; max-width: none; top: 76px; }
+}
+
+/* ── Legendary / epic badge tiers ── */
+.badge-item.epic {
+  border-color: rgba(156,39,176,0.4);
+  background: linear-gradient(135deg, rgba(156,39,176,0.08), rgba(255,87,34,0.06));
+}
+.badge-item.legendary {
+  position: relative;
+  border-color: rgba(255,196,0,0.55);
+  background: linear-gradient(135deg, rgba(255,196,0,0.12), rgba(255,87,34,0.10));
+  overflow: hidden;
+}
+.badge-item.legendary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+  animation: legendaryShine 2.6s ease-in-out infinite;
+}
+@keyframes legendaryShine {
+  0%   { left: -60%; }
+  60%  { left: 130%; }
+  100% { left: 130%; }
+}
+.badge-item.legendary .badge-name { color: #b8860b; }
+
+/* ── Streak fire (My Progress page) ── */
+.streak-fire-card {
+  position: relative;
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a0f08, #2b1206 60%, #1a0f08);
+  border: 1px solid rgba(255,111,0,0.35);
+}
+.streak-fire-wrap {
+  position: relative;
+  width: 64px;
+  height: 76px;
+  flex-shrink: 0;
+}
+.flame {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform-origin: bottom center;
+  filter: blur(0.3px);
+}
+.flame-outer {
+  width: 56px; height: 76px;
+  margin-left: -28px;
+  background: radial-gradient(circle at 50% 75%, #ffca28, #ff6f00 55%, #e64a19 85%);
+  animation: flameFlicker 1.1s ease-in-out infinite alternate;
+}
+.flame-mid {
+  width: 38px; height: 54px;
+  margin-left: -19px;
+  bottom: 2px;
+  background: radial-gradient(circle at 50% 75%, #fff59d, #ffab00 60%, #ff6f00 90%);
+  animation: flameFlicker 0.9s ease-in-out infinite alternate-reverse;
+}
+.flame-inner {
+  width: 20px; height: 30px;
+  margin-left: -10px;
+  bottom: 4px;
+  background: radial-gradient(circle at 50% 80%, #ffffff, #fff176 60%, #ffca28 90%);
+  animation: flameFlicker 0.7s ease-in-out infinite alternate;
+}
+@keyframes flameFlicker {
+  0%   { transform: scaleY(1) scaleX(1) rotate(-2deg); }
+  50%  { transform: scaleY(1.08) scaleX(0.96) rotate(1deg); }
+  100% { transform: scaleY(0.95) scaleX(1.04) rotate(-1deg); }
+}
+.streak-fire-info { position: relative; z-index: 1; }
+.streak-fire-num {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: #ffe0b2;
+  line-height: 1;
+  font-family: var(--font-display, inherit);
+}
+.streak-fire-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffb74d;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}
+.streak-fire-sub {
+  font-size: 0.78rem;
+  color: rgba(255,224,178,0.65);
+  margin-top: 0.3rem;
+}
+.streak-fire-spark {
+  position: absolute;
+  bottom: 0;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #ffca28;
+  opacity: 0;
+  animation: sparkRise 1.8s ease-in infinite;
+}
+@keyframes sparkRise {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-70px) translateX(var(--drift, 10px)); }
+}
