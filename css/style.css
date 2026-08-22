@@ -1160,52 +1160,16 @@ h2 { font-size: clamp(1.8rem, 4vw, 2.75rem); margin-bottom: 1.25rem; }
   gap: 1rem;
 }
 .badge-item {
-  position: relative;
-  padding: 1.5rem 1rem 1.35rem;
+  padding: 1.5rem 1rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   text-align: center;
-  background: var(--surface);
   transition: all var(--transition);
 }
-.badge-item.earned { border-color: rgba(255,87,34,0.3); background: var(--orange-light); box-shadow: 0 6px 18px rgba(255,87,34,0.08); }
-.badge-item.earned:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(255,87,34,0.16); }
-.badge-item.won    { border-color: rgba(255,160,0,0.35); background: rgba(255,160,0,0.06); box-shadow: 0 6px 18px rgba(255,160,0,0.1); }
-.badge-item.won:hover { transform: translateY(-3px); }
-.badge-item.locked { opacity: 0.45; filter: grayscale(0.35); }
-
-.badge-icon {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 0.85rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 9%, transparent);
-  transition: transform var(--transition);
-}
-.badge-item:hover .badge-icon { transform: scale(1.08) rotate(-3deg); }
-.badge-icon i { font-size: 1.45rem; }
-.badge-item.locked .badge-icon { background: color-mix(in srgb, var(--text-light) 14%, transparent); box-shadow: none; }
-
-.badge-item.earned::after {
-  content: '\2713';
-  position: absolute; top: 10px; right: 10px;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--orange); color: #fff;
-  font-size: 0.62rem; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(255,87,34,0.4);
-}
-.badge-item.won::after {
-  content: '\1F451';
-  position: absolute; top: 8px; right: 9px;
-  font-size: 1rem;
-}
-
+.badge-item.earned { border-color: rgba(255,87,34,0.25); background: var(--orange-light); }
+.badge-item.won    { border-color: rgba(255,160,0,0.3);  background: rgba(255,160,0,0.05); }
+.badge-item.locked { opacity: 0.4; }
+.badge-icon { margin-bottom: 0.75rem; }
 .badge-name { font-size: 0.85rem; font-weight: 800; color: var(--text); }
 .badge-desc { font-size: 0.72rem; color: var(--text-mid); margin-top: 0.25rem; line-height: 1.4; }
 .winner-badge {
