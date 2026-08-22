@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="../css/live-chat.css" />
+  <link rel="stylesheet" href="../css/celebrations.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -110,6 +111,23 @@
         <div id="upcomingRolesContainer"><p style="color:var(--text-mid);font-size:0.9rem;">Loading roster...</p></div>
       </div>
 
+      <!-- Attendance streak fire -->
+      <div class="streak-fire-card" id="streakFireCard" style="display:none;">
+        <div class="streak-fire-wrap">
+          <div class="flame flame-outer"></div>
+          <div class="flame flame-mid"></div>
+          <div class="flame flame-inner"></div>
+          <div class="streak-fire-spark" style="left:14px;--drift:-14px;animation-delay:0s;"></div>
+          <div class="streak-fire-spark" style="left:32px;--drift:8px;animation-delay:0.6s;"></div>
+          <div class="streak-fire-spark" style="left:46px;--drift:16px;animation-delay:1.1s;"></div>
+        </div>
+        <div class="streak-fire-info">
+          <div class="streak-fire-num"><span id="streakFireCount">0</span> <span style="font-size:1.1rem;">meet streak</span></div>
+          <div class="streak-fire-label">On Fire</div>
+          <div class="streak-fire-sub" id="streakFireSub">Keep attending to grow your streak!</div>
+        </div>
+      </div>
+
       <h2 class="section-title">My Progress</h2>
       <p class="section-sub">Your speech curriculum journey at a glance</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
@@ -196,6 +214,34 @@
       <div class="card" style="margin-bottom:1.5rem;">
         <h3 style="margin-top:0;">Journey Milestones</h3>
         <div class="badges-grid" id="badgesGrid"><p style="color:var(--text-mid);">Loading...</p></div>
+      </div>
+
+      <!-- Level milestones (beautiful / legendary tier) -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;"><i class="fa-solid fa-gem" style="color:#ffc400;margin-right:0.4rem;"></i>Level Milestones</h3>
+        <p class="section-sub" style="margin-bottom:1rem;">Earned every time you level up in your curriculum</p>
+        <div class="badges-grid" id="levelBadgesGrid"></div>
+      </div>
+
+      <!-- Speech milestones -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;">Speech Milestones</h3>
+        <p class="section-sub" style="margin-bottom:1rem;">A badge for every prepared speech you deliver</p>
+        <div class="badges-grid" id="speechBadgesGrid"></div>
+      </div>
+
+      <!-- Table Topics mastery -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;">Table Topics Mastery</h3>
+        <p class="section-sub" style="margin-bottom:1rem;">Awarded for impromptu speaking reps</p>
+        <div class="badges-grid" id="ttBadgesGrid"></div>
+      </div>
+
+      <!-- Role & streak milestones -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;">Role &amp; Attendance Milestones</h3>
+        <p class="section-sub" style="margin-bottom:1rem;">Try new roles and show up consistently to unlock these</p>
+        <div class="badges-grid" id="roleBadgesGrid"></div>
       </div>
 
       <!-- My upcoming roles (visible only to this member - req 14) -->
@@ -577,6 +623,7 @@ import {
   doc, getDoc, getDocs, collection, collectionGroup, query, orderBy, where,
   setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { launchConfetti, launchBrokenHearts, showCelebToast } from '../js/celebrations.js';
 
 // Session timeout
 import '../js/session.js';
@@ -656,6 +703,7 @@ if (userData.isActive === false) {
   loadGallery();
   loadLeaderboard();
   loadAchievements();
+  await checkNewBadgeCelebration();
   loadNotifications();
   loadFeedbackSectionEvents();
   loadVoting();
@@ -787,6 +835,7 @@ async function renderProgress() {
  
     // ── Stat cards ─────────────────────────────────────────
     document.getElementById('statSpeeches').textContent = speechIndex;
+    renderStreakFire();
     document.getElementById('statLevel').textContent = (!userData.pathway || userData.pathway === 'L1P0') ? 'Not started' : userData.pathway;    const eligibleMeets = allEventsCache.filter(e => !(e.ineligible || []).includes(currentUid));
     const presentCount  = eligibleMeets.filter(e => (e.attended || []).includes(currentUid)).length;
     document.getElementById('statAttPct').textContent =
@@ -1082,35 +1131,164 @@ function renderMyUpcomingRoles(upcoming) {
   }
 }
 // ── ACHIEVEMENTS ──────────────────────────────────────────
+// ── Shared role/speech/streak stats (used by renderProgress, achievements, celebrations) ──
+function computeMyRoleStats() {
+  let ttDelivered = 0, totalRolesTaken = 0;
+  allEventsCache.forEach(e => {
+    const roles = e.roles || {};
+    for (const [rk, uid] of Object.entries(roles)) {
+      if (uid !== currentUid) continue;
+      if (rk.startsWith('hom'))                                              totalRolesTaken++;
+      else if (rk === 'ttm' || rk === 'tte' || rk === 'ge')                  totalRolesTaken++;
+      else if (rk === 'momTaker' || rk === 'momPres')                        totalRolesTaken++;
+      else if (rk.startsWith('evaluator'))                                   totalRolesTaken++;
+      else if (rk === 'timer' || rk === 'listener' || rk === 'grammarian')   totalRolesTaken++;
+      else if (rk.startsWith('tt') && rk !== 'ttm' && rk !== 'tte')          ttDelivered++;
+    }
+  });
+  return { ttDelivered, totalRolesTaken };
+}
+
+// Longest run of consecutive attended meetings ending at the most recent
+// eligible meeting (i.e. the member's CURRENT active streak).
+function computeAttendanceStreak() {
+  const eligible = allEventsCache
+    .filter(e => !(e.ineligible || []).includes(currentUid) && e.date)
+    .map(e => ({ ...e, _d: e.date.toDate ? e.date.toDate() : new Date(e.date) }))
+    .filter(e => e._d <= new Date())
+    .sort((a, b) => b._d - a._d); // most recent first
+
+  let streak = 0;
+  for (const e of eligible) {
+    if ((e.attended || []).includes(currentUid)) streak++;
+    else break;
+  }
+  return streak;
+}
+
+// Builds the FULL flat list of every achievement this member could earn,
+// across every category shown on the Achievements page. Also used by the
+// "new badge" celebration check, so this is the single source of truth.
+function buildAllAchievements() {
+  const speechIdx     = getDashSpeechIdx(userData);
+  const presentCount  = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
+  const { ttDelivered } = computeMyRoleStats();
+  const streak        = computeAttendanceStreak();
+  const roleBadges     = userData.roleBadges || [];
+  const hasRole = prefix => roleBadges.some(r => r.startsWith(prefix));
+
+  const journey = [
+    { id:'first_speech', category:'journey', name:'First Speech', desc:'Delivered your first speech', icon:'fa-microphone',
+      earned: speechIdx >= 1 },
+    { id:'five_speeches', category:'journey', name:'Orator', desc:'5 speeches completed', icon:'fa-star',
+      earned: speechIdx >= 5 },
+    { id:'attendance_5', category:'journey', name:'Consistent', desc:'Attended 5 meetings', icon:'fa-calendar-check',
+      earned: presentCount >= 5 },
+    { id:'lvl2', category:'journey', name:'Level 2', desc:'Started Level 2 pathway', icon:'fa-layer-group',
+      earned: speechIdx > 6 || ['L2','L3K','L3H'].includes(userData.pathwayKey||'') },
+    { id:'mentor', category:'journey', name:'Mentor', desc:'You have a mentee assigned to you', icon:'fa-hands-helping',
+      earned: allUsersCache.some(u => u.mentor === currentUid) },
+  ];
+
+  // Level milestones — beautiful/legendary tier
+  const level = [
+    { id:'lvl_l2_started', category:'level', name:'Level 2 Unlocked', desc:'Started the Level 2 pathway', icon:'fa-layer-group', tier:'epic',
+      earned: speechIdx > 6 || ['L2','L3K','L3H'].includes(userData.pathwayKey||'') },
+    { id:'lvl_l1_grad', category:'level', name:'Foundation Graduate', desc:'Completed all of Level 1', icon:'fa-award', tier:'epic',
+      earned: speechIdx >= 7 },
+    { id:'lvl_l3_started', category:'level', name:'Level 3 Unlocked', desc:'Chose your Level 3 elective', icon:'fa-road', tier:'epic',
+      earned: ['L3K','L3H'].includes(userData.pathwayKey||'') },
+    { id:'lvl_l2_grad', category:'level', name:'Proficiency Graduate', desc:'Completed all of Level 2', icon:'fa-medal', tier:'epic',
+      earned: speechIdx >= 12 },
+    { id:'lvl_l3_grad', category:'level', name:'Distinguished Speaker', desc:'Completed the full curriculum, Level 1 to 3', icon:'fa-crown', tier:'legendary',
+      earned: speechIdx >= 16 && ['L3K','L3H'].includes(userData.pathwayKey||'') },
+  ];
+
+  // Speech milestones — one per completed prepared speech
+  const totalSpeechSlots = 16; // 7 (L1) + 5 (L2) + 4 (L3)
+  const speech = Array.from({ length: totalSpeechSlots }, (_, i) => {
+    const n = i + 1;
+    return {
+      id:`speech_${n}`, category:'speech', name:`Speech ${n}`, desc:`Delivered your ${ordinal(n)} prepared speech`,
+      icon:'fa-microphone-lines', earned: speechIdx >= n
+    };
+  });
+
+  // Table Topics mastery tiers
+  const tt = [
+    { id:'tt_5', category:'tt', name:'Quick Thinker', desc:'Took Table Topics 5 times', icon:'fa-bolt',
+      earned: ttDelivered >= 5 },
+    { id:'tt_10', category:'tt', name:'Silver Tongue', desc:'Took Table Topics 10 times', icon:'fa-comments', tier:'epic',
+      earned: ttDelivered >= 10 },
+    { id:'tt_15', category:'tt', name:'Legendary Improviser', desc:'Took Table Topics 15 times', icon:'fa-fire', tier:'legendary',
+      earned: ttDelivered >= 15 },
+  ];
+
+  // First-time role badges
+  const ROLE_FIRSTS = [
+    { key:'HOM',          name:'First Time: Toastmaster', icon:'fa-user-tie' },
+    { key:'Evaluator',    name:'First Time: Evaluator', icon:'fa-magnifying-glass' },
+    { key:'TTM',          name:'First Time: Table Topics Master', icon:'fa-comments' },
+    { key:'TTE',          name:'First Time: Table Topics Evaluator', icon:'fa-scale-balanced' },
+    { key:'GE',           name:'First Time: General Evaluator', icon:'fa-clipboard-check' },
+    { key:'Timer',        name:'First Time: Timer', icon:'fa-stopwatch' },
+    { key:'MOM',          name:'First Time: Minutes', icon:'fa-note-sticky' },
+    { key:'Listener',     name:'First Time: Ah-Counter/Listener', icon:'fa-ear-listen' },
+    { key:'Grammarian',   name:'First Time: Grammarian', icon:'fa-spell-check' },
+    { key:'TT Speaker',   name:'First Time: Table Topics Speaker', icon:'fa-hand' },
+  ];
+  const role = ROLE_FIRSTS.map(r => ({
+    id:`first_role_${r.key.replace(/\s+/g,'_')}`, category:'role', name:r.name,
+    desc:'Tried this role for the first time', icon:r.icon, earned: hasRole(r.key)
+  }));
+
+  // Attendance streak
+  role.push({
+    id:'streak_3', category:'role', name:'On a Roll', desc:'Attended 3 meetings in a row', icon:'fa-fire-flame-curved', tier:'epic',
+    earned: streak >= 3
+  });
+  role.push({
+    id:'streak_5', category:'role', name:'Unstoppable', desc:'Attended 5 meetings in a row', icon:'fa-fire', tier:'legendary',
+    earned: streak >= 5
+  });
+
+  // Win badges (voting awards, req 15) — flattened for celebration purposes
+  const winBadges = (userData.winBadges || []).map((wb, i) => ({
+    id:`win_${(wb.category||'').replace(/\s+/g,'_')}_${(wb.meet||'').replace(/\s+/g,'_')}`,
+    category:'win', name:wb.category, desc:`Won at ${wb.meet}`, icon:'fa-crown', tier:'legendary', earned:true
+  }));
+
+  return { journey, level, speech, tt, role, winBadges };
+}
+
+function ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+
+function renderBadgeGrid(el, list) {
+  el.innerHTML = list.map(b => {
+    const tierClass = b.earned && b.tier ? ` ${b.tier}` : '';
+    return `<div class="badge-item ${b.earned?'earned':'locked'}${tierClass}">
+      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.8rem;color:${b.earned?(b.tier==='legendary'?'#ffc400':(b.tier==='epic'?'#ab47bc':'var(--orange)')):'var(--text-light)'};"></i></div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+    </div>`;
+  }).join('');
+}
+
 async function loadAchievements() {
   const badgesGrid = document.getElementById('badgesGrid');
   const rolesGrid  = document.getElementById('rolesGrid');
   const winGrid    = document.getElementById('winBadgesGrid');
   const winCard    = document.getElementById('winBadgesCard');
   try {
-    const speechIdx    = getDashSpeechIdx(userData);
-    const presentCount = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
-
-    const allBadges = [
-      { id:'first_speech', name:'First Speech', desc:'Delivered your first speech', icon:'fa-microphone',
-        cond: () => speechIdx >= 1 },
-      { id:'five_speeches', name:'Orator', desc:'5 speeches completed', icon:'fa-star',
-        cond: () => speechIdx >= 5 },
-      { id:'attendance_5', name:'Consistent', desc:'Attended 5 meetings', icon:'fa-calendar-check',
-        cond: () => presentCount >= 5 },
-      { id:'lvl2', name:'Level 2', desc:'Started Level 2 pathway', icon:'fa-layer-group',
-        cond: (u) => speechIdx > 6 || ['L2','L3K','L3H'].includes(u.pathwayKey||'') },
-      { id:'mentor', name:'Mentor', desc:'You have a mentee assigned to you', icon:'fa-hands-helping',
-        cond: () => allUsersCache.some(u => u.mentor === currentUid) },
-    ];
-    badgesGrid.innerHTML = allBadges.map(b => {
-      const earned = b.cond(userData);
-      return `<div class="badge-item ${earned?'earned':'locked'}">
-        <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.8rem;color:${earned?'var(--orange)':'var(--text-light)'};"></i></div>
-        <div class="badge-name">${b.name}</div>
-        <div class="badge-desc">${b.desc}</div>
-      </div>`;
-    }).join('');
+    const all = buildAllAchievements();
+    renderBadgeGrid(badgesGrid, all.journey);
+    renderBadgeGrid(document.getElementById('levelBadgesGrid'), all.level);
+    renderBadgeGrid(document.getElementById('speechBadgesGrid'), all.speech);
+    renderBadgeGrid(document.getElementById('ttBadgesGrid'), all.tt);
+    renderBadgeGrid(document.getElementById('roleBadgesGrid'), all.role);
 
     // Past roles (req 14: only this member's)
     const allHistory = userData.roleBadges || [];
@@ -1143,6 +1321,125 @@ async function loadAchievements() {
         </div>`).join('');
     }
   } catch(e) { console.warn('Achievements error',e); }
+}
+
+// ── Big fire animation showing the current attendance streak (My Progress) ──
+function renderStreakFire() {
+  try {
+    const card = document.getElementById('streakFireCard');
+    if (!card) return;
+    const streak = computeAttendanceStreak();
+    if (streak <= 0) { card.style.display = 'none'; return; }
+    card.style.display = 'flex';
+    document.getElementById('streakFireCount').textContent = streak;
+    const sub = document.getElementById('streakFireSub');
+    sub.textContent = streak >= 5
+      ? "You're unstoppable — don't break the chain!"
+      : streak >= 3
+        ? 'Great momentum — a few more to go legendary!'
+        : 'Keep attending back-to-back meetings to build your streak!';
+  } catch (e) { console.warn('Streak fire render error', e); }
+}
+
+// ── "New badge unlocked" celebration ──────────────────────
+// Persists which badge ids have already been celebrated on the user's
+// Firestore doc (seenBadgeIds), same durability pattern used for
+// notifications elsewhere in this file: an immediate localStorage stamp
+// covers the moment before the Firestore write lands, so a reload right
+// after earning a badge can never re-trigger the celebration.
+function getLocallySeenBadgeIds(uid) {
+  try { return new Set(JSON.parse(localStorage.getItem('seenBadges_' + uid) || '[]')); }
+  catch (_) { return new Set(); }
+}
+function addLocallySeenBadgeIds(uid, ids) {
+  try {
+    const cur = getLocallySeenBadgeIds(uid);
+    ids.forEach(id => cur.add(id));
+    localStorage.setItem('seenBadges_' + uid, JSON.stringify([...cur]));
+  } catch (_) {}
+}
+
+async function checkNewBadgeCelebration() {
+  try {
+    const all = buildAllAchievements();
+    const earned = [...all.journey, ...all.level, ...all.speech, ...all.tt, ...all.role, ...all.winBadges]
+      .filter(b => b.earned);
+    const earnedIds = earned.map(b => b.id);
+
+    const seenServer = new Set(userData.seenBadgeIds || []);
+    const seenLocal  = getLocallySeenBadgeIds(currentUid);
+    const newlyEarned = earned.filter(b => !seenServer.has(b.id) && !seenLocal.has(b.id));
+
+    // First-ever load: nothing to celebrate, just baseline everything as seen
+    // so old badges don't all "unlock" at once the first time this ships.
+    const isFirstRun = !userData.seenBadgeIds;
+    if (isFirstRun) {
+      addLocallySeenBadgeIds(currentUid, earnedIds);
+      await updateDoc(doc(db, 'users', currentUid), { seenBadgeIds: earnedIds }).catch(()=>{});
+      userData.seenBadgeIds = earnedIds;
+      return;
+    }
+
+    if (!newlyEarned.length) return;
+
+    // Stamp as seen immediately (before animating) so this can never repeat.
+    addLocallySeenBadgeIds(currentUid, earnedIds);
+    updateDoc(doc(db, 'users', currentUid), { seenBadgeIds: arrayUnion(...earnedIds) }).catch(()=>{});
+    userData.seenBadgeIds = earnedIds;
+
+    // Personal notification entry (shows in the bell / Notifications section)
+    const names = newlyEarned.map(b => b.name).join(', ');
+    addDoc(collection(db, 'notifications'), {
+      type: 'personal',
+      targetUid: currentUid,
+      title: '🎉 New Badge Unlocked!',
+      body: newlyEarned.length === 1 ? `You earned the "${names}" badge!` : `You earned ${newlyEarned.length} new badges: ${names}`,
+      read: false,
+      createdAt: serverTimestamp()
+    }).catch(()=>{});
+
+    launchConfetti();
+    showCelebToast({
+      type: 'badge',
+      title: newlyEarned.length === 1 ? 'New Badge Unlocked!' : `${newlyEarned.length} New Badges Unlocked!`,
+      body: names
+    });
+  } catch (e) { console.warn('Badge celebration error', e); }
+}
+
+// ── Leaderboard rank-change celebration (confetti up / broken heart down) ──
+async function checkLeaderboardRankChange(myRank, totalRanked) {
+  try {
+    if (!myRank) return;
+    const seenKey = 'lastRank_' + currentUid;
+    const lastRankLocal = Number(localStorage.getItem(seenKey) || 0);
+    const lastRank = userData.lastKnownRank || lastRankLocal || 0;
+
+    // Stamp immediately so this can never re-fire on reload/relogin.
+    localStorage.setItem(seenKey, String(myRank));
+    updateDoc(doc(db, 'users', currentUid), { lastKnownRank: myRank }).catch(()=>{});
+    userData.lastKnownRank = myRank;
+
+    if (!lastRank || lastRank === myRank) return; // first-ever check or no change
+
+    if (myRank > lastRank) {
+      const places = myRank - lastRank;
+      launchBrokenHearts();
+      showCelebToast({
+        type: 'rankdown',
+        title: 'You dropped on the leaderboard',
+        body: `You fell ${places} place${places>1?'s':''} — now #${myRank} of ${totalRanked}.`
+      });
+    } else {
+      const places = lastRank - myRank;
+      launchConfetti();
+      showCelebToast({
+        type: 'rankup',
+        title: 'You climbed the leaderboard!',
+        body: `You moved up ${places} place${places>1?'s':''} — now #${myRank} of ${totalRanked}.`
+      });
+    }
+  } catch (e) { console.warn('Leaderboard celebration error', e); }
 }
 
 // ── LEADERBOARD ───────────────────────────────────────────
@@ -1213,6 +1510,10 @@ async function loadLeaderboard() {
       </tr>`;
     });
     document.getElementById('leaderboardTableBody').innerHTML = html || `<tr><td colspan="${HEADERS.length}" style="text-align:center;padding:2rem;color:var(--text-mid);">No data yet.</td></tr>`;
+
+    // Rank-change celebration (confetti on the way up, broken heart on the way down)
+    const myRank = rows.findIndex(r => r.u.id === currentUid) + 1;
+    if (myRank > 0) checkLeaderboardRankChange(myRank, rows.length);
   } catch(e) { console.warn('Leaderboard error',e); }
 }
 
