@@ -1124,7 +1124,7 @@ function renderMyUpcomingRoles(upcoming) {
     wrapper.style.display = 'block';
     grid.innerHTML = myRoles.map(r => `
       <div class="badge-item earned">
-        <div class="badge-icon" style="color:var(--orange);"><i class="fa-solid fa-masks-theater"></i></div>
+        <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:var(--orange);"></i></div>
         <div class="badge-name">${r.role}</div>
         <div class="badge-desc" style="color:var(--orange);font-weight:700;">${r.meet}</div>
       </div>`).join('');
@@ -1210,7 +1210,7 @@ function buildAllAchievements() {
     const n = i + 1;
     return {
       id:`speech_${n}`, category:'speech', name:`Speech ${n}`, desc:`Delivered your ${ordinal(n)} prepared speech`,
-      icon:'fa-microphone-lines', num:n, earned: speechIdx >= n
+      icon:'fa-microphone-lines', earned: speechIdx >= n
     };
   });
 
@@ -1226,7 +1226,7 @@ function buildAllAchievements() {
 
   // First-time role badges
   const ROLE_FIRSTS = [
-    { key:'HOM',          name:'First Time: Host of the Meeting', icon:'fa-user-tie' },
+    { key:'HOM',          name:'First Time: Toastmaster', icon:'fa-user-tie' },
     { key:'Evaluator',    name:'First Time: Evaluator', icon:'fa-magnifying-glass' },
     { key:'TTM',          name:'First Time: Table Topics Master', icon:'fa-comments' },
     { key:'TTE',          name:'First Time: Table Topics Evaluator', icon:'fa-scale-balanced' },
@@ -1266,22 +1266,11 @@ function ordinal(n) {
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
 
-// Event titles are often already written as "Meet-23", "Meet 18", etc.
-// Prefixing a hardcoded "Meet " in front of those produced "Meet Meet-23".
-// This only adds the word when the title doesn't already start with it.
-function meetLabel(title) {
-  if (!title) return '';
-  return /^meet\b/i.test(title.trim()) ? title.trim() : 'Meet ' + title;
-}
-
 function renderBadgeGrid(el, list) {
   el.innerHTML = list.map(b => {
     const tierClass = b.earned && b.tier ? ` ${b.tier}` : '';
-    const color = b.earned ? (b.tier==='legendary'?'#ffc400':(b.tier==='epic'?'#ab47bc':'var(--orange)')) : 'var(--text-light)';
-    const numChip = b.num ? `<span class="badge-num-chip">${b.num}</span>` : '';
     return `<div class="badge-item ${b.earned?'earned':'locked'}${tierClass}">
-      ${numChip}
-      <div class="badge-icon" style="color:${color};"><i class="fa-solid ${b.icon}"></i></div>
+      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.8rem;color:${b.earned?(b.tier==='legendary'?'#ffc400':(b.tier==='epic'?'#ab47bc':'var(--orange)')):'var(--text-light)'};"></i></div>
       <div class="badge-name">${b.name}</div>
       <div class="badge-desc">${b.desc}</div>
     </div>`;
@@ -1312,9 +1301,9 @@ async function loadAchievements() {
       rolesGrid.innerHTML = [...pastRoles].reverse().map(r => {
         const parts = r.split(' M-');
         return `<div class="badge-item earned" style="border-color:#4CAF50;">
-          <div class="badge-icon" style="color:#4CAF50;"><i class="fa-solid fa-masks-theater"></i></div>
+          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:#4CAF50;"></i></div>
           <div class="badge-name">${parts[0]}</div>
-          <div class="badge-desc" style="color:#2e7d32;font-weight:700;">${parts[1]?meetLabel(parts[1]):''}</div>
+          <div class="badge-desc" style="color:#2e7d32;font-weight:700;">${parts[1]?'Meet '+parts[1]:''}</div>
         </div>`;
       }).join('');
     }
@@ -1325,9 +1314,9 @@ async function loadAchievements() {
       winCard.style.display = 'block';
       winGrid.innerHTML = winBadges.map(wb => `
         <div class="badge-item won">
-          <div class="badge-icon" style="color:#ffa000;"><i class="fa-solid fa-crown"></i></div>
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.8rem;color:#ffa000;"></i></div>
           <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:#e65100;font-weight:700;">${meetLabel(wb.meet)}</div>
+          <div class="badge-desc" style="color:#e65100;font-weight:700;">Meet ${wb.meet}</div>
           <div class="winner-badge" style="margin-top:0.75rem;font-size:0.65rem;">Winner</div>
         </div>`).join('');
     }
