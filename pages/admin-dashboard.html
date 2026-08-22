@@ -525,6 +525,9 @@
         <h1 class="section-title" style="margin:0;">Event Manager</h1>
         <p style="font-size:0.82rem;color:var(--text-mid);flex:1;margin:0;">Create and manage meets. Set an event <strong>Live</strong> to show it as active to members. Events appear in role assignments, attendance, and voting dropdowns. Deleting an event also reverts speech progress for any speakers assigned in it.</p>
         <button class="btn-primary" onclick="toggleEventForm()" id="toggleEventBtn"><i class="fa-solid fa-plus"></i> Add Event</button>
+        <button class="btn-outline" onclick="cleanOrphanedBadges()" id="cleanBadgesBtn" title="Removes badges left over from events that were deleted before this cleanup existed">
+          <i class="fa-solid fa-broom"></i> Clean Up Orphaned Badges
+        </button>
       </div>
 
       <!-- Add/Edit form -->
@@ -860,6 +863,11 @@
   <input type="email" id="editPersonalEmail" placeholder="e.g. name@gmail.com" />
   <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">Not used for login. Stored only so admin can identify member if locked out.</p>
 </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Joined Since</label>
+        <input type="date" id="editJoinedSince" />
+        <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">When this member joined the club. Pick from the calendar or type a date (YYYY-MM-DD).</p>
       </div>
       <div class="form-group">
         <label class="form-label">Assigned Mentor</label>
@@ -1531,6 +1539,12 @@ window.openEditModal = (uid) => {
   document.getElementById('editPathway').value = u.pathway||'L1P1';
   document.getElementById('editRole').value = u.role||'user';
   document.getElementById('editMentor').value = u.mentor||'';
+  if (u.joinedSince) {
+    const jd = u.joinedSince.toDate ? u.joinedSince.toDate() : new Date(u.joinedSince);
+    document.getElementById('editJoinedSince').value = jd.toISOString().slice(0, 10);
+  } else {
+    document.getElementById('editJoinedSince').value = '';
+  }
   document.getElementById('editIsActive').checked = u.isActive !== false;
 // Show/hide the inactive-since field and pre-fill if stored
 if (u.isActive === false) {
@@ -1587,6 +1601,7 @@ window.saveUserChanges = async () => {
   try {
     const isActive         = document.getElementById('editIsActive').checked;
 const inactiveSinceVal = document.getElementById('editInactiveSince').value;
+const joinedSinceVal   = document.getElementById('editJoinedSince').value;
 
 const updateData = {
   pathway:       newPathway,
@@ -1597,6 +1612,12 @@ const updateData = {
   personalEmail: document.getElementById('editPersonalEmail')?.value.trim() || '',
   isActive,
 };
+
+if (joinedSinceVal) {
+  updateData.joinedSince = new Date(joinedSinceVal);
+} else {
+  updateData.joinedSince = deleteField();
+}
 
 if (!isActive && inactiveSinceVal) {
   // Store as a plain JS Date — Firestore converts it to a Timestamp automatically
@@ -2030,8 +2051,57 @@ window.toggleEventActive = async (id,active) => {
 //      (the per-user u.attendance[] array entries and leaderboard counts are
 //       live-computed from allEventsCache, so removing the event doc is enough)
 //
+// ── Sweep every member for badges tied to events that no longer exist ────
+// (handles events that were deleted before the automatic cleanup above
+// was added, or any other case where an event doc vanished separately).
+window.cleanOrphanedBadges = async () => {
+  if (!confirm('Scan all members and remove any badges tied to events that no longer exist? This cannot be undone.')) return;
+  const btn = document.getElementById('cleanBadgesBtn');
+  btn.disabled = true; const origText = btn.innerHTML; btn.innerHTML = 'Scanning...';
+  try {
+    const eventsSnap = await getDocs(collection(db, 'events'));
+    const validTitles = new Set();
+    eventsSnap.forEach(d => { const t = d.data().title; if (t) validTitles.add(t); });
+
+    const usersSnap = await getDocs(collection(db, 'users'));
+    let usersCleaned = 0, roleBadgesRemoved = 0, winBadgesRemoved = 0;
+
+    for (const ud of usersSnap.docs) {
+      const u = ud.data();
+      const roleBadges = u.roleBadges || [];
+      const winBadges  = u.winBadges  || [];
+
+      const cleanRoleBadges = roleBadges.filter(r => {
+        const parts = r.split(' M-');
+        const evTitle = parts[1];
+        return !evTitle || validTitles.has(evTitle);
+      });
+      const cleanWinBadges = winBadges.filter(wb => !wb.meet || validTitles.has(wb.meet));
+
+      if (cleanRoleBadges.length !== roleBadges.length || cleanWinBadges.length !== winBadges.length) {
+        roleBadgesRemoved += roleBadges.length - cleanRoleBadges.length;
+        winBadgesRemoved  += winBadges.length  - cleanWinBadges.length;
+        usersCleaned++;
+        await updateDoc(doc(db, 'users', ud.id), {
+          roleBadges: cleanRoleBadges,
+          winBadges:  cleanWinBadges,
+        });
+      }
+    }
+
+    alert(usersCleaned
+      ? `Cleanup complete. Updated ${usersCleaned} member(s): removed ${roleBadgesRemoved} role badge(s) and ${winBadgesRemoved} win badge(s) tied to deleted events.`
+      : 'No orphaned badges found — everything is already clean.');
+    loadAllData();
+  } catch (e) {
+    alert('Cleanup failed: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = origText;
+  }
+};
+
 window.deleteEvent = async (id) => {
-  if (!confirm('Delete this event? This will revert speaker speech progress, remove all guest tokens, and erase all feedback and votes linked to this event.')) return; 
+  if (!confirm('Delete this event? This will revert speaker speech progress, remove all guest tokens, erase all feedback and votes linked to this event, and remove any badges members earned because of it.')) return; 
   try {
     // ── Fetch the event to inspect its roles ────────────────────────────────
     const evSnap = await getDoc(doc(db, 'events', id));
@@ -2127,6 +2197,31 @@ window.deleteEvent = async (id) => {
       }
       await deleteDoc(doc(db,'votingSessions',sid));
     }
+// ── Remove badges tied to this event ─────────────────────────────────────
+    // roleBadges entries look like "<RoleLabel> M-<EventTitle>" and winBadges
+    // entries look like {category, meet: <EventTitle>, awarded}. Since this
+    // event no longer exists, nobody should keep a badge earned because of it.
+    if (evData.title) {
+      const allUsersSnap = await getDocs(collection(db, 'users'));
+      for (const ud of allUsersSnap.docs) {
+        const u = ud.data();
+        const roleBadges = u.roleBadges || [];
+        const winBadges  = u.winBadges  || [];
+        const cleanRoleBadges = roleBadges.filter(r => !r.endsWith(' M-' + evData.title));
+        const cleanWinBadges  = winBadges.filter(wb => wb.meet !== evData.title);
+        if (cleanRoleBadges.length !== roleBadges.length || cleanWinBadges.length !== winBadges.length) {
+          try {
+            await updateDoc(doc(db, 'users', ud.id), {
+              roleBadges: cleanRoleBadges,
+              winBadges:  cleanWinBadges,
+            });
+          } catch (err) {
+            console.warn('Could not clean badges for uid', ud.id, err);
+          }
+        }
+      }
+    }
+
     // ── Finally delete the event document itself ─────────────────────────────
     await deleteDoc(doc(db, 'events', id));
     loadEvents();
