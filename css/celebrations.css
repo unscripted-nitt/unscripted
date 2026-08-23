@@ -195,6 +195,7 @@
   left: 50%;
   transform-origin: bottom center;
   filter: blur(0.3px) saturate(var(--fire-saturate, 1));
+  z-index: 1;
 }
 /* Real flame silhouette — a leaning main tip, a smaller side lobe, and a
    concave notch between them, cinched narrower at the bottom than the
@@ -215,6 +216,7 @@
   background: radial-gradient(circle at 50% 78%, #ffca28, #ff6f00 55%, #e64a19 85%);
   clip-path: polygon(50% 100%, 27% 93%, 12% 79%, 6% 60%, 9% 43%, 22% 47%, 30% 27%, 40% 6%, 48% 24%, 62% 4%, 74% 20%, 84% 40%, 90% 60%, 84% 80%, 68% 94%);
   animation: flameFlickerOuter calc(1.75s * var(--fire-speed, 1)) ease-in-out infinite alternate;
+  z-index: 3;
 }
 .flame-mid {
   width: 42px; height: 56px;
@@ -224,6 +226,7 @@
   clip-path: polygon(50% 100%, 26% 92%, 10% 74%, 6% 52%, 12% 32%, 26% 16%, 42% 26%, 50% 0%, 64% 20%, 82% 14%, 92% 34%, 96% 56%, 88% 76%, 70% 94%);
   animation: flameFlickerMid calc(1.25s * var(--fire-speed, 1)) ease-in-out infinite alternate-reverse;
   animation-delay: -0.3s;
+  z-index: 4;
 }
 .flame-inner {
   width: 20px; height: 30px;
@@ -236,6 +239,7 @@
   background: radial-gradient(circle at 50% 80%, #ffffff, #fff176 60%, #ffca28 90%);
   animation: flameFlickerCore calc(0.95s * var(--fire-speed, 1)) ease-in-out infinite alternate;
   animation-delay: -0.15s;
+  z-index: 5;
 }
 /* Twin side-flames — previewed at stage7 ("Double Flame"), then permanent
    for the whole "ignited" engine phase (streak 11+). Anchored to the SAME
@@ -251,6 +255,10 @@
   width: 25px; height: 42px;
   margin-left: -12.5px; /* same center-bottom anchor as .flame-outer/.flame-mid/.flame-inner */
   opacity: 0.92;
+  /* Sit BEHIND the main flame (outer/mid/inner), not in front of it — these
+     elements also carry the .flame-outer class for sizing/base rules, so
+     without this override they'd inherit its z-index: 3 and render on top. */
+  z-index: 1;
 }
 .flame-twin-left {
   /* Golden-yellow family — visibly warmer/brighter than both the main
