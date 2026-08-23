@@ -1175,7 +1175,8 @@ onAuthStateChanged(auth, async user => {
   const adminData = snap.data();
   // Same "Last Login" tracking as the member dashboard — admins/core
   // sometimes never visit dashboard.html, so this needs its own write.
-  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() }).catch(() => {});
+  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() })
+    .catch(err => console.error('lastLogin write failed for', user.uid, err));
   document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
   const adminAvatar = document.getElementById('adminTopAvatar');
