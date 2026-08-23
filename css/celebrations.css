@@ -308,24 +308,23 @@
   86%  { clip-path: polygon(52.3% 99.1%, 27.1% 92.4%, 6.1% 66.2%, 13.8% 59.1%, 15.6% 34.2%, 32.6% 13.3%, 37.3% 29.1%, 55.7% -5.9%, 60.7% 20.4%, 74.3% 13.7%, 93.7% 27.5%, 91.7% 57.8%, 82.5% 70.5%, 70.2% 98.8%); transform: rotate(3deg) skewX(-1deg) scaleX(1.05); }
   100% { clip-path: polygon(50% 100%, 26% 92%, 10% 74%, 6% 52%, 12% 32%, 26% 16%, 42% 26%, 50% 0%, 64% 20%, 82% 14%, 92% 34%, 96% 56%, 88% 76%, 70% 94%); transform: rotate(3deg) skewX(-1deg); }
 }
-/* Base lean is now centered on -30deg (i.e. ~60deg from the x-axis, since
-   the flame's own polygon points "up" = 90deg at rotate(0)) instead of the
-   old -6deg — the wobble amplitude between keyframes is unchanged, just
-   re-centered so the twin fans out from the shared base at the requested
-   angle rather than standing near-upright. */
+/* Base lean is centered on -45deg (i.e. ~45deg from the x-axis, since the
+   flame's own polygon points "up" = 90deg at rotate(0)) — the wobble
+   amplitude between keyframes is unchanged, just re-centered so the twin
+   fans out from the shared base at the requested angle. */
 @keyframes flameFlickerTwinLeft {
-  0%   { clip-path: polygon(50% 100%, 22% 88%, 8% 66%, 6% 44%, 16% 24%, 30% 32%, 26% 10%, 44% 26%, 62% 14%, 80% 28%, 92% 48%, 86% 72%, 66% 92%); transform: rotate(-30deg); }
-  25%  { clip-path: polygon(48.3% 98.5%, 25.8% 93.3%, 15.3% 69.6%, 0.5% 38.2%, 11% 25.8%, 25.8% 34%, 24.6% 10.8%, 47.1% 21.5%, 55.2% 10.1%, 81.2% 35.9%, 92.2% 40.3%, 90.9% 75.4%, 60.1% 97.6%); transform: rotate(-33deg) scaleY(1.08); }
-  50%  { clip-path: polygon(49.7% 97.8%, 20.6% 89.8%, 15.7% 67.2%, -0.3% 49.3%, 23.1% 18.4%, 27.4% 24.2%, 19.2% 9.7%, 51.9% 25.5%, 58.6% 16.3%, 77.5% 32.8%, 94.3% 55.6%, 84.3% 79.9%, 74% 95%); transform: rotate(-27deg) scaleX(0.9); }
-  75%  { clip-path: polygon(50.3% 99.7%, 28.8% 85.9%, 13.9% 66%, 5.7% 36.3%, 16% 31.5%, 25.6% 24.4%, 29.2% 4.9%, 38.5% 21.2%, 56.5% 14.5%, 79.3% 30.8%, 89.3% 42.7%, 83.4% 74.1%, 67.8% 91.2%); transform: rotate(-32deg) scaleY(1.04); }
-  100% { clip-path: polygon(50% 100%, 22% 88%, 8% 66%, 6% 44%, 16% 24%, 30% 32%, 26% 10%, 44% 26%, 62% 14%, 80% 28%, 92% 48%, 86% 72%, 66% 92%); transform: rotate(-30deg); }
+  0%   { clip-path: polygon(50% 100%, 22% 88%, 8% 66%, 6% 44%, 16% 24%, 30% 32%, 26% 10%, 44% 26%, 62% 14%, 80% 28%, 92% 48%, 86% 72%, 66% 92%); transform: rotate(-45deg); }
+  25%  { clip-path: polygon(48.3% 98.5%, 25.8% 93.3%, 15.3% 69.6%, 0.5% 38.2%, 11% 25.8%, 25.8% 34%, 24.6% 10.8%, 47.1% 21.5%, 55.2% 10.1%, 81.2% 35.9%, 92.2% 40.3%, 90.9% 75.4%, 60.1% 97.6%); transform: rotate(-48deg) scaleY(1.08); }
+  50%  { clip-path: polygon(49.7% 97.8%, 20.6% 89.8%, 15.7% 67.2%, -0.3% 49.3%, 23.1% 18.4%, 27.4% 24.2%, 19.2% 9.7%, 51.9% 25.5%, 58.6% 16.3%, 77.5% 32.8%, 94.3% 55.6%, 84.3% 79.9%, 74% 95%); transform: rotate(-42deg) scaleX(0.9); }
+  75%  { clip-path: polygon(50.3% 99.7%, 28.8% 85.9%, 13.9% 66%, 5.7% 36.3%, 16% 31.5%, 25.6% 24.4%, 29.2% 4.9%, 38.5% 21.2%, 56.5% 14.5%, 79.3% 30.8%, 89.3% 42.7%, 83.4% 74.1%, 67.8% 91.2%); transform: rotate(-47deg) scaleY(1.04); }
+  100% { clip-path: polygon(50% 100%, 22% 88%, 8% 66%, 6% 44%, 16% 24%, 30% 32%, 26% 10%, 44% 26%, 62% 14%, 80% 28%, 92% 48%, 86% 72%, 66% 92%); transform: rotate(-45deg); }
 }
 @keyframes flameFlickerTwinRight {
-  0%   { clip-path: polygon(50% 100%, 30% 90%, 14% 70%, 8% 48%, 14% 28%, 28% 34%, 24% 14%, 38% 24%, 58% 4%, 76% 16%, 90% 36%, 94% 58%, 84% 78%, 66% 94%); transform: rotate(30deg); }
-  28%  { clip-path: polygon(48.7% 98%, 33% 92.2%, 19.6% 63.1%, 0.2% 56%, 21.6% 29.5%, 24.1% 26%, 19.3% 6.6%, 44.9% 16.8%, 50.9% -3.4%, 72.7% 20.6%, 96.5% 38.3%, 91% 54.5%, 89% 75.8%, 72.8% 98.6%); transform: rotate(33deg) scaleX(0.92); }
-  52%  { clip-path: polygon(52.4% 100%, 31.5% 91.4%, 16.1% 77.3%, 7.4% 48.5%, 21.5% 32.1%, 30.3% 37.9%, 26.1% 16.6%, 42.3% 23.3%, 59.8% -0.8%, 77.4% 20.2%, 89.3% 36.7%, 100.3% 53.7%, 76.5% 73.9%, 71.1% 88.1%); transform: rotate(27deg) scaleY(1.07); }
-  78%  { clip-path: polygon(50.1% 98.4%, 36.9% 89.5%, 15.7% 65.9%, 13.6% 41.1%, 15.5% 29.3%, 27.3% 31.6%, 16.7% 21.2%, 35% 25.9%, 58.9% 8.8%, 81.1% 20.4%, 95.6% 28.7%, 101.9% 50.4%, 80.2% 79.2%, 69.7% 98.3%); transform: rotate(32deg) scaleX(0.95); }
-  100% { clip-path: polygon(50% 100%, 30% 90%, 14% 70%, 8% 48%, 14% 28%, 28% 34%, 24% 14%, 38% 24%, 58% 4%, 76% 16%, 90% 36%, 94% 58%, 84% 78%, 66% 94%); transform: rotate(30deg); }
+  0%   { clip-path: polygon(50% 100%, 30% 90%, 14% 70%, 8% 48%, 14% 28%, 28% 34%, 24% 14%, 38% 24%, 58% 4%, 76% 16%, 90% 36%, 94% 58%, 84% 78%, 66% 94%); transform: rotate(45deg); }
+  28%  { clip-path: polygon(48.7% 98%, 33% 92.2%, 19.6% 63.1%, 0.2% 56%, 21.6% 29.5%, 24.1% 26%, 19.3% 6.6%, 44.9% 16.8%, 50.9% -3.4%, 72.7% 20.6%, 96.5% 38.3%, 91% 54.5%, 89% 75.8%, 72.8% 98.6%); transform: rotate(48deg) scaleX(0.92); }
+  52%  { clip-path: polygon(52.4% 100%, 31.5% 91.4%, 16.1% 77.3%, 7.4% 48.5%, 21.5% 32.1%, 30.3% 37.9%, 26.1% 16.6%, 42.3% 23.3%, 59.8% -0.8%, 77.4% 20.2%, 89.3% 36.7%, 100.3% 53.7%, 76.5% 73.9%, 71.1% 88.1%); transform: rotate(42deg) scaleY(1.07); }
+  78%  { clip-path: polygon(50.1% 98.4%, 36.9% 89.5%, 15.7% 65.9%, 13.6% 41.1%, 15.5% 29.3%, 27.3% 31.6%, 16.7% 21.2%, 35% 25.9%, 58.9% 8.8%, 81.1% 20.4%, 95.6% 28.7%, 101.9% 50.4%, 80.2% 79.2%, 69.7% 98.3%); transform: rotate(47deg) scaleX(0.95); }
+  100% { clip-path: polygon(50% 100%, 30% 90%, 14% 70%, 8% 48%, 14% 28%, 28% 34%, 24% 14%, 38% 24%, 58% 4%, 76% 16%, 90% 36%, 94% 58%, 84% 78%, 66% 94%); transform: rotate(45deg); }
 }
 /* Core drop stays a clean teardrop (no shape morph) so it reads as the
    steady bright center in the reference image, just pulsing/leaning. */
