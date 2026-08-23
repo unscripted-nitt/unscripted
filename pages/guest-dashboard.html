@@ -625,9 +625,20 @@ window.submitGuestExperience = async function() {
   }
 };
 // ── ACHIEVEMENTS ───────────────────────────────────────────
-function loadGuestAchievements() {
+// Same live-filter safety net as the member dashboard: a deleted event
+// should never leave a badge behind, so we check each win badge's "meet"
+// against the events that actually still exist before rendering.
+async function loadGuestAchievements() {
   const container = document.getElementById('guestAchievementsContent');
-  const winBadges = guestTokenData?.winBadges || [];
+  let winBadges = guestTokenData?.winBadges || [];
+  if (winBadges.length) {
+    try {
+      const eventsSnap = await getDocs(collection(db, 'events'));
+      const validTitles = new Set();
+      eventsSnap.forEach(d => { const t = d.data().title; if (t) validTitles.add(t); });
+      winBadges = winBadges.filter(wb => !wb.meet || validTitles.has(wb.meet));
+    } catch (e) { console.warn('Guest achievements event check failed', e); }
+  }
   if (!winBadges.length) {
     container.innerHTML = `<div class="card">
       <p style="color:var(--text-mid);">No awards yet. Keep participating — winners are announced after voting closes!</p>
@@ -640,10 +651,10 @@ function loadGuestAchievements() {
     <div class="badges-grid">
       ${winBadges.map(wb => `
         <div class="badge-item won">
-          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.8rem;color:#ffa000;"></i></div>
+          <div class="badge-ribbon">Winner</div>
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:#e65100;font-weight:700;">${wb.meet}</div>
-          <div class="winner-badge" style="margin-top:0.75rem;font-size:0.65rem;">Winner</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${wb.meet}</div>
         </div>`).join('')}
     </div>
   </div>`;
