@@ -672,7 +672,8 @@ onAuthStateChanged(auth, async user => {
   // Record this login for the admin's Member Control "Last Login" column.
   // Fire-and-forget: never blocks page load, and a failure here shouldn't
   // stop the rest of the dashboard from rendering.
-  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() }).catch(() => {});
+  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() })
+    .catch(err => console.error('lastLogin write failed for', user.uid, err));
 
   // Top nav
   const initials = (userData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
@@ -1395,8 +1396,12 @@ function renderStreakFire() {
     let classes = ['streak-fire-card'];
     if (streak <= IGNITE_END) {
       // ── Phase 1: a distinct animation per meet, no shared scale/glow ramp.
+      // Scale bumped up from the old 0.62 (which read as "really small" next
+      // to the box around it) to 0.85 — still visibly smaller than phase 2's
+      // starting 0.9, so streak 11 still feels like a step up, but no longer
+      // tiny on its own.
       classes.push('stage' + streak);
-      card.style.setProperty('--fire-scale', 0.62);
+      card.style.setProperty('--fire-scale', 0.85);
       card.style.setProperty('--fire-glow', '10px');
       card.style.setProperty('--fire-saturate', 1);
       card.style.setProperty('--fire-speed', 1);
@@ -1576,8 +1581,8 @@ async function checkNewBadgeCelebration() {
     sessionCelebrationShown = true;
     showCelebToast({
       type: 'badge',
-      title: newlyEarned.length === 1 ? 'New Badge Unlocked!' : `${newlyEarned.length} New Badges Unlocked!`,
-      body: names
+      title: newlyEarned.length === 1 ? `New Badge Unlocked: "${names}"!` : `${newlyEarned.length} New Badges Unlocked!`,
+      body: newlyEarned.length === 1 ? newlyEarned[0].desc : names
     });
   } catch (e) { console.warn('Badge celebration error', e); }
 }
