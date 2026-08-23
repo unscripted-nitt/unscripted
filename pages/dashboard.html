@@ -712,9 +712,10 @@ if (userData.isActive === false) {
   await loadAllUsers();
   await renderProgress();
   // Badge celebration must resolve BEFORE the leaderboard loads, so that if
-  // this load also earned a badge, the leaderboard's rank-drop check can see
-  // that confetti already happened and skip the heartbreak animation (see
-  // sessionConfettiLaunched in checkLeaderboardRankChange).
+  // this load also earned a badge, the leaderboard's rank-change check can
+  // see that a celebration already happened and skip its own entirely,
+  // instead of stacking a second confetti/toast on top (see
+  // sessionCelebrationShown in checkLeaderboardRankChange).
   await checkNewBadgeCelebration();
   loadAttendance();
   checkLowActivityWarning();
@@ -1492,15 +1493,26 @@ function renderStreakFire() {
 // covers the moment before the Firestore write lands, so a reload right
 // after earning a badge can never re-trigger the celebration.
 //
-// sessionConfettiLaunched: a plain in-memory flag, NOT persisted anywhere,
+// sessionCelebrationShown: a plain in-memory flag, NOT persisted anywhere,
 // that exists only to coordinate the two independent celebration checks
-// (badges + leaderboard rank) within a single page load. Confetti-worthy
-// moments (a new badge, or climbing the leaderboard) always win; the
-// rank-drop "broken hearts" animation is the lowest priority and is only
-// allowed to play if nothing confetti-worthy happened on this same load —
-// see checkLeaderboardRankChange below. It naturally resets to false on
-// every fresh page load/reload since it's just a script-scoped variable.
-let sessionConfettiLaunched = false;
+// (badges + leaderboard rank) within a single page load, so AT MOST ONE
+// full celebration (confetti + toast + notification card) is ever shown
+// per load — never several stacked on top of each other.
+//
+// This matters most after a long absence: badges earned while away are
+// already combined into a single toast/notification (see newlyEarned
+// below), and the leaderboard rank check only ever compares against the
+// single last-known rank, so it can't "stack" multiple rank changes either.
+// But badges AND a rank climb can both be true on the same load, so this
+// flag is the tie-breaker across those two categories — whichever check
+// runs first (badges always run first; see the awaited call order above)
+// wins and shows its full celebration, and every later celebration check
+// this load is skipped entirely (no confetti, no toast, no notification
+// card) rather than piling on. Priority order: badge unlock > rank climb >
+// rank drop — see checkLeaderboardRankChange below. It naturally resets to
+// false on every fresh page load/reload since it's just a script-scoped
+// variable.
+let sessionCelebrationShown = false;
 
 function getLocallySeenBadgeIds(uid) {
   try { return new Set(JSON.parse(localStorage.getItem('seenBadges_' + uid) || '[]')); }
@@ -1554,13 +1566,14 @@ async function checkNewBadgeCelebration() {
       createdAt: serverTimestamp()
     }).catch(()=>{});
 
-    // A badge unlock is always confetti-worthy and always gets its toast,
-    // regardless of anything happening on the leaderboard. Only the actual
-    // confetti *burst* is skipped if one is already on screen (e.g. a rank
-    // climb fired first), to avoid two overlapping bursts fighting for the
-    // same canvas — the toast still shows either way.
-    if (!sessionConfettiLaunched) launchConfetti();
-    sessionConfettiLaunched = true;
+    // Badges always run first this load (checkNewBadgeCelebration is awaited
+    // before loadLeaderboard() — see the load sequence above), so a badge
+    // unlock always wins the celebration slot outright: full confetti burst,
+    // full toast, every time. It also claims the slot for the rest of this
+    // load, so a rank change found afterwards won't add a second stacked
+    // celebration on top of this one.
+    launchConfetti();
+    sessionCelebrationShown = true;
     showCelebToast({
       type: 'badge',
       title: newlyEarned.length === 1 ? 'New Badge Unlocked!' : `${newlyEarned.length} New Badges Unlocked!`,
@@ -1575,11 +1588,15 @@ async function checkNewBadgeCelebration() {
 // question is answered once and never re-asked — reload, re-login, or any
 // other re-render will always see the new rank as already-seen.
 //
-// Priority rule: confetti beats heartbreak. If a badge was unlocked (or the
-// rank itself climbed) on this same page load, a rank *drop* elsewhere is
-// not shown at all — no broken-heart animation, no "you dropped" toast.
+// Priority rule: badge unlock > rank climb > rank drop. If a higher-priority
+// celebration already claimed the slot on this same page load (see
+// sessionCelebrationShown above), a rank change here — up OR down — is not
+// shown at all: no confetti, no broken hearts, no toast. This is what keeps
+// a long-absent member from seeing several celebrations stacked on top of
+// each other; they see exactly one, and the rest are silently skipped (the
+// rank itself is still stamped as seen either way, so nothing replays later).
 // checkNewBadgeCelebration() is awaited before loadLeaderboard() is called
-// (see the load sequence above), so sessionConfettiLaunched is guaranteed
+// (see the load sequence above), so sessionCelebrationShown is guaranteed
 // to already reflect the badge outcome by the time this runs.
 async function checkLeaderboardRankChange(myRank, totalRanked) {
   try {
@@ -1588,18 +1605,18 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
     const lastRankLocal = Number(localStorage.getItem(seenKey) || 0);
     const lastRank = userData.lastKnownRank || lastRankLocal || 0;
 
-    // Stamp immediately so this can never re-fire on reload/relogin.
+    // Stamp immediately so this can never re-fire on reload/relogin,
+    // regardless of whether a celebration ends up showing for it below.
     localStorage.setItem(seenKey, String(myRank));
     updateDoc(doc(db, 'users', currentUid), { lastKnownRank: myRank }).catch(()=>{});
     userData.lastKnownRank = myRank;
 
     if (!lastRank || lastRank === myRank) return; // first-ever check or no change
+    if (sessionCelebrationShown) return; // a higher-priority celebration already claimed this load
 
     if (myRank > lastRank) {
-      // Rank dropped — lowest-priority celebration. Only plays if nothing
-      // confetti-worthy (badge unlock or rank climb) already happened.
-      if (sessionConfettiLaunched) return;
       const places = myRank - lastRank;
+      sessionCelebrationShown = true;
       launchBrokenHearts();
       showCelebToast({
         type: 'rankdown',
@@ -1608,8 +1625,8 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
       });
     } else {
       const places = lastRank - myRank;
-      if (!sessionConfettiLaunched) launchConfetti();
-      sessionConfettiLaunched = true;
+      sessionCelebrationShown = true;
+      launchConfetti();
       showCelebToast({
         type: 'rankup',
         title: 'You climbed the leaderboard!',
