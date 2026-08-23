@@ -101,6 +101,25 @@ input:focus, textarea:focus, select:focus {
 textarea { resize: vertical; min-height: 100px; }
 select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239A958D' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.5rem; }
 
+/* ── DATE INPUTS ──────────────────────────────────────────
+   Without `color-scheme`, the browser always paints the native
+   calendar-picker icon (and the popup calendar itself) for LIGHT
+   mode, no matter what colors the input itself has. In dark mode
+   that renders as a near-black icon on a near-black input — still
+   technically clickable, but invisible, which reads as "broken".
+   Setting color-scheme per theme fixes both the icon and the
+   popup's own colors automatically. */
+input[type="date"] { color-scheme: light; }
+[data-theme="dark"] input[type="date"] { color-scheme: dark; }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px;
+  margin-right: -2px;
+  transition: background var(--transition);
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover { background: var(--orange-light); }
+
 h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; color: var(--text); }
 h4, h5, h6 { font-family: var(--font-body); font-weight: 700; color: var(--text); }
 p { color: var(--text-mid); }
@@ -1153,25 +1172,165 @@ h2 { font-size: clamp(1.8rem, 4vw, 2.75rem); margin-bottom: 1.25rem; }
 .guide-btn:hover { box-shadow: 0 8px 32px rgba(255,87,34,0.5); transform: translateY(-2px); color: #fff; }
 .guide-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
 
-/* ── BADGES GRID ─────────────────────────────────────────── */
+/* ── BADGES GRID — extraordinary achievement medallions ──────────────────
+   Tiers, from plain to rare:
+     .earned   (default / "common")  — orange house tier
+     .epic                           — violet tier
+     .legendary                      — gold tier, pulsing aura
+     .won                            — meeting-award ribbon (gold/orange)
+     .completed                      — role-history entries (green)
+     .locked                         — not yet earned
+   Each tier only recolors CSS custom properties on .badge-item, so the
+   rest of the rules below (shine sweep, medallion ring, ribbon, etc.)
+   apply uniformly across tiers without duplicating declarations.       */
 .badges-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.1rem;
 }
 .badge-item {
-  padding: 1.5rem 1rem;
+  --badge-c1: var(--orange);
+  --badge-c2: var(--orange-dark);
+  --badge-glow: rgba(255,87,34,0.22);
+  position: relative;
+  padding: 1.85rem 1.1rem 1.5rem;
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 18px;
   text-align: center;
-  transition: all var(--transition);
+  background: var(--surface);
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
-.badge-item.earned { border-color: rgba(255,87,34,0.25); background: var(--orange-light); }
-.badge-item.won    { border-color: rgba(255,160,0,0.3);  background: rgba(255,160,0,0.05); }
-.badge-item.locked { opacity: 0.4; }
-.badge-icon { margin-bottom: 0.75rem; }
-.badge-name { font-size: 0.85rem; font-weight: 800; color: var(--text); }
-.badge-desc { font-size: 0.72rem; color: var(--text-mid); margin-top: 0.25rem; line-height: 1.4; }
+/* faint corner glow, always present, brightens once earned */
+.badge-item::before {
+  content: '';
+  position: absolute; inset: -40% -40% auto auto;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, var(--badge-glow), transparent 70%);
+  opacity: 0; transition: opacity var(--transition);
+  z-index: -1;
+}
+/* diagonal shine sweep on hover — earned badges only */
+.badge-item::after {
+  content: '';
+  position: absolute; top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.65s ease;
+  pointer-events: none;
+}
+.badge-item.earned:hover,
+.badge-item.won:hover,
+.badge-item.completed:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.badge-item.earned:hover::after,
+.badge-item.won:hover::after,
+.badge-item.completed:hover::after { left: 130%; }
+.badge-item.earned::before,
+.badge-item.won::before,
+.badge-item.completed::before { opacity: 1; }
+
+.badge-item.earned { border-color: color-mix(in srgb, var(--badge-c1) 35%, var(--border)); background: linear-gradient(180deg, var(--orange-light), var(--surface) 60%); }
+.badge-item.locked { opacity: 0.55; filter: grayscale(0.55); }
+.badge-item.locked:hover { transform: none; box-shadow: none; }
+
+/* ── Epic tier ── */
+.badge-item.epic {
+  --badge-c1: #ab47bc; --badge-c2: #7b1fa2; --badge-glow: rgba(171,71,188,0.25);
+  border-color: rgba(171,71,188,0.35);
+  background: linear-gradient(180deg, rgba(171,71,188,0.08), var(--surface) 60%);
+}
+
+/* ── Legendary tier — gilded, gently breathing aura ── */
+.badge-item.legendary {
+  --badge-c1: #ffc400; --badge-c2: #ff8f00; --badge-glow: rgba(255,196,0,0.3);
+  border-color: rgba(255,196,0,0.4);
+  background: linear-gradient(180deg, rgba(255,196,0,0.1), var(--surface) 60%);
+  animation: badgeAura 2.8s ease-in-out infinite;
+}
+@keyframes badgeAura {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,196,0,0); }
+  50%      { box-shadow: 0 0 22px 1px rgba(255,196,0,0.28); }
+}
+
+/* ── Won tier — meeting award, with corner ribbon ── */
+.badge-item.won {
+  --badge-c1: #ffa000; --badge-c2: #ff6f00; --badge-glow: rgba(255,160,0,0.28);
+  border-color: rgba(255,160,0,0.4);
+  background: linear-gradient(180deg, rgba(255,160,0,0.09), var(--surface) 60%);
+}
+.badge-item.won .badge-ribbon {
+  position: absolute; top: 12px; right: -30px;
+  width: 120px; padding: 0.2rem 0;
+  background: linear-gradient(135deg, #ffa000, #ff6f00);
+  color: #fff; font-size: 0.58rem; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  transform: rotate(45deg); text-align: center;
+  box-shadow: 0 2px 8px rgba(255,111,0,0.4);
+}
+
+/* ── Completed tier — role history ── */
+.badge-item.completed {
+  --badge-c1: #4CAF50; --badge-c2: #2e7d32; --badge-glow: rgba(76,175,80,0.25);
+  border-color: rgba(76,175,80,0.35);
+  background: linear-gradient(180deg, rgba(76,175,80,0.08), var(--surface) 60%);
+}
+
+/* ── Medallion (icon housing) ── */
+.badge-icon {
+  position: relative;
+  width: 62px; height: 62px;
+  margin: 0 auto 0.9rem;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2);
+  border: 2px solid var(--border-strong);
+  transition: border-color var(--transition), background var(--transition);
+}
+.badge-item.earned .badge-icon,
+.badge-item.epic .badge-icon,
+.badge-item.legendary .badge-icon,
+.badge-item.won .badge-icon,
+.badge-item.completed .badge-icon {
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--badge-c1) 22%, var(--surface)), var(--surface) 75%);
+  border-color: color-mix(in srgb, var(--badge-c1) 55%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--badge-c1) 12%, transparent);
+}
+/* rotating dashed ring for legendary — reads as a laurel/medal rim */
+.badge-item.legendary .badge-icon::before {
+  content: '';
+  position: absolute; inset: -7px;
+  border-radius: 50%;
+  border: 1.5px dashed color-mix(in srgb, var(--badge-c1) 65%, transparent);
+  animation: badgeSpin 9s linear infinite;
+}
+@keyframes badgeSpin { to { transform: rotate(360deg); } }
+
+.badge-name { font-size: 0.85rem; font-weight: 800; color: var(--text); letter-spacing: 0.01em; }
+.badge-desc { font-size: 0.72rem; color: var(--text-mid); margin-top: 0.3rem; line-height: 1.4; }
+.badge-tier-tag {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--badge-c2);
+  background: color-mix(in srgb, var(--badge-c1) 16%, transparent);
+}
+.badge-lock {
+  position: absolute; top: 10px; right: 10px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  color: var(--text-light);
+  font-size: 0.65rem;
+}
 .winner-badge {
   display: inline-block;
   background: linear-gradient(135deg, #ffa000, #ff6f00);
