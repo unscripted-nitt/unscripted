@@ -1414,7 +1414,7 @@ function renderStreakFire() {
       card.style.setProperty('--fire-scale',    (0.9 + p * 0.55).toFixed(3));
       card.style.setProperty('--fire-glow',     (16 + p * 46).toFixed(1) + 'px');
       card.style.setProperty('--fire-saturate', (1 + p * 0.6).toFixed(2));
-      card.style.setProperty('--fire-speed',    (1 - p * 0.35).toFixed(2));
+      card.style.setProperty('--fire-speed',    (1 - p * 0.15).toFixed(2));
 
       classes.push('ignited');
       if (streak >= 15) classes.push('tier15');
