@@ -711,13 +711,17 @@ if (userData.isActive === false) {
   await loadAllEvents();
   await loadAllUsers();
   await renderProgress();
+  // Badge celebration must resolve BEFORE the leaderboard loads, so that if
+  // this load also earned a badge, the leaderboard's rank-drop check can see
+  // that confetti already happened and skip the heartbreak animation (see
+  // sessionConfettiLaunched in checkLeaderboardRankChange).
+  await checkNewBadgeCelebration();
   loadAttendance();
   checkLowActivityWarning();
   loadMentorship();
   loadGallery();
   loadLeaderboard();
   loadAchievements();
-  await checkNewBadgeCelebration();
   loadNotifications();
   loadFeedbackSectionEvents();
   loadVoting();
@@ -1364,11 +1368,16 @@ async function loadAchievements() {
 }
 
 // ── Big fire animation showing the current attendance streak (My Progress) ──
-// ── Attendance streak fire — escalates continuously with the streak count,
-// and layers on a new permanent visual effect at every 5-streak milestone
-// up to 50 (see the tier* rules in css/celebrations.css). Re-run on every
-// dashboard load / re-render, so it can never drift out of sync with the
-// live streak — nothing here persists anything.
+// Three phases, all re-derived from the exact streak count on every render
+// (nothing here persists anything, so it can never drift):
+//   1. Streaks 1-10 (classes stage1..stage10): a completely different
+//      animation style at every single meet — new members get novelty, not
+//      intensity, since that's the more motivating lever early on.
+//   2. Streaks 11-20 (class "ignited" + tier15/tier20): the fire "engine"
+//      takes over — continuous scale/glow/saturation/speed ramp, plus two
+//      milestone layers, so intensity keeps climbing for a while longer.
+//   3. Streaks 21+ : locked at the same max intensity forever — no further
+//      growth, so very long streaks don't need new effects invented for them.
 function renderStreakFire() {
   try {
     const card = document.getElementById('streakFireCard');
@@ -1379,50 +1388,59 @@ function renderStreakFire() {
     card.style.display = 'flex';
     document.getElementById('streakFireCount').textContent = streak;
 
-    const capped = Math.min(streak, 50);
-    const EARLY_END = 7; // streaks 1-6 get a fully distinct animation each;
-                          // the continuous "fire engine" only takes over from 7 onward.
+    const IGNITE_END = 10; // stages 1-10 each get a unique animation
+    const RAMP_END    = 20; // intensity keeps climbing from 11 up to 20, then holds forever
 
-    // ── Early streaks (1-6): a completely different visual per step, not
-    // just a bigger/brighter version of the last one. This is where new
-    // members need the most encouragement, so each meet feels like a new
-    // moment rather than an incremental nudge.
     let classes = ['streak-fire-card'];
-    if (capped < EARLY_END) {
-      classes.push('stage' + capped);
-      // Reset continuous vars to a calm baseline — the "engine" isn't driving yet.
+    if (streak <= IGNITE_END) {
+      // ── Phase 1: a distinct animation per meet, no shared scale/glow ramp.
+      classes.push('stage' + streak);
       card.style.setProperty('--fire-scale', 0.62);
       card.style.setProperty('--fire-glow', '10px');
       card.style.setProperty('--fire-saturate', 1);
       card.style.setProperty('--fire-speed', 1);
     } else {
-      // ── From streak 7 onward: continuous escalation (size/glow/saturation/
-      // flicker speed) driven by the exact count, PLUS discrete tier classes
-      // layering on a new permanent effect every 5 streak, same as before —
-      // just re-based so the ramp has room to run all the way to 50.
-      const p = (capped - EARLY_END) / (50 - EARLY_END); // 0..1
+      // ── Phases 2 & 3: capped growth factor — keeps climbing to RAMP_END,
+      // then p locks at 1 forever so streak 21 and streak 300 render
+      // identically (constant, not "flat but still slowly changing").
+      const cappedForIntensity = Math.min(streak, RAMP_END);
+      const p = (cappedForIntensity - IGNITE_END) / (RAMP_END - IGNITE_END); // 0..1, then frozen at 1
       card.style.setProperty('--fire-scale',    (0.9 + p * 0.55).toFixed(3));
       card.style.setProperty('--fire-glow',     (16 + p * 46).toFixed(1) + 'px');
       card.style.setProperty('--fire-saturate', (1 + p * 0.6).toFixed(2));
       card.style.setProperty('--fire-speed',    (1 - p * 0.35).toFixed(2));
 
-      const tiers = [10, 15, 20, 25, 30, 35, 40, 45, 50];
       classes.push('ignited');
-      tiers.filter(t => capped >= t).forEach(t => classes.push('tier' + t));
+      if (streak >= 15) classes.push('tier15');
+      if (streak >= RAMP_END) classes.push('tier20');
     }
     card.className = classes.join(' ');
 
-    // Sparks — only once the fire engine has taken over (streak >= 7);
-    // count and character scale with the streak, star-shaped mixed in from
-    // 25, white-hot mixed in from 40.
+    // Sparks — a one-off "shower" preview at stage8, then a steady stream
+    // once the fire engine has taken over (streak > 10); count grows with
+    // intensity up to RAMP_END, then holds steady forever after.
     sparksEl.innerHTML = '';
-    if (capped >= EARLY_END) {
-      const sparkCount = Math.min(3 + Math.floor((capped - EARLY_END) / 2), 26);
+    if (streak === 8) {
+      for (let i = 0; i < 16; i++) {
+        const s = document.createElement('div');
+        s.className = 'streak-fire-spark' + (i % 3 === 0 ? ' spark-star' : '');
+        const left  = 4 + Math.random() * 56;
+        const drift = (Math.random() - 0.5) * 50;
+        const delay = Math.random() * 1.8;
+        const dur   = (1.2 + Math.random() * 0.7).toFixed(2);
+        s.style.left = left + 'px';
+        s.style.setProperty('--drift', drift.toFixed(1) + 'px');
+        s.style.animationDelay = delay.toFixed(2) + 's';
+        s.style.animationDuration = dur + 's';
+        sparksEl.appendChild(s);
+      }
+    } else if (streak > IGNITE_END) {
+      const cappedForIntensity = Math.min(streak, RAMP_END);
+      const sparkCount = Math.min(4 + Math.floor((cappedForIntensity - IGNITE_END) * 1.8), 22);
       for (let i = 0; i < sparkCount; i++) {
         const s = document.createElement('div');
         let cls = 'streak-fire-spark';
-        if (capped >= 40 && i % 4 === 0)      cls += ' spark-hot';
-        else if (capped >= 25 && i % 3 === 0) cls += ' spark-star';
+        if (i % 3 === 0) cls += ' spark-star';
         s.className = cls;
         const left  = 6 + Math.random() * 52;
         const drift = (Math.random() - 0.5) * 44;
@@ -1437,39 +1455,33 @@ function renderStreakFire() {
     }
 
     document.getElementById('streakFireLabel').textContent =
-      capped >= 50 ? 'Max Streak' :
-      capped >= 45 ? 'Transcendent' :
-      capped >= 40 ? 'Untouchable' :
-      capped >= 35 ? 'Radiant' :
-      capped >= 30 ? 'Mythic' :
-      capped >= 25 ? 'Legendary' :
-      capped >= 20 ? 'Scorching' :
-      capped >= 15 ? 'Inferno' :
-      capped >= 10 ? 'Blazing' :
-      capped >= 7  ? 'On Fire' :
-      capped === 6 ? 'Almost Blazing' :
-      capped === 5 ? 'Heating Up' :
-      capped === 4 ? 'Building Heat' :
-      capped === 3 ? 'Catching On' :
-      capped === 2 ? 'Kindling' : 'First Spark';
+      streak >= RAMP_END ? 'Legendary' :
+      streak >= 15       ? 'Inferno' :
+      streak >= 11       ? 'Blazing' :
+      streak === 10 ? 'Ignition!' :
+      streak === 9  ? 'Full Blaze' :
+      streak === 8  ? 'Spark Shower' :
+      streak === 7  ? 'Double Flame' :
+      streak === 6  ? 'Steady Burn' :
+      streak === 5  ? 'Heating Up' :
+      streak === 4  ? 'Building Heat' :
+      streak === 3  ? 'Catching On' :
+      streak === 2  ? 'Kindling' : 'First Spark';
 
     document.getElementById('streakFireSub').textContent =
-      streak >= 50 ? "50 in a row — the maximum streak. You're Unscripted's hall of fame." :
-      streak >= 45 ? "So close to the max streak — don't stop now!" :
-      streak >= 40 ? "40 in a row. Nobody does it quite like you." :
-      streak >= 35 ? "This streak is the stuff of club history." :
-      streak >= 30 ? "30 meets straight. Legendary doesn't cover it." :
-      streak >= 25 ? "Quarter-century streak. Absolutely relentless." :
-      streak >= 20 ? "20+ in a row — you're a club fixture now." :
-      streak >= 15 ? "Incredible consistency — this is elite territory." :
-      streak >= 10 ? "Double digits! Your commitment is showing." :
-      streak === 7 || streak === 8 || streak === 9 ? "One full week-plus streak — the fire's really lit now!" :
-      streak === 6 ? "One more and the fire truly ignites!" :
-      streak === 5 ? "5 in a row — you're heating up fast." :
-      streak === 4 ? "4 straight — momentum is building." :
-      streak === 3 ? "3 in a row — you're catching on!" :
-      streak === 2 ? "2 meets back to back — kindling started." :
-                     "Your streak begins! Come back next meet to keep it alive.";
+      streak >= RAMP_END ? "Locked at full strength for good — this streak is legendary." :
+      streak >= 15       ? "Elite territory, and still climbing." :
+      streak >= 11       ? "Double digits and building — keep it going." :
+      streak === 10 ? "10 in a row — ignition! The fire truly takes hold now." :
+      streak === 9  ? "9 straight — one more for double digits." :
+      streak === 8  ? "8 in a row — sparks are flying." :
+      streak === 7  ? "A full week-plus streak — twin flames now." :
+      streak === 6  ? "6 meets running — a steady, confident burn." :
+      streak === 5  ? "5 in a row — you're heating up fast." :
+      streak === 4  ? "4 straight — momentum is building." :
+      streak === 3  ? "3 in a row — you're catching on!" :
+      streak === 2  ? "2 meets back to back — kindling started." :
+                      "Your streak begins! Come back next meet to keep it alive.";
   } catch (e) { console.warn('Streak fire render error', e); }
 }
 
@@ -1479,6 +1491,17 @@ function renderStreakFire() {
 // notifications elsewhere in this file: an immediate localStorage stamp
 // covers the moment before the Firestore write lands, so a reload right
 // after earning a badge can never re-trigger the celebration.
+//
+// sessionConfettiLaunched: a plain in-memory flag, NOT persisted anywhere,
+// that exists only to coordinate the two independent celebration checks
+// (badges + leaderboard rank) within a single page load. Confetti-worthy
+// moments (a new badge, or climbing the leaderboard) always win; the
+// rank-drop "broken hearts" animation is the lowest priority and is only
+// allowed to play if nothing confetti-worthy happened on this same load —
+// see checkLeaderboardRankChange below. It naturally resets to false on
+// every fresh page load/reload since it's just a script-scoped variable.
+let sessionConfettiLaunched = false;
+
 function getLocallySeenBadgeIds(uid) {
   try { return new Set(JSON.parse(localStorage.getItem('seenBadges_' + uid) || '[]')); }
   catch (_) { return new Set(); }
@@ -1514,7 +1537,8 @@ async function checkNewBadgeCelebration() {
 
     if (!newlyEarned.length) return;
 
-    // Stamp as seen immediately (before animating) so this can never repeat.
+    // Stamp as seen immediately (before animating) so this can never repeat —
+    // not on reload, not on re-login, not ever, regardless of what happens below.
     addLocallySeenBadgeIds(currentUid, earnedIds);
     updateDoc(doc(db, 'users', currentUid), { seenBadgeIds: arrayUnion(...earnedIds) }).catch(()=>{});
     userData.seenBadgeIds = earnedIds;
@@ -1530,7 +1554,13 @@ async function checkNewBadgeCelebration() {
       createdAt: serverTimestamp()
     }).catch(()=>{});
 
-    launchConfetti();
+    // A badge unlock is always confetti-worthy and always gets its toast,
+    // regardless of anything happening on the leaderboard. Only the actual
+    // confetti *burst* is skipped if one is already on screen (e.g. a rank
+    // climb fired first), to avoid two overlapping bursts fighting for the
+    // same canvas — the toast still shows either way.
+    if (!sessionConfettiLaunched) launchConfetti();
+    sessionConfettiLaunched = true;
     showCelebToast({
       type: 'badge',
       title: newlyEarned.length === 1 ? 'New Badge Unlocked!' : `${newlyEarned.length} New Badges Unlocked!`,
@@ -1540,6 +1570,17 @@ async function checkNewBadgeCelebration() {
 }
 
 // ── Leaderboard rank-change celebration (confetti up / broken heart down) ──
+// Rank state (lastKnownRank) is stamped immediately, before any animation
+// decision is made, so the "have we already shown this exact rank change"
+// question is answered once and never re-asked — reload, re-login, or any
+// other re-render will always see the new rank as already-seen.
+//
+// Priority rule: confetti beats heartbreak. If a badge was unlocked (or the
+// rank itself climbed) on this same page load, a rank *drop* elsewhere is
+// not shown at all — no broken-heart animation, no "you dropped" toast.
+// checkNewBadgeCelebration() is awaited before loadLeaderboard() is called
+// (see the load sequence above), so sessionConfettiLaunched is guaranteed
+// to already reflect the badge outcome by the time this runs.
 async function checkLeaderboardRankChange(myRank, totalRanked) {
   try {
     if (!myRank) return;
@@ -1555,6 +1596,9 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
     if (!lastRank || lastRank === myRank) return; // first-ever check or no change
 
     if (myRank > lastRank) {
+      // Rank dropped — lowest-priority celebration. Only plays if nothing
+      // confetti-worthy (badge unlock or rank climb) already happened.
+      if (sessionConfettiLaunched) return;
       const places = myRank - lastRank;
       launchBrokenHearts();
       showCelebToast({
@@ -1564,7 +1608,8 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
       });
     } else {
       const places = lastRank - myRank;
-      launchConfetti();
+      if (!sessionConfettiLaunched) launchConfetti();
+      sessionConfettiLaunched = true;
       showCelebToast({
         type: 'rankup',
         title: 'You climbed the leaderboard!',
