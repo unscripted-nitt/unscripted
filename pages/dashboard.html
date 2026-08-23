@@ -1226,7 +1226,7 @@ function buildAllAchievements() {
 
   // First-time role badges
   const ROLE_FIRSTS = [
-    { key:'HOM',          name:'First Time: Toastmaster', icon:'fa-user-tie' },
+    { key:'HOM',          name:'First Time: Host of the Meeting', icon:'fa-user-tie' },
     { key:'Evaluator',    name:'First Time: Evaluator', icon:'fa-magnifying-glass' },
     { key:'TTM',          name:'First Time: Table Topics Master', icon:'fa-comments' },
     { key:'TTE',          name:'First Time: Table Topics Evaluator', icon:'fa-scale-balanced' },
@@ -1268,11 +1268,16 @@ function ordinal(n) {
 
 function renderBadgeGrid(el, list) {
   el.innerHTML = list.map(b => {
-    const tierClass = b.earned && b.tier ? ` ${b.tier}` : '';
-    return `<div class="badge-item ${b.earned?'earned':'locked'}${tierClass}">
-      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.8rem;color:${b.earned?(b.tier==='legendary'?'#ffc400':(b.tier==='epic'?'#ab47bc':'var(--orange)')):'var(--text-light)'};"></i></div>
+    // 'earned' is the base/common tier's CSS class; 'epic'/'legendary' override it
+    // via the --badge-c1/--badge-c2 custom properties set in css/style.css.
+    const tierClass = b.earned && b.tier ? ` ${b.tier}` : (b.earned ? ' earned' : ' locked');
+    const iconColor = b.earned ? 'var(--badge-c1)' : 'var(--text-light)';
+    return `<div class="badge-item${tierClass}">
+      ${!b.earned ? '<div class="badge-lock"><i class="fa-solid fa-lock"></i></div>' : ''}
+      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.6rem;color:${iconColor};"></i></div>
       <div class="badge-name">${b.name}</div>
       <div class="badge-desc">${b.desc}</div>
+      ${b.earned && b.tier ? `<span class="badge-tier-tag">${b.tier}</span>` : ''}
     </div>`;
   }).join('');
 }
@@ -1300,10 +1305,10 @@ async function loadAchievements() {
     } else {
       rolesGrid.innerHTML = [...pastRoles].reverse().map(r => {
         const parts = r.split(' M-');
-        return `<div class="badge-item earned" style="border-color:#4CAF50;">
-          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:#4CAF50;"></i></div>
+        return `<div class="badge-item completed">
+          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${parts[0]}</div>
-          <div class="badge-desc" style="color:#2e7d32;font-weight:700;">${parts[1]?'Meet '+parts[1]:''}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${parts[1]?'Meet '+parts[1]:''}</div>
         </div>`;
       }).join('');
     }
@@ -1314,10 +1319,10 @@ async function loadAchievements() {
       winCard.style.display = 'block';
       winGrid.innerHTML = winBadges.map(wb => `
         <div class="badge-item won">
-          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.8rem;color:#ffa000;"></i></div>
+          <div class="badge-ribbon">Winner</div>
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:#e65100;font-weight:700;">Meet ${wb.meet}</div>
-          <div class="winner-badge" style="margin-top:0.75rem;font-size:0.65rem;">Winner</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">Meet ${wb.meet}</div>
         </div>`).join('');
     }
   } catch(e) { console.warn('Achievements error',e); }
