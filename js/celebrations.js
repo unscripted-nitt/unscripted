@@ -82,7 +82,7 @@ export function launchConfetti() {
         ctx.restore();
       }
     };
-  }, 220, 7500);
+  }, 220, 10000);
 }
 
 // ── BROKEN HEARTS ─────────────────────────────────────────
@@ -119,7 +119,7 @@ export function launchBrokenHearts() {
         ctx.restore();
       }
     };
-  }, 40, 7500);
+  }, 40, 10000);
 }
 
 // ── TOAST ──────────────────────────────────────────────────
