@@ -149,7 +149,7 @@
       <p class="section-sub">Live overview of club activity</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Live snapshot of club activity. Total members is the current active members in the club. Average attendance is the avg of all active members individual attendances. <strong>Upcoming Meet Roles</strong> shows the roster for the next active or upcoming event — assign roles first in the Role Assignments section.</span>
+  <span>Live snapshot of club activity. <strong>Total Members</strong>, <strong>Avg Attendance</strong>, <strong>Perfect Attendance</strong>, <strong>Total Roles Filled</strong>, <strong>Avg Points / Member</strong>, <strong>Top Contributors</strong>, and <strong>Pathway Distribution</strong> all reflect <strong>active members only</strong> — inactive members are excluded from every one of those numbers. <strong>Speeches Delivered</strong>, <strong>Total Events</strong>, and <strong>Meets This Month</strong> are club-wide counts across every event, regardless of any member's active status. <strong>Upcoming Meet Roles</strong> shows the roster for the next active or upcoming event — assign roles first in the Role Assignments section.</span>
 </div>
       <div class="grid-insights">
         <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">—</div></div>
@@ -1373,6 +1373,14 @@ function renderUserTable() {
     const inactiveSince = (!isActive && u.inactiveSince)
       ? (u.inactiveSince.toDate ? u.inactiveSince.toDate() : new Date(u.inactiveSince))
       : null;
+    const fmtDate = d => d && !isNaN(d.getTime())
+      ? d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+      : null;
+    const joinedSinceDate = u.joinedSince
+      ? (u.joinedSince.toDate ? u.joinedSince.toDate() : new Date(u.joinedSince))
+      : null;
+    const joinedSinceStr   = fmtDate(joinedSinceDate);
+    const inactiveSinceStr = fmtDate(inactiveSince);
 
     let eligibleEvents;
     let candidateEvents; // for the 8 status chips — includes ineligible-marked events too
@@ -1462,6 +1470,7 @@ function renderUserTable() {
         <div style="font-weight:700;">${u.name}</div>
         <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
         ${u.personalEmail ? `<div style="font-size:0.68rem;color:var(--text-light);">📱 ${u.personalEmail}</div>` : ''}
+        ${joinedSinceStr ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;"><i class="fa-solid fa-calendar-plus" style="margin-right:3px;"></i>Joined ${joinedSinceStr}</div>` : ''}
         ${u.role === 'admin' || u.role === 'core'
           ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
           : ''}
@@ -1488,6 +1497,9 @@ function renderUserTable() {
         <span style="font-size:0.8rem;font-weight:700;">${isActive ? 'Active' : 'Inactive'}</span>
         ${!isActive && u.inactiveReason
           ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;">${u.inactiveReason === 'passed_out' ? 'Passed Out' : 'Left / Removed'}</div>`
+          : ''}
+        ${!isActive && inactiveSinceStr
+          ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;"><i class="fa-solid fa-calendar-xmark" style="margin-right:3px;"></i>Since ${inactiveSinceStr}</div>`
           : ''}
       </td>
       <td style="padding-right:1.5rem;">
