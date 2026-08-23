@@ -42,6 +42,11 @@ function runParticles(makeParticle, count, durationMs) {
 }
 
 // ── CONFETTI ──────────────────────────────────────────────
+// 7-8s so it has time to fall the full height of the screen: particles are
+// staggered in over roughly the first 2s (instead of bursting all at once)
+// and given a slower, more graceful fall speed than before, so the rain
+// keeps going instead of finishing early and leaving an empty canvas for
+// the remainder of the celebration.
 export function launchConfetti() {
   const colors = ['#FF5722', '#FFC400', '#4CAF50', '#29B6F6', '#AB47BC', '#FF7043'];
   const w = window.innerWidth;
@@ -49,8 +54,8 @@ export function launchConfetti() {
   runParticles(() => {
     const size = 6 + Math.random() * 6;
     const x = Math.random() * w;
-    const delay = Math.random() * 400;
-    const fallSpeed = 2.2 + Math.random() * 2.2;
+    const delay = Math.random() * 2200;
+    const fallSpeed = 1.8 + Math.random() * 2.0;
     const drift = (Math.random() - 0.5) * 2.5;
     const spin = (Math.random() - 0.5) * 12;
     const color = colors[Math.floor(Math.random() * colors.length)];
@@ -77,18 +82,21 @@ export function launchConfetti() {
         ctx.restore();
       }
     };
-  }, 160, 3200);
+  }, 220, 7500);
 }
 
 // ── BROKEN HEARTS ─────────────────────────────────────────
+// Same 7-8s treatment as confetti — staggered entry + slower fall so the
+// hearts keep drifting down for the full celebration instead of clearing
+// the screen a couple of seconds in.
 export function launchBrokenHearts() {
   const w = window.innerWidth;
 
   runParticles(() => {
     const size = 22 + Math.random() * 16;
     const x = Math.random() * w;
-    const delay = Math.random() * 500;
-    const fallSpeed = 1.4 + Math.random() * 1.6;
+    const delay = Math.random() * 2500;
+    const fallSpeed = 1.0 + Math.random() * 1.4;
     const drift = (Math.random() - 0.5) * 1.2;
     let y = -40 - Math.random() * 220;
     let rot = (Math.random() - 0.5) * 30;
@@ -111,7 +119,7 @@ export function launchBrokenHearts() {
         ctx.restore();
       }
     };
-  }, 26, 3200);
+  }, 40, 7500);
 }
 
 // ── TOAST ──────────────────────────────────────────────────
