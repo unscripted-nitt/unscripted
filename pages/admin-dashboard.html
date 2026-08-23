@@ -2089,8 +2089,31 @@ window.cleanOrphanedBadges = async () => {
       }
     }
 
-    alert(usersCleaned
-      ? `Cleanup complete. Updated ${usersCleaned} member(s): removed ${roleBadgesRemoved} role badge(s) and ${winBadgesRemoved} win badge(s) tied to deleted events.`
+    // ── Guests also carry winBadges, but on their guestTokens document
+    // instead of a users doc (see the award logic further down this file:
+    // "Guest winner — winBadges live on the guestTokens document"). A
+    // normal deleteEvent() call removes a guest's token entirely along
+    // with the event, so this only matters for tokens whose event was
+    // removed some other way (e.g. before this cleanup tool existed) —
+    // exactly the retroactive-sweep case this button exists for. Without
+    // this block, those guest awards would keep pointing at a meet that
+    // no longer exists and never get cleared.
+    let guestsCleaned = 0, guestWinBadgesRemoved = 0;
+    const guestTokensSnap = await getDocs(collection(db, 'guestTokens'));
+    for (const gd of guestTokensSnap.docs) {
+      const g = gd.data();
+      const winBadges = g.winBadges || [];
+      const cleanWinBadges = winBadges.filter(wb => !wb.meet || validTitles.has(wb.meet));
+      if (cleanWinBadges.length !== winBadges.length) {
+        guestWinBadgesRemoved += winBadges.length - cleanWinBadges.length;
+        guestsCleaned++;
+        await updateDoc(doc(db, 'guestTokens', gd.id), { winBadges: cleanWinBadges });
+      }
+    }
+
+    const totalCleaned = usersCleaned + guestsCleaned;
+    alert(totalCleaned
+      ? `Cleanup complete. Updated ${usersCleaned} member(s) and ${guestsCleaned} guest(s): removed ${roleBadgesRemoved} role badge(s), ${winBadgesRemoved} member win badge(s), and ${guestWinBadgesRemoved} guest win badge(s) tied to deleted events.`
       : 'No orphaned badges found — everything is already clean.');
     loadAllData();
   } catch (e) {
