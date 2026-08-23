@@ -116,15 +116,20 @@
            tier* classes at every 5-streak milestone up to 50, each of which
            unlocks an additional layered effect in css/celebrations.css. -->
       <div class="streak-fire-card" id="streakFireCard" style="display:none;">
-        <div class="streak-fire-wrap" id="streakFireWrap">
-          <div class="streak-fire-aura"></div>
-          <i class="fa-solid fa-crown streak-fire-crown"></i>
-          <div class="flame flame-outer"></div>
-          <div class="flame flame-mid"></div>
-          <div class="flame flame-inner"></div>
-          <div class="flame flame-outer flame-twin-left"></div>
-          <div class="flame flame-outer flame-twin-right"></div>
-          <div class="streak-fire-sparks" id="streakFireSparks"></div>
+        <div class="streak-fire-stage" id="streakFireStage">
+          <div class="streak-fire-wrap" id="streakFireWrap">
+            <div class="streak-fire-aura"></div>
+            <i class="fa-solid fa-crown streak-fire-crown"></i>
+            <div class="streak-fire-ember" id="streakFireEmber"></div>
+            <div class="streak-fire-ring" id="streakFireRing"></div>
+            <div class="streak-fire-orbit" id="streakFireOrbit"><span class="orbit-dot"></span></div>
+            <div class="flame flame-outer"></div>
+            <div class="flame flame-mid"></div>
+            <div class="flame flame-inner"></div>
+            <div class="flame flame-outer flame-twin-left"></div>
+            <div class="flame flame-outer flame-twin-right"></div>
+            <div class="streak-fire-sparks" id="streakFireSparks"></div>
+          </div>
         </div>
         <div class="streak-fire-info">
           <div class="streak-fire-num"><span id="streakFireCount">0</span> <span style="font-size:1.1rem;">meet streak</span></div>
@@ -1375,56 +1380,78 @@ function renderStreakFire() {
     document.getElementById('streakFireCount').textContent = streak;
 
     const capped = Math.min(streak, 50);
-    const p = capped / 50; // 0..1 — continuous growth factor toward the 50-streak max
+    const EARLY_END = 7; // streaks 1-6 get a fully distinct animation each;
+                          // the continuous "fire engine" only takes over from 7 onward.
 
-    // Continuous escalation: every single extra streak point nudges the
-    // flame a little bigger, a little brighter, and a little quicker,
-    // well ahead of the next 5-streak milestone kicking in below.
-    card.style.setProperty('--fire-scale',    (0.82 + p * 0.7).toFixed(3));
-    card.style.setProperty('--fire-glow',     (14 + p * 46).toFixed(1) + 'px');
-    card.style.setProperty('--fire-saturate', (1 + p * 0.6).toFixed(2));
-    card.style.setProperty('--fire-speed',    (1 - p * 0.35).toFixed(2)); // flicker gets snappier
+    // ── Early streaks (1-6): a completely different visual per step, not
+    // just a bigger/brighter version of the last one. This is where new
+    // members need the most encouragement, so each meet feels like a new
+    // moment rather than an incremental nudge.
+    let classes = ['streak-fire-card'];
+    if (capped < EARLY_END) {
+      classes.push('stage' + capped);
+      // Reset continuous vars to a calm baseline — the "engine" isn't driving yet.
+      card.style.setProperty('--fire-scale', 0.62);
+      card.style.setProperty('--fire-glow', '10px');
+      card.style.setProperty('--fire-saturate', 1);
+      card.style.setProperty('--fire-speed', 1);
+    } else {
+      // ── From streak 7 onward: continuous escalation (size/glow/saturation/
+      // flicker speed) driven by the exact count, PLUS discrete tier classes
+      // layering on a new permanent effect every 5 streak, same as before —
+      // just re-based so the ramp has room to run all the way to 50.
+      const p = (capped - EARLY_END) / (50 - EARLY_END); // 0..1
+      card.style.setProperty('--fire-scale',    (0.9 + p * 0.55).toFixed(3));
+      card.style.setProperty('--fire-glow',     (16 + p * 46).toFixed(1) + 'px');
+      card.style.setProperty('--fire-saturate', (1 + p * 0.6).toFixed(2));
+      card.style.setProperty('--fire-speed',    (1 - p * 0.35).toFixed(2));
 
-    // Milestone tiers — every 5 streak permanently unlocks one more layered
-    // effect, cumulatively (a 30-streak keeps everything a 10-streak has,
-    // plus more). Rebuilt on every render so it never drifts.
-    const tiers = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-    const activeTiers = tiers.filter(t => capped >= t);
-    card.className = 'streak-fire-card ' + activeTiers.map(t => 'tier' + t).join(' ');
+      const tiers = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+      classes.push('ignited');
+      tiers.filter(t => capped >= t).forEach(t => classes.push('tier' + t));
+    }
+    card.className = classes.join(' ');
 
-    // Sparks — count and character scale with the streak too: plain gold
-    // sparks early on, star-shaped ones mixed in from 25, and white-hot
-    // ones mixed in from 40.
-    const sparkCount = Math.min(3 + Math.floor(capped / 2), 26);
+    // Sparks — only once the fire engine has taken over (streak >= 7);
+    // count and character scale with the streak, star-shaped mixed in from
+    // 25, white-hot mixed in from 40.
     sparksEl.innerHTML = '';
-    for (let i = 0; i < sparkCount; i++) {
-      const s = document.createElement('div');
-      let cls = 'streak-fire-spark';
-      if (capped >= 40 && i % 4 === 0)      cls += ' spark-hot';
-      else if (capped >= 25 && i % 3 === 0) cls += ' spark-star';
-      s.className = cls;
-      const left  = 6 + Math.random() * 52;
-      const drift = (Math.random() - 0.5) * 44;
-      const delay = Math.random() * 2.2;
-      const dur   = (1.4 + Math.random() * 0.8).toFixed(2);
-      s.style.left = left + 'px';
-      s.style.setProperty('--drift', drift.toFixed(1) + 'px');
-      s.style.animationDelay = delay.toFixed(2) + 's';
-      s.style.animationDuration = dur + 's';
-      sparksEl.appendChild(s);
+    if (capped >= EARLY_END) {
+      const sparkCount = Math.min(3 + Math.floor((capped - EARLY_END) / 2), 26);
+      for (let i = 0; i < sparkCount; i++) {
+        const s = document.createElement('div');
+        let cls = 'streak-fire-spark';
+        if (capped >= 40 && i % 4 === 0)      cls += ' spark-hot';
+        else if (capped >= 25 && i % 3 === 0) cls += ' spark-star';
+        s.className = cls;
+        const left  = 6 + Math.random() * 52;
+        const drift = (Math.random() - 0.5) * 44;
+        const delay = Math.random() * 2.2;
+        const dur   = (1.4 + Math.random() * 0.8).toFixed(2);
+        s.style.left = left + 'px';
+        s.style.setProperty('--drift', drift.toFixed(1) + 'px');
+        s.style.animationDelay = delay.toFixed(2) + 's';
+        s.style.animationDuration = dur + 's';
+        sparksEl.appendChild(s);
+      }
     }
 
     document.getElementById('streakFireLabel').textContent =
       capped >= 50 ? 'Max Streak' :
-      capped >= 45 ? 'Immortal' :
-      capped >= 40 ? 'Transcendent' :
-      capped >= 35 ? 'Untouchable' :
-      capped >= 30 ? 'Radiant' :
-      capped >= 25 ? 'Mythic' :
-      capped >= 20 ? 'Legendary' :
-      capped >= 15 ? 'Scorching' :
-      capped >= 10 ? 'Inferno' :
-      capped >= 5  ? 'Blazing' : 'On Fire';
+      capped >= 45 ? 'Transcendent' :
+      capped >= 40 ? 'Untouchable' :
+      capped >= 35 ? 'Radiant' :
+      capped >= 30 ? 'Mythic' :
+      capped >= 25 ? 'Legendary' :
+      capped >= 20 ? 'Scorching' :
+      capped >= 15 ? 'Inferno' :
+      capped >= 10 ? 'Blazing' :
+      capped >= 7  ? 'On Fire' :
+      capped === 6 ? 'Almost Blazing' :
+      capped === 5 ? 'Heating Up' :
+      capped === 4 ? 'Building Heat' :
+      capped === 3 ? 'Catching On' :
+      capped === 2 ? 'Kindling' : 'First Spark';
 
     document.getElementById('streakFireSub').textContent =
       streak >= 50 ? "50 in a row — the maximum streak. You're Unscripted's hall of fame." :
@@ -1436,9 +1463,13 @@ function renderStreakFire() {
       streak >= 20 ? "20+ in a row — you're a club fixture now." :
       streak >= 15 ? "Incredible consistency — this is elite territory." :
       streak >= 10 ? "Double digits! Your commitment is showing." :
-      streak >= 5  ? "You're unstoppable — don't break the chain!" :
-      streak >= 3  ? "Great momentum — a few more to go legendary!" :
-                     "Keep attending back-to-back meetings to build your streak!";
+      streak === 7 || streak === 8 || streak === 9 ? "One full week-plus streak — the fire's really lit now!" :
+      streak === 6 ? "One more and the fire truly ignites!" :
+      streak === 5 ? "5 in a row — you're heating up fast." :
+      streak === 4 ? "4 straight — momentum is building." :
+      streak === 3 ? "3 in a row — you're catching on!" :
+      streak === 2 ? "2 meets back to back — kindling started." :
+                     "Your streak begins! Come back next meet to keep it alive.";
   } catch (e) { console.warn('Streak fire render error', e); }
 }
 
