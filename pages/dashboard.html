@@ -1165,6 +1165,26 @@ function computeAttendanceStreak() {
   return streak;
 }
 
+// Deleted events should never leave a badge behind, regardless of whether
+// the admin has run the "Clean Orphaned Badges" sweep on the backend yet —
+// this dashboard already loads every live event into allEventsCache, so we
+// can just filter role/win badges against that in the browser as a live,
+// always-on safety net. (roleBadges strings look like "<Label> M-<Title>"
+// and winBadges are {category, meet:<Title>, ...} — see saveMeetRoles()
+// and the award logic in admin-dashboard.html for where these are written.)
+function getLiveEventTitles() {
+  return new Set(allEventsCache.map(e => e.title).filter(Boolean));
+}
+function filterLiveRoleBadges(roleBadges, validTitles) {
+  return (roleBadges || []).filter(r => {
+    const evTitle = r.split(' M-')[1];
+    return !evTitle || validTitles.has(evTitle);
+  });
+}
+function filterLiveWinBadges(winBadges, validTitles) {
+  return (winBadges || []).filter(wb => !wb.meet || validTitles.has(wb.meet));
+}
+
 // Builds the FULL flat list of every achievement this member could earn,
 // across every category shown on the Achievements page. Also used by the
 // "new badge" celebration check, so this is the single source of truth.
@@ -1173,7 +1193,8 @@ function buildAllAchievements() {
   const presentCount  = allEventsCache.filter(e => e.attended?.includes(currentUid)).length;
   const { ttDelivered } = computeMyRoleStats();
   const streak        = computeAttendanceStreak();
-  const roleBadges     = userData.roleBadges || [];
+  const validTitles    = getLiveEventTitles();
+  const roleBadges     = filterLiveRoleBadges(userData.roleBadges, validTitles);
   const hasRole = prefix => roleBadges.some(r => r.startsWith(prefix));
 
   const journey = [
@@ -1252,7 +1273,7 @@ function buildAllAchievements() {
   });
 
   // Win badges (voting awards, req 15) — flattened for celebration purposes
-  const winBadges = (userData.winBadges || []).map((wb, i) => ({
+  const winBadges = filterLiveWinBadges(userData.winBadges, validTitles).map((wb, i) => ({
     id:`win_${(wb.category||'').replace(/\s+/g,'_')}_${(wb.meet||'').replace(/\s+/g,'_')}`,
     category:'win', name:wb.category, desc:`Won at ${wb.meet}`, icon:'fa-crown', tier:'legendary', earned:true
   }));
@@ -1295,7 +1316,7 @@ async function loadAchievements() {
     renderBadgeGrid(document.getElementById('roleBadgesGrid'), all.role);
 
     // Past roles (req 14: only this member's)
-    const allHistory = userData.roleBadges || [];
+    const allHistory = filterLiveRoleBadges(userData.roleBadges, getLiveEventTitles());
     const upcoming = allEventsCache.find(e => e.isActive === true) || allEventsCache.find(e => e.type === 'upcoming');
     const upcomingTitle = upcoming?.title;
     const pastRoles = allHistory.filter(r => !upcomingTitle || !r.endsWith(' M-'+upcomingTitle));
@@ -1313,7 +1334,7 @@ async function loadAchievements() {
     }
 
     // Win badges (req 15)
-    const winBadges = userData.winBadges || [];
+    const winBadges = filterLiveWinBadges(userData.winBadges, getLiveEventTitles());
     if (winBadges.length) {
       winCard.style.display = 'block';
       winGrid.innerHTML = winBadges.map(wb => `
