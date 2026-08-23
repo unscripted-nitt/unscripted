@@ -626,7 +626,6 @@ import {
 import { launchConfetti, launchBrokenHearts, showCelebToast } from '../js/celebrations.js';
 
 // Session timeout
-import '../js/session.js';
 
 let userData = null;
   function getDashSpeechIdx(u) {
@@ -1308,7 +1307,7 @@ async function loadAchievements() {
         return `<div class="badge-item completed">
           <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${parts[0]}</div>
-          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${parts[1]?'Meet '+parts[1]:''}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${parts[1]||''}</div>
         </div>`;
       }).join('');
     }
@@ -1322,7 +1321,7 @@ async function loadAchievements() {
           <div class="badge-ribbon">Winner</div>
           <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">Meet ${wb.meet}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${wb.meet}</div>
         </div>`).join('');
     }
   } catch(e) { console.warn('Achievements error',e); }
