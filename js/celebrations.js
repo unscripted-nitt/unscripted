@@ -96,7 +96,7 @@ export function launchBrokenHearts() {
     const size = 22 + Math.random() * 16;
     const x = Math.random() * w;
     const delay = Math.random() * 2500;
-    const fallSpeed = 1.0 + Math.random() * 1.4;
+    const fallSpeed = 1.8 + Math.random() * 2;
     const drift = (Math.random() - 0.5) * 1.2;
     let y = -40 - Math.random() * 220;
     let rot = (Math.random() - 0.5) * 30;
@@ -119,7 +119,7 @@ export function launchBrokenHearts() {
         ctx.restore();
       }
     };
-  }, 220, 10000);
+  }, 40, 10000);
 }
 
 // ── TOAST ──────────────────────────────────────────────────
