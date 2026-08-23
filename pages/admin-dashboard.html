@@ -227,6 +227,7 @@
             <th>Total Roles</th>
             <th>Table Topics</th>
             <th>Active</th>
+            <th>Last Login</th>
             <th style="text-align:right;padding-right:1.5rem;">Actions</th>
           </tr></thead>
           <tbody id="userTableBody"></tbody>
@@ -1172,6 +1173,9 @@ onAuthStateChanged(auth, async user => {
     await signOut(auth); window.location.href = 'login.html'; return;
   }
   const adminData = snap.data();
+  // Same "Last Login" tracking as the member dashboard — admins/core
+  // sometimes never visit dashboard.html, so this needs its own write.
+  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() }).catch(() => {});
   document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
   const adminAvatar = document.getElementById('adminTopAvatar');
@@ -1382,6 +1386,29 @@ function renderUserTable() {
     const joinedSinceStr   = fmtDate(joinedSinceDate);
     const inactiveSinceStr = fmtDate(inactiveSince);
 
+    // "Last Login" — shown as a relative time ("3h ago", "5d ago") when
+    // recent, and as a full date once it's more than ~a month old, since
+    // "27d ago" stops being a useful unit at that point.
+    let lastLoginHtml = '<span style="color:var(--text-light);font-size:0.8rem;">Never</span>';
+    if (u.lastLogin) {
+      try {
+        const lastLoginDate = u.lastLogin.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin);
+        const diffMs = Date.now() - lastLoginDate.getTime();
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffHr  = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHr / 24);
+        let rel;
+        if (diffMin < 1)        rel = 'Just now';
+        else if (diffMin < 60)  rel = `${diffMin}m ago`;
+        else if (diffHr < 24)   rel = `${diffHr}h ago`;
+        else if (diffDay < 30)  rel = `${diffDay}d ago`;
+        else                    rel = fmtDate(lastLoginDate);
+        const fullDate = fmtDate(lastLoginDate);
+        const recentColor = diffDay < 7 ? '#2e7d32' : 'var(--text-mid)';
+        lastLoginHtml = `<span style="font-size:0.8rem;font-weight:700;color:${recentColor};" title="${fullDate}">${rel}</span>`;
+      } catch (_) {}
+    }
+
     let eligibleEvents;
     let candidateEvents; // for the 8 status chips — includes ineligible-marked events too
     if (isActive) {
@@ -1502,6 +1529,7 @@ function renderUserTable() {
           ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;"><i class="fa-solid fa-calendar-xmark" style="margin-right:3px;"></i>Since ${inactiveSinceStr}</div>`
           : ''}
       </td>
+      <td>${lastLoginHtml}</td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
           <button class="btn-primary btn-sm" onclick="openEditModal('${u.id}')">Edit</button>
@@ -1509,7 +1537,7 @@ function renderUserTable() {
         </div>
       </td>
     </tr>`;
-  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-mid);">No members found.</td></tr>';
+  }).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-mid);">No members found.</td></tr>';
 }
  
 window.filterUsers = () => {
