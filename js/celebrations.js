@@ -119,7 +119,7 @@ export function launchBrokenHearts() {
         ctx.restore();
       }
     };
-  }, 40, 10000);
+  }, 220, 10000);
 }
 
 // ── TOAST ──────────────────────────────────────────────────
