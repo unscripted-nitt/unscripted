@@ -1,0 +1,311 @@
+/* ═══════════════════════════════════════════════════════════════
+   css/mobile.css — MOBILE EXPERIENCE OVERHAUL
+   ───────────────────────────────────────────────────────────────
+   Every rule in this file lives inside a `max-width` media query,
+   so nothing here changes the desktop/tablet layout — it only
+   patches how the site behaves on phones. Load this file LAST
+   (after style.css, gooey-nav.css, etc.) so it can win the
+   cascade where it needs to.
+
+   Sections:
+     1. Navbar — fix overflowing logo/login/hamburger row
+     2. Mobile dropdown menu — fix it being invisible/half-cut
+     3. Hero — tighten spacing so it doesn't dominate the screen
+     4. Stats bar — was 4 full-height stacked blocks, now a 2×2 grid
+     5. About section — fix cards overflowing off the right edge
+     6. Pathways — fix the mis-spaced CTA button
+     7. General section rhythm — shorten the overall page
+     8. Members / Videos grids — comfortable 2-up cards
+     9. Login card — comfortable padding on small phones
+     10. Modals & small-phone (<380px) safety net
+   ═══════════════════════════════════════════════════════════════ */
+
+
+/* ───────────────────────────────────────────────────────────────
+   1. NAVBAR — logo + theme toggle + "Member Login" + hamburger
+   were fighting for space and the hamburger/login button were
+   spilling off the right edge of the screen on real phones.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+  }
+  .nav-logo img {
+    height: 34px;
+  }
+  .nav-actions {
+    gap: 0.4rem;
+  }
+  .btn-login {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+  }
+  #themeToggleBtn.theme-toggle-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .hamburger {
+    width: 34px;
+    height: 34px;
+    margin-left: 0.1rem;
+  }
+}
+
+/* Extra-narrow phones (SE, small Android): shrink once more so the
+   four nav-actions items never collide with the logo. */
+@media (max-width: 380px) {
+  .nav-logo img {
+    height: 30px;
+  }
+  .btn-login {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.72rem;
+  }
+  .nav-actions {
+    gap: 0.3rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   2. MOBILE DROPDOWN MENU
+   On the homepage the nav is `.nav-links.gooey-nav-container`.
+   gooey-nav.css sets `.gooey-nav-container { position: relative }`
+   with no media query at all, and because that file is linked
+   *after* style.css, it silently overrides style.css's mobile rule
+   `.nav-links { position: fixed; ... }` (same specificity, later
+   source wins). The result: the "dropdown" menu never actually
+   detaches into a full-screen overlay — it stays inline, gets
+   squashed to a sliver on the left, and its first item renders
+   above the top of the screen. That's the "dropdown is invisible"
+   bug. Restoring the fixed overlay here (loaded last) fixes it
+   without touching anything gooey-nav.css does on desktop.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .nav-links {
+    position: fixed !important;
+    top: var(--nav-h) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    max-height: calc(100svh - var(--nav-h));
+    overflow-y: auto;
+    margin: 0;
+    z-index: 900;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    padding: 0.5rem 1.25rem 1.25rem;
+    box-shadow: var(--shadow-lg);
+  }
+  .nav-links a {
+    padding: 0.95rem 0.75rem;
+    font-size: 1.05rem;
+  }
+  /* gooey-nav's own <nav><ul> wrapper also needs to stack + fill
+     the width now that it's inside a full-width fixed overlay. */
+  .gooey-nav-container nav {
+    width: 100%;
+  }
+  .gooey-nav-container nav ul {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+  }
+  .gooey-nav-container nav ul li {
+    width: 100%;
+    border-radius: 10px;
+  }
+  .gooey-nav-container nav ul li a {
+    display: block;
+    width: 100%;
+    padding: 0.95rem 0.75rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   3. HERO — a little less top/bottom padding on phones so the
+   fold isn't 100% consumed by the hero alone.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero {
+    padding: calc(var(--nav-h) + 2rem) 1.25rem 4rem;
+  }
+  .hero-eyebrow {
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+  .hero-motto-container {
+    gap: 0.85rem;
+  }
+}
+@media (max-width: 420px) {
+  .hero-bracket { font-size: 2.6rem; }
+  .hero-title   { font-size: 2.15rem; }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   4. STATS BAR — was `display:flex; flex-wrap:wrap; gap:4rem`,
+   which on a phone-width screen has no room for even 2 stats per
+   row, so all 4 wrapped onto their own full-width row, each with
+   generous padding. That alone added roughly 1500px of scrolling.
+   A real 2×2 grid keeps it compact and easy to scan.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .stats-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+    padding: 1.75rem 1.25rem;
+  }
+  .stat {
+    padding: 1.1rem 0.5rem;
+  }
+  .stat-num, .plus {
+    font-size: 2rem;
+  }
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+  }
+  /* The thin divider lines were built for a single horizontal row;
+     in a 2x2 grid they just float oddly. Replace them with a
+     subtle border on each cell instead. */
+  .stat-divider {
+    display: none;
+  }
+  .stat {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .stat:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   5. ABOUT SECTION — `.section-inner.two-col` collapses to a
+   single `1fr` column at this width, but CSS grid tracks default
+   to a minimum of their content's min-content size. The 2×2
+   `.col-visual` card grid inside it has a min-content width wider
+   than the section's own padded width, so the `1fr` track was
+   stretching past its parent and pushing the right-hand cards
+   straight off the edge of the phone screen. `minmax(0, 1fr)` +
+   `min-width: 0` let the track actually shrink to fit.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .section-inner.two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .section-inner.two-col > * {
+    min-width: 0;
+  }
+}
+@media (max-width: 480px) {
+  .col-visual {
+    grid-template-columns: 1fr;
+  }
+  .about-card {
+    padding: 1.5rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   6. PATHWAYS — the "Access Materials" button's wrapper div sits
+   as an implicit extra item inside `.pathways-grid` (a grid), so
+   it was inheriting grid placement instead of sitting as a normal
+   centered block, leaving a large, uneven gap above it. Forcing
+   it to span the full row and tightening its margin fixes the
+   spacing without touching the grid/HTML itself.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pathways-grid {
+    gap: 1rem;
+  }
+  .pathways-grid > .text-center.mt-2 {
+    grid-column: 1 / -1;
+    margin-top: 0.75rem;
+  }
+  .pathway-card {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   7. GENERAL SECTION RHYTHM — 5rem/7rem of top+bottom padding per
+   section, times seven sections, is a lot of pure scrolling on a
+   6-7 inch screen. Tightening the rhythm keeps the same visual
+   breathing room proportionally while cutting the page down.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .section {
+    padding: 3.25rem 1.25rem;
+  }
+  .page-header {
+    padding: calc(var(--nav-h) + 2rem) 1.25rem 2.25rem;
+  }
+  .page-content {
+    padding: 2rem 1.25rem;
+  }
+  .footer {
+    padding: 3rem 1.25rem 1.5rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   8. MEMBERS / VIDEOS GRIDS — keep a comfortable 2-up layout with
+   tidier gutters, and make sure filter chips (videos.html) get
+   enough tap target height.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .members-grid {
+    gap: 0.85rem;
+  }
+  .videos-grid {
+    gap: 1.25rem;
+  }
+  .video-filters,
+  .filter-chips {
+    gap: 0.5rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   9. LOGIN CARD — a bit less padding so the form doesn't feel
+   cramped against the card edges on narrow phones.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.75rem 1.25rem;
+  }
+  .login-card h2 {
+    font-size: 1.5rem;
+  }
+}
+
+
+/* ───────────────────────────────────────────────────────────────
+   10. MODALS & VERY SMALL PHONES (<380px) — the "new visitor"
+   popup on index.html is styled entirely with inline styles, so
+   it needs !important here to be overridden at all. Everything
+   else just gets a final round of tightening.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  #newVisitorModal > div {
+    padding: 2rem 1.25rem !important;
+  }
+  .modal-card {
+    padding: 1.5rem 1.25rem;
+  }
+  h2 {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+  }
+}
