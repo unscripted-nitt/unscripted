@@ -105,6 +105,15 @@
       <h1 class="hero-title hero-title-focus" id="heroTrueFocus"></h1>
     </div>
     <p class="hero-sub" style="margin-top:2rem;color:#fff;">Your spotlight starts here.</p>
+
+    <!-- MOBILE-ONLY HERO — a plain, static replacement for the animated
+         desktop hero above (shown/hidden purely via css/mobile.css; the
+         desktop version is untouched and still renders as-is on tablet+). -->
+    <div class="hero-mobile-heading">
+      <p class="hero-mobile-eyebrow">Official Public Speaking &amp; Leadership Club &mdash; NIT Trichy</p>
+      <h1 class="hero-mobile-title">Excellence, In All, <em>Through Fun.</em></h1>
+      <p class="hero-mobile-sub">Your spotlight starts here.</p>
+    </div>
   </div>
   <div class="hero-scroll-hint">scroll</div>
 </section>
@@ -304,7 +313,10 @@
 <script type="module">
   import { TrueFocus } from './js/true-focus.js';
   const heroTrueFocus = document.getElementById('heroTrueFocus');
-  if (heroTrueFocus) {
+  // The animated word-focus effect is desktop-only — on phones we show a
+  // plain static heading instead (see .hero-mobile-heading in mobile.css),
+  // so there's no need to spend CPU/battery running this on small screens.
+  if (heroTrueFocus && window.matchMedia('(min-width: 769px)').matches) {
     new TrueFocus(heroTrueFocus, {
       sentence: 'Excellence,|In All,|Through Fun.',
       separator: '|',
