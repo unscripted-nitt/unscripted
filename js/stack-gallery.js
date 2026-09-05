@@ -28,7 +28,11 @@ export class StackGallery {
     inner.className = 'card';
     const randomRotate = this.opts.randomRotation ? Math.random() * 10 - 5 : 0;
     inner.style.transform = `rotateZ(${(total - index - 1) * 4 + randomRotate}deg) scale(${1 + index * 0.06 - total * 0.06})`;
-    inner.style.transformOrigin = '90% 90%';
+    // Pivoting near the bottom-right corner (90% 90%) made every card behind
+    // the front one fan out toward the bottom-right, so the whole stack's
+    // visible bounding box sat off-center to the right inside .gallery-stack-wrap.
+    // Center pivot keeps the fan symmetric so the stack reads as centered.
+    inner.style.transformOrigin = '50% 50%';
 
     const img = document.createElement('img');
     img.src = card.src;
