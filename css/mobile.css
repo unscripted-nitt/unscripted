@@ -1,16 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    css/mobile.css — MOBILE EXPERIENCE OVERHAUL
    ───────────────────────────────────────────────────────────────
-   Every rule in this file lives inside a `max-width` media query,
-   so nothing here changes the desktop/tablet layout — it only
-   patches how the site behaves on phones. Load this file LAST
-   (after style.css, gooey-nav.css, etc.) so it can win the
-   cascade where it needs to.
+   Every rule in this file lives inside a `max-width` media query
+   (the one exception is right below, hiding a brand-new element
+   that doesn't exist in the desktop markup at all), so nothing
+   here changes the desktop/tablet layout — it only patches how
+   the site behaves on phones. Load this file LAST (after
+   style.css, gooey-nav.css, etc.) so it can win the cascade where
+   it needs to.
 
    Sections:
+     0. Global overflow guard — belt-and-suspenders against any
+        stray horizontal scroll/blank-strip, from any cause
      1. Navbar — fix overflowing logo/login/hamburger row
      2. Mobile dropdown menu — fix it being invisible/half-cut
-     3. Hero — tighten spacing so it doesn't dominate the screen
+     3. Hero — replaced with a dedicated, static mobile version
+        instead of trying to shrink the animated desktop one
      4. Stats bar — was 4 full-height stacked blocks, now a 2×2 grid
      5. About section — fix cards overflowing off the right edge
      6. Pathways — fix the mis-spaced CTA button
@@ -19,6 +24,32 @@
      9. Login card — comfortable padding on small phones
      10. Modals & small-phone (<380px) safety net
    ═══════════════════════════════════════════════════════════════ */
+
+/* This element doesn't exist in the desktop markup — it's a brand
+   new mobile-only hero heading (see section 3). Hiding it by
+   default is the correct "desktop" state; section 3 turns it back
+   on under the phone breakpoint. */
+.hero-mobile-heading { display: none; }
+
+
+/* ───────────────────────────────────────────────────────────────
+   0. GLOBAL OVERFLOW GUARD
+   A phone screenshot showed a persistent blank/black strip down
+   the right edge of the page — the tell-tale sign of *something*
+   on the page being a few pixels wider than the viewport, which
+   makes the whole document horizontally scrollable even though
+   nothing is meant to scroll sideways. Rather than only chasing
+   individual offenders (we did fix the ones we could reproduce —
+   see sections 1 and 5 below), this is a hard guarantee: no matter
+   what ends up too wide, the phone viewport itself will never show
+   extra blank space or a sideways scrollbar because of it.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+}
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -127,24 +158,74 @@
 
 
 /* ───────────────────────────────────────────────────────────────
-   3. HERO — a little less top/bottom padding on phones so the
-   fold isn't 100% consumed by the hero alone.
+   3. HERO — rebuilt for mobile, not just shrunk
+   ───────────────────────────────────────────────────────────────
+   The desktop hero relies on three things that don't translate to
+   a phone: a rounded "pill" eyebrow badge that has to wrap onto two
+   lines at this width and ends up looking like a stray outlined
+   box, a large bracket + serif title pairing sized with `vw` units
+   that has to be shrunk repeatedly to avoid crowding, and a
+   blur-cycling word animation (TrueFocus) that — with no mouse to
+   drive it — autoplays and constantly shows the *other* two phrases
+   as smeared, blurry ghost text above/below whichever one is
+   focused. Patching all three around the edges kept producing a
+   busy, smudgy-looking hero.
+
+   Instead: on phones, the animated desktop heading is hidden
+   entirely (and its JS is skipped — see the matchMedia guard around
+   the TrueFocus init in index.html, so it doesn't even run) and
+   replaced with `.hero-mobile-heading`, a plain static block with
+   the same three lines of copy, no pill, no blur, no cycling —
+   just legible white text with a text-shadow for contrast over the
+   photo. It's a few added lines of HTML in index.html, shown only
+   under this breakpoint; the original desktop hero is untouched.
    ─────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hero {
-    padding: calc(var(--nav-h) + 2rem) 1.25rem 4rem;
+    padding: calc(var(--nav-h) + 2rem) 1.5rem 4rem;
   }
-  .hero-eyebrow {
-    font-size: 0.68rem;
-    line-height: 1.5;
+  /* Hide the desktop heading (pill eyebrow, bracket, animated title) — */
+  .hero-eyebrow,
+  .hero-motto-container,
+  .hero-sub {
+    display: none;
   }
-  .hero-motto-container {
-    gap: 0.85rem;
+  /* — and show the plain mobile one instead. */
+  .hero-mobile-heading {
+    display: block;
+    text-align: center;
   }
-}
-@media (max-width: 420px) {
-  .hero-bracket { font-size: 2.6rem; }
-  .hero-title   { font-size: 2.15rem; }
+  .hero-mobile-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--orange);
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  }
+  .hero-mobile-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 9vw, 3rem);
+    font-weight: 900;
+    line-height: 1.15;
+    color: #fff;
+    margin: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.65);
+  }
+  .hero-mobile-title em {
+    display: block;
+    font-style: normal;
+    color: var(--orange);
+    margin-top: 0.2em;
+  }
+  .hero-mobile-sub {
+    margin: 1.5rem 0 0;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  }
 }
 
 
