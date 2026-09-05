@@ -113,7 +113,7 @@
          is untouched and still renders as-is on tablet+. -->
     <div class="hero-mobile-heading">
       <p class="hero-mobile-eyebrow">Official Public Speaking &amp; Leadership Club &mdash; NIT Trichy</p>
-      <h1 class="hero-mobile-title">Excellence, In All, <em>Through Fun.</em></h1>
+      <h1 class="hero-mobile-title hero-title-focus" id="heroTrueFocusMobile"></h1>
       <div class="hero-mobile-photo">
         <img src="icons/us.jpg" alt="Unscripted members at a club meet" />
       </div>
@@ -251,7 +251,7 @@
           <div><div class="soc-name">YouTube</div><div class="soc-handle">@UnscriptedNITTrichy</div></div>
         </a>
       </div>
-      <div style="margin-top:2rem; padding:1.5rem; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2); border-radius:var(--radius);">
+      <div class="contact-whatsapp-card" style="margin-top:2rem; padding:1.5rem; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2); border-radius:var(--radius);">
         <h3 style="font-size:1.1rem; margin-bottom:0.5rem; color:#25D366; font-family:var(--font-body);">Join the Community</h3>
         <p style="font-size:0.85rem; margin-bottom:1rem;">Get updates and public speaking tips on WhatsApp.</p>
         <button class="btn-whatsapp" onclick="window.open('https://chat.whatsapp.com/L7VeSvqUCQsJmsfdP9X7mF','_blank')">
@@ -319,10 +319,12 @@
 <script type="module">
   import { TrueFocus } from './js/true-focus.js';
   const heroTrueFocus = document.getElementById('heroTrueFocus');
-  // The animated word-focus effect is desktop-only — on phones we show a
-  // plain static heading instead (see .hero-mobile-heading in mobile.css),
-  // so there's no need to spend CPU/battery running this on small screens.
-  if (heroTrueFocus && window.matchMedia('(min-width: 769px)').matches) {
+  const heroTrueFocusMobile = document.getElementById('heroTrueFocusMobile');
+  const isMobileHero = window.matchMedia('(max-width: 768px)').matches;
+  // Same blur-cycling word animation on both breakpoints now — only the
+  // mount point differs (desktop markup vs the mobile-only heading), so
+  // whichever one is actually visible gets initialized.
+  if (heroTrueFocus && !isMobileHero) {
     new TrueFocus(heroTrueFocus, {
       sentence: 'Excellence,|In All,|Through Fun.',
       separator: '|',
@@ -330,6 +332,18 @@
       blurAmount: 5,
       borderColor: '#ff570e',
       wordColors: ['#ffffff', '#ff570e', '#ffb74d'],
+      animationDuration: 0.25,
+      pauseBetweenAnimations: 1
+    });
+  }
+  if (heroTrueFocusMobile && isMobileHero) {
+    new TrueFocus(heroTrueFocusMobile, {
+      sentence: 'Excellence,|In All,|Through Fun.',
+      separator: '|',
+      manualMode: false,
+      blurAmount: 4,
+      borderColor: '#ff570e',
+      wordColors: ['#ffffff', '#ffffff', '#ff570e'],
       animationDuration: 0.25,
       pauseBetweenAnimations: 1
     });
