@@ -1085,7 +1085,28 @@ function checkLowActivityWarning() {
   // Never warn inactive members
   if (userData.isActive === false) return;
 
-  const eligibleMeets = allEventsCache.filter(e => !(e.ineligible||[]).includes(currentUid));
+  // Only count meets that have actually happened (past, dated today or earlier)
+  // and that the member wasn't marked ineligible for (e.g. joined after).
+  const now = new Date();
+  const eligibleMeets = allEventsCache.filter(e => {
+    if ((e.ineligible || []).includes(currentUid)) return false;
+    if (!e.date) return false;
+    const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
+    return d <= now;
+  });
+
+  // Grace period: don't evaluate the warning at all until the member has had
+  // at least 5 completed meets — earliest the banner can appear is meet #6.
+  const MIN_MEETS_BEFORE_WARNING = 5;
+  if (eligibleMeets.length < MIN_MEETS_BEFORE_WARNING) {
+    const banner  = document.getElementById('lowActivityBanner');
+    const overlay = document.getElementById('dangerOverlay');
+    if (banner)  banner.style.display = 'none';
+    if (overlay) overlay.classList.remove('active');
+    document.body.classList.remove('has-warning');
+    return;
+  }
+
   const presentCount  = eligibleMeets.filter(e => (e.attended||[]).includes(currentUid)).length;
   const attPct = eligibleMeets.length ? (presentCount / eligibleMeets.length * 100) : 100;
 
