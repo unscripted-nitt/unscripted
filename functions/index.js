@@ -89,8 +89,14 @@ exports.autoTransitionEvents = onSchedule(
     snap.forEach((docSnap) => {
       const data = docSnap.data();
       const eventDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
-      if (eventDate && eventDate.getTime() < now.toDate().getTime()) {
-        batch.update(docSnap.ref, { type: "past" });
+      if (!eventDate || isNaN(eventDate.getTime())) return;
+      // Event stays "upcoming" for its whole calendar day in IST, and becomes
+      // "past" at 00:00 IST the next day (must match js/event-status.js).
+      const IST = 5.5 * 60 * 60 * 1000;
+      const ist = new Date(eventDate.getTime() + IST);
+      const endOfDayIst = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate() + 1) - IST;
+      if (now.toDate().getTime() >= endOfDayIst) {
+        batch.update(docSnap.ref, { type: "past", isActive: false }); // Live events too
         count++;
       }
     });
