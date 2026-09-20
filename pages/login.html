@@ -331,6 +331,7 @@ window.loginAsGuest = async function() {
   }
 };
 import { auth, db } from '../js/firebase-config.js';
+import { normalizeEvent } from '../js/event-status.js';
 
 import {
   signInWithEmailAndPassword,
@@ -465,7 +466,7 @@ async function loadLoginRoster() {
   try {
     const snap = await getDocs(query(collection(db,'events'), orderBy('date','desc')));
     const events = [];
-    snap.forEach(d => events.push(d.data()));
+    snap.forEach(d => events.push(normalizeEvent(d.data())));
 
     let upcoming = events.find(e => e.isActive === true);
     if (!upcoming) {
