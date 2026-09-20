@@ -24,6 +24,10 @@
   }
 </style>
 <style>
+  /* faster members-page motion: card lift/hover and hint transitions */
+  .member-card, .member-card * { transition-duration: 0.12s !important; }
+</style>
+<style>
   @media (max-width: 768px) {
     .nav-links {
       background: var(--surface, #fff) !important;
@@ -188,7 +192,7 @@ function initPixelAvatars(orderedMembers, colorOffset = 0) {
       gridSize: 8,
       pixelColor: '#ffffff',
       once: false,
-      animationStepDuration: 0.4
+      animationStepDuration: 0.18
     });
   });
 }
@@ -245,7 +249,7 @@ function renderMembers(members) {
           <span>Batch of ${batch}</span>
           <span style="display:flex;align-items:center;gap:1rem;">
             <span style="font-size:0.78rem;font-weight:600;color:var(--text-light);">${items.length} member${items.length!==1?'s':''}</span>
-            <i class="fa-solid fa-chevron-down" id="icon_${safeId}" style="color:var(--orange);transition:transform 0.25s;"></i>
+            <i class="fa-solid fa-chevron-down" id="icon_${safeId}" style="color:var(--orange);transition:transform 0.12s;"></i>
           </span>
         </button>
         <div id="${safeId}" style="display:none;padding:1.5rem 1.5rem 1rem;">
