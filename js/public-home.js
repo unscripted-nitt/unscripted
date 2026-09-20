@@ -4,9 +4,13 @@ import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { cachedFetch } from './data-cache.js';
 import { StackGallery } from './stack-gallery.js';
+import { resolveEventType, eventEndMs } from './event-status.js';
 
 function renderEvents(container, events) {
   container.innerHTML = '';
+  // Re-check at render time so a cached list can never show an event that has
+  // since passed (cache is rendered instantly, before Firestore responds).
+  events = events.filter(e => !e.endMs || e.endMs > Date.now());
   if (!events.length) {
     container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:2rem;grid-column:1/-1;">No live events currently. Check back soon.</p>';
     return;
@@ -46,7 +50,7 @@ async function loadEventsPreview() {
       const events = [];
       snap.forEach(doc => {
         const e = doc.data();
-        if (e.type !== 'upcoming') return;
+        if (resolveEventType(e) !== 'upcoming') return;
         let dateStr = '—';
         if (e.date) {
           try {
@@ -54,7 +58,7 @@ async function loadEventsPreview() {
             dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
           } catch (_) { dateStr = String(e.date); }
         }
-        events.push({ title: e.title, description: e.description, rolesDisplay: e.rolesDisplay, dateStr });
+        events.push({ title: e.title, description: e.description, rolesDisplay: e.rolesDisplay, dateStr, endMs: eventEndMs(e) });
       });
       return events;
     }, events => renderEvents(container, events));
