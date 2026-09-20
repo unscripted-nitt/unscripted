@@ -218,6 +218,96 @@
         <input type="text" id="userSearch" placeholder="Search by name, email..." style="max-width:300px;" oninput="filterUsers()" />
         <p style="font-size:0.82rem;color:var(--text-mid);width:100%;margin:0;">Edit member profiles, assign mentors, set pathway progress, and toggle active/inactive status. <strong>Inactive members</strong> are hidden from all dropdowns, leaderboards, and attendance lists — but their historical data is preserved.</p>
       </div>
+      <!-- Sort & Filter toolbar (Member Control) -->
+      <div class="card" id="userToolbar" style="padding:1rem 1.25rem;margin-bottom:1rem;">
+        <style>
+          #userToolbar .uf-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:0.75rem; }
+          #userToolbar label { display:block; font-size:0.66rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-light); margin-bottom:0.25rem; }
+          #userToolbar select { width:100%; }
+        </style>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+          <strong style="font-size:0.9rem;"><i class="fa-solid fa-sliders" style="color:var(--orange);"></i>&nbsp; Sort &amp; Filter</strong>
+          <span style="display:flex;align-items:center;gap:0.75rem;">
+            <span id="userCount" style="font-size:0.8rem;color:var(--text-mid);font-weight:700;"></span>
+            <button type="button" class="btn-outline btn-sm" onclick="resetUserFilters()">Reset</button>
+          </span>
+        </div>
+        <div class="uf-grid">
+          <div><label for="userSort">Sort by</label>
+            <select id="userSort" onchange="applyUserView()">
+              <option value="default">Default (active first, A–Z)</option>
+              <option value="name_asc">Name A → Z</option>
+              <option value="name_desc">Name Z → A</option>
+              <option value="att_desc">Attendance % — high → low</option>
+              <option value="att_asc">Attendance % — low → high</option>
+              <option value="present_desc">Meets attended — most</option>
+              <option value="present_asc">Meets attended — fewest</option>
+              <option value="meets_desc">Eligible meets — most</option>
+              <option value="meets_asc">Eligible meets — fewest</option>
+              <option value="roles_desc">Total roles — most</option>
+              <option value="roles_asc">Total roles — fewest</option>
+              <option value="tt_desc">Table topics — most</option>
+              <option value="tt_asc">Table topics — fewest</option>
+              <option value="pathway_asc">Project / pathway A → Z</option>
+              <option value="pathway_desc">Project / pathway Z → A</option>
+              <option value="mentor_asc">Mentor A → Z</option>
+              <option value="status_active">Status — active first</option>
+              <option value="status_inactive">Status — inactive first</option>
+              <option value="login_desc">Last login — most recent</option>
+              <option value="login_asc">Last login — oldest</option>
+              <option value="joined_desc">Joined — newest</option>
+              <option value="joined_asc">Joined — oldest</option>
+              <option value="inactive_desc">Inactive since — most recent</option>
+            </select></div>
+          <div><label for="ufStatus">Status</label>
+            <select id="ufStatus" onchange="applyUserView()">
+              <option value="">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+            </select></div>
+          <div><label for="ufReason">Inactive reason</label>
+            <select id="ufReason" onchange="applyUserView()">
+              <option value="">All</option><option value="passed_out">Passed out</option>
+              <option value="left_removed">Left / removed</option><option value="none">No reason set</option>
+            </select></div>
+          <div><label for="ufRole">System role</label>
+            <select id="ufRole" onchange="applyUserView()">
+              <option value="">All</option><option value="admin">Administrator</option>
+              <option value="core">Core team</option><option value="user">Club member</option>
+            </select></div>
+          <div><label for="ufPathway">Project / pathway</label>
+            <select id="ufPathway" onchange="applyUserView()"><option value="">All</option></select></div>
+          <div><label for="ufMentor">Mentor</label>
+            <select id="ufMentor" onchange="applyUserView()"><option value="">All</option></select></div>
+          <div><label for="ufAttendance">Attendance</label>
+            <select id="ufAttendance" onchange="applyUserView()">
+              <option value="">All</option><option value="ge90">90% and above</option>
+              <option value="75_89">75 – 89%</option><option value="50_74">50 – 74%</option>
+              <option value="lt50">Below 50%</option><option value="nomeets">No eligible meets</option>
+            </select></div>
+          <div><label for="ufRoles">Total roles</label>
+            <select id="ufRoles" onchange="applyUserView()">
+              <option value="">All</option><option value="none">None</option><option value="1_3">1 – 3</option>
+              <option value="4_9">4 – 9</option><option value="10plus">10 or more</option>
+            </select></div>
+          <div><label for="ufTT">Table topics</label>
+            <select id="ufTT" onchange="applyUserView()">
+              <option value="">All</option><option value="none">None</option><option value="1_3">1 – 3</option>
+              <option value="4_9">4 – 9</option><option value="10plus">10 or more</option>
+            </select></div>
+          <div><label for="ufLogin">Last login</label>
+            <select id="ufLogin" onchange="applyUserView()">
+              <option value="">Any time</option><option value="day">Last 24 hours</option>
+              <option value="week">Last 7 days</option><option value="month">Last 30 days</option>
+              <option value="older">More than 30 days ago</option><option value="never">Never logged in</option>
+            </select></div>
+          <div><label for="ufJoined">Joined</label>
+            <select id="ufJoined" onchange="applyUserView()"><option value="">Any year</option></select></div>
+          <div><label for="ufEmail">Personal email</label>
+            <select id="ufEmail" onchange="applyUserView()">
+              <option value="">All</option><option value="yes">Provided</option><option value="no">Missing</option>
+            </select></div>
+        </div>
+      </div>
+
       <div class="card" style="padding:0;overflow-x:auto;">
         <table>
           <thead><tr>
@@ -830,6 +920,8 @@
           <i class="fa-solid fa-rotate"></i> Refresh
         </button>
       </div>
+      <input type="text" id="guestTokenSearch" placeholder="Search guests — name, event or OTP (includes older guests)..."
+        oninput="filterGuestTokens()" style="width:100%;margin-bottom:0.75rem;" />
       <div id="guestTokensList"><p style="color:var(--text-mid);">Loading...</p></div>
     </div>
   </div>
@@ -1085,7 +1177,7 @@ window.generateGuestToken = async function() {
 function renderGuestTokenRow(t, now) {
   const exp = t.expiresAt?.toDate ? t.expiresAt.toDate() : new Date(t.expiresAt);
   const active = exp > now;
-  return `<div style="padding:0.85rem 1rem;border:1px solid var(--border);
+  return `<div class="guest-token-row" style="padding:0.85rem 1rem;border:1px solid var(--border);
             border-radius:var(--radius-sm);margin-bottom:0.5rem;
             display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
     <div>
@@ -1137,10 +1229,53 @@ async function loadGuestTokensList() {
     }
 
     container.innerHTML = html;
+    filterGuestTokens();   // keep the current search applied after a refresh
   } catch(e) {
     container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
   }
 }
+
+// Search across ALL guest tokens — the first 30 AND the older "Show more" ones.
+// While a search is active the older list is force-opened and the toggle hidden;
+// clearing the box restores the normal collapsed view.
+window.filterGuestTokens = function() {
+  const container = document.getElementById('guestTokensList');
+  const input = document.getElementById('guestTokenSearch');
+  if (!container || !input) return;
+  const q = input.value.trim().toLowerCase();
+  const rows = container.querySelectorAll('.guest-token-row');
+  const overflow = document.getElementById('guestTokenOverflowList');
+  const toggle = document.getElementById('guestTokenOverflowToggle');
+
+  let shown = 0;
+  rows.forEach(r => {
+    const match = !q || r.textContent.toLowerCase().replace(/\s+/g, ' ').includes(q);
+    r.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+
+  if (overflow && toggle) {
+    if (q) {                                  // searching: show matches from the older list too
+      overflow.style.display = 'block';
+      toggle.style.display = 'none';
+    } else {                                  // cleared: back to the collapsed default
+      overflow.style.display = 'none';
+      toggle.style.display = '';
+      toggle.textContent = `Show ${overflow.children.length} more \u2193`;
+    }
+  }
+
+  let msg = document.getElementById('guestTokenNoMatch');
+  if (q && !shown) {
+    if (!msg) {
+      msg = document.createElement('p');
+      msg.id = 'guestTokenNoMatch';
+      msg.style.cssText = 'color:var(--text-mid);text-align:center;padding:1rem 0;';
+      container.appendChild(msg);
+    }
+    msg.textContent = 'No guests match "' + input.value.trim() + '".';
+  } else if (msg) msg.remove();
+};
 
 // req 3: expand/collapse the overflow dropdown in place — no re-fetch needed
 window.toggleGuestTokenOverflow = function() {
@@ -1219,6 +1354,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https:/
 import {
   runDualApprovalAction, requestOrApproveServerAction, watchPendingActions, tripleConfirm
 } from '../js/danger-actions.js';
+import { normalizeEvent } from '../js/event-status.js';
 
 let allUsers = [];
 let me = null;          // { uid, name }
@@ -1480,14 +1616,23 @@ document.getElementById('insightAvgAtt').textContent = avgAtt + '%';
 }
 
 // ── USER TABLE ───────────────────────────────────────────
+// Compute stage: builds one row object per member (HTML + the numbers used for
+// sorting/filtering) and stores them in userRowsCache. The view stage below
+// (applyUserView) filters + sorts that cache, so search/sort/filter changes never
+// recompute attendance.
+let userRowsCache = [];
 function renderUserTable() {
-  const tbody = document.getElementById('userTableBody');
   const sortedUsers = [...allUsers].sort((a, b) => {
     const aInactive = a.isActive === false ? 1 : 0;
     const bInactive = b.isActive === false ? 1 : 0;
     return aInactive - bInactive; // active (0) first, inactive (1) last
   });
-  tbody.innerHTML = sortedUsers.map(u => {
+  const toMs = v => {
+    if (!v) return null;
+    try { const t = (v.toDate ? v.toDate() : new Date(v)).getTime(); return isNaN(t) ? null : t; }
+    catch (_) { return null; }
+  };
+  userRowsCache = sortedUsers.map(u => {
     const isActive = u.isActive !== false;
 
     // Eligible = events where this member is NOT ineligible
@@ -1609,7 +1754,7 @@ function renderUserTable() {
       }
     });
 
-    return `<tr>
+    const html = `<tr>
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${u.name}</div>
         <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
@@ -1654,14 +1799,145 @@ function renderUserTable() {
         </div>
       </td>
     </tr>`;
-  }).join('') || '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-mid);">No members found.</td></tr>';
-}
- 
-window.filterUsers = () => {
-  const q = document.getElementById('userSearch').value.toLowerCase();
-  document.querySelectorAll('#userTableBody tr').forEach(r => {
-    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    return {
+      u, html, isActive, pct, presentCount, totalMeets, totalRoles, ttCount, mentorName,
+      pathway: u.pathway || 'L1P1',
+      loginMs: toMs(u.lastLogin), joinedMs: toMs(u.joinedSince), inactiveMs: toMs(u.inactiveSince),
+      searchText: [u.name, u.email, u.personalEmail, u.pathway || 'L1P1', mentorName, u.role,
+                   isActive ? 'active' : 'inactive'].filter(Boolean).join(' ').toLowerCase()
+    };
   });
+  populateUserFilterOptions();
+  applyUserView();
+}
+
+// Fill the dynamic dropdowns (pathway / mentor / joined year) from real data,
+// keeping whatever the admin had already selected.
+function populateUserFilterOptions() {
+  const fill = (id, firstLabel, opts) => {
+    const sel = document.getElementById(id); if (!sel) return;
+    const keep = sel.value;
+    sel.innerHTML = `<option value="">${firstLabel}</option>` +
+      opts.map(([v, l]) => `<option value="${String(v).replace(/"/g,'&quot;')}">${l}</option>`).join('');
+    if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  };
+  const numCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
+  fill('ufPathway', 'All', [...new Set(userRowsCache.map(r => r.pathway))].sort(numCmp).map(p => [p, p]));
+
+  const mentorIds = [...new Set(userRowsCache.map(r => r.u.mentor).filter(Boolean))];
+  const mentorOpts = mentorIds.map(id => [id, allUsers.find(x => x.id === id)?.name || id])
+                              .sort((a, b) => numCmp(a[1], b[1]));
+  fill('ufMentor', 'All', [['__has', 'Has a mentor'], ['__none', 'No mentor'], ...mentorOpts]);
+
+  const years = [...new Set(userRowsCache.filter(r => r.joinedMs).map(r => new Date(r.joinedMs).getFullYear()))]
+                  .sort((a, b) => b - a);
+  fill('ufJoined', 'Any year', [...years.map(y => [y, String(y)]), ['__unset', 'Not set']]);
+}
+
+// View stage: filter + sort userRowsCache and paint the table.
+window.applyUserView = () => {
+  const tbody = document.getElementById('userTableBody'); if (!tbody) return;
+  const val = id => document.getElementById(id)?.value || '';
+  const q = val('userSearch').trim().toLowerCase();
+  const f = {
+    status: val('ufStatus'), reason: val('ufReason'), role: val('ufRole'), pathway: val('ufPathway'),
+    mentor: val('ufMentor'), att: val('ufAttendance'), roles: val('ufRoles'), tt: val('ufTT'),
+    login: val('ufLogin'), joined: val('ufJoined'), email: val('ufEmail')
+  };
+  const bucket = (n, k) => k === 'none' ? n === 0 : k === '1_3' ? n >= 1 && n <= 3
+                        : k === '4_9' ? n >= 4 && n <= 9 : k === '10plus' ? n >= 10 : true;
+  const now = Date.now(), DAY = 86400000;
+
+  let rows = userRowsCache.filter(r => {
+    const u = r.u;
+    if (q && !r.searchText.includes(q)) return false;
+    if (f.status === 'active'   && !r.isActive) return false;
+    if (f.status === 'inactive' &&  r.isActive) return false;
+    if (f.reason) {
+      if (r.isActive) return false;
+      if ((u.inactiveReason || 'none') !== f.reason) return false;
+    }
+    if (f.role) {
+      const role = u.role === 'admin' || u.role === 'core' ? u.role : 'user';
+      if (role !== f.role) return false;
+    }
+    if (f.pathway && r.pathway !== f.pathway) return false;
+    if (f.mentor) {
+      if (f.mentor === '__has'  && !u.mentor) return false;
+      if (f.mentor === '__none' &&  u.mentor) return false;
+      if (!f.mentor.startsWith('__') && u.mentor !== f.mentor) return false;
+    }
+    if (f.att) {
+      if (f.att === 'nomeets' ? r.totalMeets !== 0
+        : r.totalMeets === 0 ? true
+        : f.att === 'ge90' ? r.pct < 90
+        : f.att === '75_89' ? (r.pct < 75 || r.pct > 89)
+        : f.att === '50_74' ? (r.pct < 50 || r.pct > 74)
+        : f.att === 'lt50' ? r.pct >= 50 : false) return false;
+    }
+    if (f.roles && !bucket(r.totalRoles, f.roles)) return false;
+    if (f.tt && !bucket(r.ttCount, f.tt)) return false;
+    if (f.login) {
+      const age = r.loginMs == null ? null : now - r.loginMs;
+      if (f.login === 'never' ? age !== null
+        : age === null ? true
+        : f.login === 'day'   ? age > DAY
+        : f.login === 'week'  ? age > 7 * DAY
+        : f.login === 'month' ? age > 30 * DAY
+        : f.login === 'older' ? age <= 30 * DAY : false) return false;
+    }
+    if (f.joined) {
+      if (f.joined === '__unset' ? r.joinedMs !== null
+          : r.joinedMs === null || String(new Date(r.joinedMs).getFullYear()) !== f.joined) return false;
+    }
+    if (f.email === 'yes' && !u.personalEmail) return false;
+    if (f.email === 'no'  &&  u.personalEmail) return false;
+    return true;
+  });
+
+  // ── sort ──
+  const str = (a, b) => String(a || '').localeCompare(String(b || ''), undefined, { numeric: true, sensitivity: 'base' });
+  const byName = (x, y) => str(x.u.name, y.u.name);
+  const num = (key, dir) => (x, y) => {           // nulls always last
+    const a = x[key], b = y[key];
+    if (a == null && b == null) return 0;
+    if (a == null) return 1; if (b == null) return -1;
+    return dir * (a - b);
+  };
+  const sorters = {
+    name_asc:   byName,                              name_desc:  (x, y) => byName(y, x),
+    att_desc:   num('pct', -1),                      att_asc:    num('pct', 1),
+    present_desc: num('presentCount', -1),           present_asc: num('presentCount', 1),
+    meets_desc: num('totalMeets', -1),               meets_asc:  num('totalMeets', 1),
+    roles_desc: num('totalRoles', -1),               roles_asc:  num('totalRoles', 1),
+    tt_desc:    num('ttCount', -1),                  tt_asc:     num('ttCount', 1),
+    pathway_asc:  (x, y) => str(x.pathway, y.pathway),  pathway_desc: (x, y) => str(y.pathway, x.pathway),
+    mentor_asc: (x, y) => (x.mentorName === '—') - (y.mentorName === '—') || str(x.mentorName, y.mentorName),
+    status_active:   (x, y) => (x.isActive ? 0 : 1) - (y.isActive ? 0 : 1),
+    status_inactive: (x, y) => (x.isActive ? 1 : 0) - (y.isActive ? 1 : 0),
+    login_desc: num('loginMs', -1),                  login_asc:  num('loginMs', 1),
+    joined_desc: num('joinedMs', -1),                joined_asc: num('joinedMs', 1),
+    inactive_desc: num('inactiveMs', -1)
+  };
+  const mode = val('userSort') || 'default';
+  if (mode !== 'default' && sorters[mode]) {
+    const cmp = sorters[mode];
+    rows = rows.map((r, i) => [r, i]).sort((a, b) => cmp(a[0], b[0]) || byName(a[0], b[0]) || a[1] - b[1]).map(x => x[0]);
+  }
+
+  tbody.innerHTML = rows.map(r => r.html).join('') ||
+    '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-mid);">No members match the current search / filters.</td></tr>';
+  const cnt = document.getElementById('userCount');
+  if (cnt) cnt.textContent = `Showing ${rows.length} of ${userRowsCache.length}`;
+};
+window.filterUsers = window.applyUserView;   // search box still calls filterUsers()
+
+window.resetUserFilters = () => {
+  ['userSearch','ufStatus','ufReason','ufRole','ufPathway','ufMentor','ufAttendance','ufRoles','ufTT','ufLogin','ufJoined','ufEmail']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const s = document.getElementById('userSort'); if (s) s.value = 'default';
+  applyUserView();
 };
 
 window.deleteUser = async (uid, name) => {
@@ -1956,10 +2232,31 @@ window.loadAttendanceStateForEvent = function() {
 };
   
 window.filterAttList = () => {
-  const q = document.getElementById('attSearch').value.toLowerCase();
-  document.querySelectorAll('#attList label').forEach(l => {
-    l.style.display = l.textContent.toLowerCase().includes(q) ? 'flex':'none';
+  const list = document.getElementById('attList');
+  const input = document.getElementById('attSearch');
+  if (!list || !input) return;
+  const q = input.value.trim().toLowerCase();
+  // Rows are <div id="attrow-…"> (not <label>). Match ONLY the name/email block
+  // (first child) — the row's own text also contains the P / A / — buttons, so
+  // matching the whole row would make a search for "a" or "p" hit everyone.
+  const rows = list.querySelectorAll('[id^="attrow-"]');
+  let shown = 0;
+  rows.forEach(r => {
+    const info = r.firstElementChild ? r.firstElementChild.textContent : r.textContent;
+    const match = !q || info.toLowerCase().includes(q);
+    r.style.display = match ? 'flex' : 'none';
+    if (match) shown++;
   });
+  let msg = document.getElementById('attNoMatch');
+  if (q && rows.length && !shown) {
+    if (!msg) {
+      msg = document.createElement('p');
+      msg.id = 'attNoMatch';
+      msg.style.cssText = 'padding:1.5rem;text-align:center;color:var(--text-mid);';
+      list.appendChild(msg);
+    }
+    msg.textContent = 'No members match "' + input.value.trim() + '".';
+  } else if (msg) msg.remove();
 };
 let attState = {}; // uid → 'present' | 'absent' | 'ineligible'
  
@@ -1998,6 +2295,7 @@ function renderAttendanceChecklist() {
                  color:#555;transition:0.15s;">—</button>
       </div>
     </div>`).join('');
+  filterAttList();   // keep any typed search applied after a re-render
 }
  
 window.submitAttendanceChecklist = async () => {
@@ -2070,9 +2368,10 @@ async function loadEvents() {
     }
     snap.forEach(d => {
       const e=d.data(); const id=d.id;
-      allEventsCache.push({id,...e});
-      const isActive = e.isActive===true;
-      const isUpcoming = e.type==='upcoming';
+      const ne = normalizeEvent(e);
+      allEventsCache.push({id,...ne});
+      const isActive = ne.isActive===true;
+      const isUpcoming = ne.type==='upcoming';
       let displayDate='—';
       if (e.date) {
         const dObj = e.date.toDate?e.date.toDate():new Date(e.date);
