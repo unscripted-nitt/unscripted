@@ -63,12 +63,35 @@ function animateCounters() {
   });
 }
 
+// The "UNSCRIPTED" preloader covers the page for >= 5s. On phones the stats
+// strip is already on screen at load, so without this the count-up would run
+// (and finish) invisibly behind the overlay. Resolves as the overlay starts
+// fading out (or right away if there is none).
+function whenPreloaderDone() {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('app-preloader');
+    if (!overlay || !overlay.isConnected) { resolve(); return; }
+    const done = () => { mo.disconnect(); clearTimeout(safety); resolve(); };
+    const check = () => {
+      if (!overlay.isConnected || overlay.classList.contains('hide')) done();
+    };
+    const mo = new MutationObserver(check);
+    mo.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+    mo.observe(document.body, { childList: true });
+    const safety = setTimeout(done, 9000);   // never leave the numbers at 0
+    check();
+  });
+}
+
 const statsBar = document.querySelector('.stats-bar');
 if (statsBar) {
-  const obs = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting) { animateCounters(); obs.disconnect(); }
-  }, { threshold: 0.3 });
-  obs.observe(statsBar);
+  const inView = new Promise(resolve => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { obs.disconnect(); resolve(); }
+    }, { threshold: 0.3 });
+    obs.observe(statsBar);
+  });
+  Promise.all([inView, whenPreloaderDone()]).then(animateCounters);
 }
 
 // Service Worker — register, actively check for updates, and reload
