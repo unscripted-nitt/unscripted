@@ -1347,14 +1347,43 @@ async function loadGuestExperienceFeedback() {
 import { auth, db, storage } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  doc, getDoc, getDocs, collection, query, orderBy, where, limit,
+  doc, getDoc, getDocFromServer, getDocs, collection, query, orderBy, where, limit,
   setDoc, updateDoc, addDoc, deleteDoc, arrayUnion, serverTimestamp, writeBatch, deleteField
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import {
   runDualApprovalAction, requestOrApproveServerAction, watchPendingActions, tripleConfirm
 } from '../js/danger-actions.js';
-import { normalizeEvent } from '../js/event-status.js';
+import { normalizeEvent, resolveEventType } from '../js/event-status.js';
+
+// ── SERVER CLOCK ────────────────────────────────────────
+// "Last Login" values are stamped with the SERVER's time (serverTimestamp()). If
+// we compared them against this laptop's clock, a laptop that is even a few
+// minutes slow would see real logins as "in the future" and show "Just now".
+// So we measure the difference between the server's clock and this laptop's
+// once, and use serverNow() for every "how long ago" calculation.
+let serverOffsetMs = 0;                       // server time − this laptop's time
+const serverNow = () => Date.now() + serverOffsetMs;
+
+async function syncServerClock(uid) {
+  const ref = doc(db, 'users', uid);
+  try {
+    const t0 = Date.now();
+    await updateDoc(ref, { lastLogin: serverTimestamp() });   // also records this admin's own login
+    const tAck = Date.now();
+    const snap = await getDocFromServer(ref);                  // read the server-assigned time back
+    const ts = snap.data().lastLogin;
+    const serverMs = ts && ts.toMillis ? ts.toMillis() : new Date(ts).getTime();
+    if (!isNaN(serverMs)) serverOffsetMs = serverMs - Math.round((t0 + tAck) / 2);
+  } catch (err) {
+    console.error('server clock sync via Firestore failed, trying HTTP Date header', err);
+    try {   // fallback: the web server's Date header (1-second resolution)
+      const r = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+      const d = r.headers.get('date');
+      if (d && !isNaN(new Date(d).getTime())) serverOffsetMs = new Date(d).getTime() - Date.now();
+    } catch (_) { /* keep 0 */ }
+  }
+}
 
 let allUsers = [];
 let me = null;          // { uid, name }
@@ -1377,10 +1406,11 @@ onAuthStateChanged(auth, async user => {
   document.querySelectorAll('.primary-admin-only').forEach(el => el.style.display = isPrimaryAdmin ? '' : 'none');
   watchPendingActions(document.getElementById('pendingApprovalsList'), me, isPrimaryAdmin);
   if (isPrimaryAdmin) loadPrimaryAdminPanel();
-  // Same "Last Login" tracking as the member dashboard — admins/core
-  // sometimes never visit dashboard.html, so this needs its own write.
-  updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() })
-    .catch(err => console.error('lastLogin write failed for', user.uid, err));
+  // "Last Login" tracking, same as the member dashboard: written on every open.
+  // Admins/core sometimes never visit dashboard.html, so this needs its own write.
+  // Also syncs the server clock (see SERVER CLOCK above) before the table renders;
+  // capped at 5s so a slow network can never block the dashboard.
+  await Promise.race([syncServerClock(user.uid), new Promise(r => setTimeout(r, 5000))]);
   document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
   const adminAvatar = document.getElementById('adminTopAvatar');
@@ -1655,12 +1685,15 @@ function renderUserTable() {
     if (u.lastLogin) {
       try {
         const lastLoginDate = u.lastLogin.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin);
-        const diffMs = Date.now() - lastLoginDate.getTime();
+        const diffMs = serverNow() - lastLoginDate.getTime();   // server time, not this laptop's
+        const diffSec = Math.floor(diffMs / 1000);
         const diffMin = Math.floor(diffMs / 60000);
         const diffHr  = Math.floor(diffMin / 60);
         const diffDay = Math.floor(diffHr / 24);
         let rel;
-        if (diffMin < 1)        rel = 'Just now';
+        if (diffMs < -60000)    rel = fmtDate(lastLoginDate);   // still in the future after clock sync — show the date, never "Just now"
+        else if (diffSec < 20)  rel = 'Just now';               // window: under 20 seconds (was 1 minute)
+        else if (diffSec < 60)  rel = `${diffSec}s ago`;
         else if (diffMin < 60)  rel = `${diffMin}m ago`;
         else if (diffHr < 24)   rel = `${diffHr}h ago`;
         else if (diffDay < 30)  rel = `${diffDay}d ago`;
@@ -1847,7 +1880,7 @@ window.applyUserView = () => {
   };
   const bucket = (n, k) => k === 'none' ? n === 0 : k === '1_3' ? n >= 1 && n <= 3
                         : k === '4_9' ? n >= 4 && n <= 9 : k === '10plus' ? n >= 10 : true;
-  const now = Date.now(), DAY = 86400000;
+  const now = serverNow(), DAY = 86400000;
 
   let rows = userRowsCache.filter(r => {
     const u = r.u;
@@ -2432,7 +2465,9 @@ window.editEvent = async (id) => {
       document.getElementById('evDate').value = dObj.toISOString().slice(0,10);
     }
     document.getElementById('evDesc').value = e.description||'';
-    document.getElementById('evType').value = e.type||'upcoming';
+    // Use the date-corrected type so this form agrees with every list/badge
+    // (a stored 'upcoming' whose date has passed must open as Past).
+    document.getElementById('evType').value = normalizeEvent(e).type || 'upcoming';
     document.getElementById('evGalleryLink').value = e.galleryLink||'';
     document.getElementById('evDocLink').value = e.docLink||'';
     // Re-populate video links
@@ -2450,6 +2485,15 @@ window.editEvent = async (id) => {
     toggleEventForm(true);
   } catch(e) { alert(e.message); }
 };
+
+// If the admin changes the date, keep Event Type in step with it (a date in the
+// past -> Past, otherwise Upcoming) so the form can't disagree with the date.
+document.getElementById('evDate')?.addEventListener('change', () => {
+  const v = document.getElementById('evDate').value;
+  if (!v) return;
+  document.getElementById('evType').value =
+    resolveEventType({ date: new Date(v), type: 'upcoming' }) === 'past' ? 'past' : 'upcoming';
+});
 
 window.saveEvent = async () => {
   const id    = document.getElementById('editEventId').value;
@@ -2475,6 +2519,7 @@ window.saveEvent = async () => {
         eventVideos,
         updated:serverTimestamp()
       };
+    if (data.type === 'past') data.isActive = false;   // a past event can't stay Live
     if (id) await updateDoc(doc(db,'events',id), data);
     else {
       // req 1: a brand-new event starts with every currently-active member
