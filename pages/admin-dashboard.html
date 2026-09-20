@@ -2414,6 +2414,12 @@ async function loadEvents() {
       const galleryCell = e.galleryLink
         ? `<a href="${e.galleryLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>`
         : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
+      // Description (same text the member dashboard shows under the event title).
+      // Escaped so free text containing < > & can't break the table.
+      const descHtml = e.description
+        ? `<div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.4rem;max-width:380px;white-space:pre-line;">${
+            String(e.description).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+        : '';
       const videoCount = (e.eventVideos||[]).length;
       const videoCell = videoCount
         ? `<div style="display:flex;flex-direction:column;gap:0.25rem;">
@@ -2429,6 +2435,7 @@ async function loadEvents() {
           <td style="padding-left:1.5rem;">
             <div style="font-weight:700;">${e.title}</div>
             <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${displayDate}</div>
+            ${descHtml}
           </td>
           <td>
             <span class="badge-${isUpcoming?'upcoming':'past'}">
