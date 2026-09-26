@@ -1,15 +1,17 @@
 // seed.js — Node.js script to populate Firestore (ESM version)
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD0XLC9q_H0R0oWbTntzB2uUv8Y8fog7LA",
-  authDomain: "unscripted-website.firebaseapp.com",
-  projectId: "unscripted-website",
-  storageBucket: "unscripted-website.firebasestorage.app",
-  messagingSenderId: "519266456785",
-  appId: "1:519266456785:web:385751f49948b38147a1f0",
-  measurementId: "G-YC1YKQRHMM"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID,
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);

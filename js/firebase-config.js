@@ -1,7 +1,10 @@
 // js/firebase-config.js
 // ============================================================
-// FIREBASE CONFIGURATION — replace with your actual project keys
-// Firebase Console → Project Settings → Your Apps → SDK setup
+// FIREBASE CONFIGURATION
+// Values come from Vite build-time environment variables (see .env.example)
+// rather than being hardcoded, so this file never carries a live project
+// key in git history. Firebase Console → Project Settings → Your Apps →
+// SDK setup shows these same values if you need to (re)populate .env.
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -13,14 +16,22 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD0XLC9q_H0R0oWbTntzB2uUv8Y8fog7LA",
-  authDomain: "unscripted-website.firebaseapp.com",
-  projectId: "unscripted-website",
-  storageBucket: "unscripted-website.firebasestorage.app",
-  messagingSenderId: "519266456785",
-  appId: "1:519266456785:web:385751f49948b38147a1f0",
-  measurementId: "G-YC1YKQRHMM"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+if (!firebaseConfig.apiKey) {
+  console.error(
+    'Firebase config is missing (VITE_FIREBASE_API_KEY is unset). ' +
+    'Copy .env.example to .env and fill in your project\'s values, ' +
+    'or set the same variables in your hosting platform\'s environment settings.'
+  );
+}
 
 const app = initializeApp(firebaseConfig);
 
