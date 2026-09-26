@@ -8,18 +8,8 @@
 // it from the DOM.
 import { gsap } from 'gsap';
 
-const MIN_VISIBLE_MS = 5000;
-
-/** Resolves once the window's `load` event has fired (or immediately if it already has). */
-function whenPageLoaded() {
-  return new Promise((resolve) => {
-    if (document.readyState === 'complete') {
-      resolve();
-      return;
-    }
-    window.addEventListener('load', () => resolve(), { once: true });
-  });
-}
+const MIN_VISIBLE_MS = 900;
+const SESSION_KEY = 'unscripted-preloader-shown';
 
 /** Resolves after at least `ms` milliseconds have passed since `since`. */
 function whenMinimumTimeElapsed(since, ms) {
@@ -54,14 +44,30 @@ async function runPreloader() {
   const overlay = document.getElementById('app-preloader');
   if (!overlay) return; // page is missing the static markup — nothing to do
 
+  let alreadyShown = false;
+  try {
+    alreadyShown = sessionStorage.getItem(SESSION_KEY) === '1';
+  } catch { /* sessionStorage unavailable — treat as not shown */ }
+
+  if (alreadyShown) {
+    overlay.remove();
+    return;
+  }
+
   const textEl = overlay.querySelector('.preloader-text');
   const reduceMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const shownAt = Date.now();
 
-  await Promise.all([
-    playEntranceAnimation(textEl, reduceMotion),
-    whenPageLoaded(),
-  ]);
+  try {
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch { /* ignore */ }
+
+  if (reduceMotion) {
+    overlay.remove();
+    return;
+  }
+
+  await playEntranceAnimation(textEl, reduceMotion);
   await whenMinimumTimeElapsed(shownAt, MIN_VISIBLE_MS);
   await dismiss(overlay);
 }

@@ -8,7 +8,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guest Dashboard — Unscripted NITT</title>  
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -24,8 +23,6 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <div class="dash-top-nav">
@@ -233,9 +230,9 @@ onAuthStateChanged(auth, async user => {
     window.location.href = 'login.html';
     return;
   }
-  // Load event and token data
-  await loadEventData();
-  await loadGuestTokenData();
+  // Event and guest-token data are independent reads — fetch them
+  // concurrently instead of one after another.
+  await Promise.all([loadEventData(), loadGuestTokenData()]);
   loadFeedbackSpeakers();
   loadGuestVoting();
   loadGuestAchievements();
@@ -334,7 +331,7 @@ async function loadEventData() {
         ${rolesHtml}
       </div>`;
   } catch(e) {
-    container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load event: ${e.message}</p></div>`;
+    container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load event. Please try again.</p></div>`;
   }
 }
 
@@ -509,7 +506,7 @@ async function loadGuestVoting() {
         <button type="button" class="btn-primary" onclick="submitGuestVote('${sessionId}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote &rarr;</button>
         <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:0.75rem;">Your identity will not be stored with your vote.</p>
       </form>`;
-  } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting: ${e.message}</p></div>`; }
+  } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting. Please try again.</p></div>`; }
 }
 
 // Module-level lock — put once near the top of the script, alongside the other module-level vars

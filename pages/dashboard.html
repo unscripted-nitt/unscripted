@@ -8,17 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="../css/live-chat.css" />
   <link rel="stylesheet" href="../css/celebrations.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <!-- ── DANGER OVERLAY (slow red tint on warning) ── -->
@@ -646,7 +642,7 @@ import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, collectionGroup, query, orderBy, where,
-  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
+  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { launchConfetti, launchBrokenHearts, showCelebToast } from '../js/celebrations.js';
 import { normalizeEvent } from '../js/event-status.js';
@@ -695,8 +691,14 @@ onAuthStateChanged(auth, async user => {
   const initials = (userData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   document.getElementById('topNavName').textContent = userData.name || '';
   const avatarEl = document.getElementById('topNavAvatar');
-  if (userData.photoUrl) { avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="${userData.name||''}"/>`; }
-  else { avatarEl.textContent = initials; }
+  const topNavSafePhoto = chatSafeUrl(userData.photoUrl);
+  if (topNavSafePhoto) {
+    avatarEl.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = topNavSafePhoto;
+    img.alt = userData.name || '';
+    avatarEl.appendChild(img);
+  } else { avatarEl.textContent = initials; }
 
   // Admin portal link
   if (['admin','core'].includes(userData.role)) document.getElementById('adminPortalLink').style.display = 'block';
@@ -724,9 +726,9 @@ if (userData.isActive === false) {
   document.querySelector('.main-content').prepend(banner);
 }
   
-// Load everything
-  await loadAllEvents();
-  await loadAllUsers();
+// Load everything. Events and the full user list are independent reads —
+  // fetch them concurrently instead of one after another.
+  await Promise.all([loadAllEvents(), loadAllUsers()]);
   await renderProgress();
   // Badge celebration must resolve BEFORE the leaderboard loads, so that if
   // this load also earned a badge, the leaderboard's rank-change check can
@@ -811,8 +813,9 @@ async function loadRoleGuidesForPointsPage() {
     const keys = ['hom','ttm','ge','mom','evaluator','tte','timer','listener','grammarian','tt'];
     keys.forEach(k => {
       const cell = document.getElementById('guide_'+k);
-      if (cell && guides[k]) {
-        cell.innerHTML = `<a href="${guides[k]}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.8rem;">View Guide →</a>`;
+      const safeGuideUrl = chatSafeUrl(guides[k]);
+      if (cell && safeGuideUrl) {
+        cell.innerHTML = `<a href="${chatEscapeHtml(safeGuideUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--orange);font-weight:700;font-size:0.8rem;">View Guide →</a>`;
       }
     });
   } catch(e) { console.warn('Role guides load error',e); }
@@ -858,23 +861,25 @@ function loadDashEvents() {
       for (const [rk, uid] of Object.entries(e.roles)) {
         if (uid === currentUid) {
           const rd = e.rolesDisplay?.find(r => r.uid === currentUid);
-          return rd ? `<span style="font-size:0.75rem;font-weight:700;color:var(--orange);margin-top:0.3rem;display:block;">Your role: ${rd.role}</span>` : '';
+          return rd ? `<span style="font-size:0.75rem;font-weight:700;color:var(--orange);margin-top:0.3rem;display:block;">Your role: ${chatEscapeHtml(rd.role)}</span>` : '';
         }
       }
       return '';
     })();
+    const safeGalleryLink = chatSafeUrl(e.galleryLink);
+    const safeDocLink = chatSafeUrl(e.docLink);
     return `<div style="padding:1.1rem 1.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.75rem;">
       <div>
-        <div style="font-weight:700;font-size:0.97rem;">${e.title || 'Untitled'}</div>
-        <div style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem;">${dateStr}</div>
+        <div style="font-weight:700;font-size:0.97rem;">${chatEscapeHtml(e.title || 'Untitled')}</div>
+        <div style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem;">${chatEscapeHtml(dateStr)}</div>
         ${myRole}
-        ${e.description ? `<div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.4rem;">${e.description}</div>` : ''}
+        ${e.description ? `<div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.4rem;">${chatEscapeHtml(e.description)}</div>` : ''}
       </div>
       <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
         <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;${badgeStyle}">${badgeText}</span>
-        ${e.galleryLink ? `<a href="${e.galleryLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Gallery →</a>` : ''}
-        ${e.docLink ? `<a href="${e.docLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Docs →</a>` : ''}
-        ${(e.eventVideos||[]).map((v,i) => `<a href="${v.url}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">${v.title || 'Video '+(i+1)} →</a>`).join('')}
+        ${safeGalleryLink ? `<a href="${chatEscapeHtml(safeGalleryLink)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Gallery →</a>` : ''}
+        ${safeDocLink ? `<a href="${chatEscapeHtml(safeDocLink)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Docs →</a>` : ''}
+        ${(e.eventVideos||[]).map((v,i) => { const safeVUrl = chatSafeUrl(v.url); return safeVUrl ? `<a href="${chatEscapeHtml(safeVUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">${chatEscapeHtml(v.title || 'Video '+(i+1))} →</a>` : ''; }).join('')}
       </div>
     </div>`;
   }).join('');
@@ -947,12 +952,12 @@ if (hasChosenL3)
     // Always load L3K + L3H so the picker can show descriptions even before choice
     const docsToLoad = new Set([...levelsToShow, 'L3K', 'L3H']);
     const pathwayDocs = {};
-    for (const k of docsToLoad) {
+    await Promise.all([...docsToLoad].map(async k => {
       try {
         const snap = await getDoc(doc(db, 'pathways', k));
         if (snap.exists()) pathwayDocs[k] = snap.data();
       } catch (_) {}
-    }
+    }));
  
     // ── Total slots (only count chosen path) ───────────────
     const totalSlots = levelsToShow.reduce(
@@ -1718,9 +1723,9 @@ async function loadLeaderboard() {
         })
       : allEventsCache;
 
-    const snap = await getDocs(collection(db,'users'));
-    const users = [];
-    snap.forEach(d => { const u={id:d.id,...d.data()}; if(u.isActive!==false) users.push(u); });
+    // Reuse the users list already fetched at boot instead of a second
+    // full-collection scan.
+    const users = allUsersCache.filter(u => u.isActive !== false);
 
     const f = v => v===0?'':v;
     const rows = users.map(u => {
@@ -1758,7 +1763,7 @@ async function loadLeaderboard() {
     rows.forEach(({u,c,totalRoles,totalPoints}) => {
       const isMe = u.id === currentUid;
       html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}">
-        <td style="padding:0.9rem;font-weight:${isMe?'800':'700'};white-space:nowrap;">${u.name||''}${isMe?' (you)':''}</td>
+        <td style="padding:0.9rem;font-weight:${isMe?'800':'700'};white-space:nowrap;">${chatEscapeHtml(u.name||'')}${isMe?' (you)':''}</td>
         ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.listener),f(c.grammarian),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
       </tr>`;
     });
@@ -1831,13 +1836,14 @@ async function loadMentorship() {
   try {
     const mentorInfo = document.getElementById('mentorInfo');
     if (userData.mentor) {
-      const mSnap = await getDoc(doc(db,'users',userData.mentor));
-      if (mSnap.exists()) {
-        const m = mSnap.data();
+      // Reuse the users list already fetched at boot instead of a per-load read.
+      const m = allUsersCache.find(u => u.id === userData.mentor);
+      if (m) {
         const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const mPhoto = chatSafeUrl(m.photoUrl);
         mentorInfo.innerHTML = `<div class="mentor-card">
-          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
-          <div class="mentor-info"><h3>${m.name}</h3><p>${m.email||''}</p></div>
+          <div class="mentor-avatar">${mPhoto?`<img src="${chatEscapeHtml(mPhoto)}" alt="${chatEscapeHtml(m.name||'')}"/>`:`<span>${chatEscapeHtml(initials)}</span>`}</div>
+          <div class="mentor-info"><h3>${chatEscapeHtml(m.name||'')}</h3><p>${chatEscapeHtml(m.email||'')}</p></div>
         </div>`;
       } else {
         mentorInfo.innerHTML = '<p style="color:var(--text-mid);">Mentor not found.</p>';
@@ -1846,18 +1852,17 @@ async function loadMentorship() {
       mentorInfo.innerHTML = '<p style="color:var(--text-mid);">No mentor assigned yet.</p>';
     }
 
-    // Mentees
-    const menteeSnap = await getDocs(query(collection(db,'users'), where('mentor','==',currentUid)));
-    const mentees = [];
-    menteeSnap.forEach(d => mentees.push({id:d.id,...d.data()}));
+    // Mentees — reuse the users list already fetched at boot.
+    const mentees = allUsersCache.filter(u => u.mentor === currentUid);
     const menteesCard = document.getElementById('menteesCard');
     if (mentees.length) {
       menteesCard.style.display = 'block';
       document.getElementById('menteesList').innerHTML = mentees.map(m => {
         const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const mPhoto = chatSafeUrl(m.photoUrl);
         return `<div class="mentor-card">
-          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
-          <div class="mentor-info"><h3>${m.name}</h3><p>${m.pathway||'L1P1'}</p></div>
+          <div class="mentor-avatar">${mPhoto?`<img src="${chatEscapeHtml(mPhoto)}" alt="${chatEscapeHtml(m.name||'')}"/>`:`<span>${chatEscapeHtml(initials)}</span>`}</div>
+          <div class="mentor-info"><h3>${chatEscapeHtml(m.name||'')}</h3><p>${chatEscapeHtml(m.pathway||'L1P1')}</p></div>
         </div>`;
       }).join('');
     }
@@ -1903,9 +1908,9 @@ async function loadNotifications() {
       const locallySeenForList = currentUid ? getLocallySeenPersonalIds(currentUid) : new Set();
       pList.innerHTML = personalNotifs.map(n => `
         <div class="notif-item ${(n.read || locallySeenForList.has(n.id))?'':'unread'}">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-body">${n.body}</div>
-          <div class="notif-time">${formatTime(n.createdAt)}</div>
+          <div class="notif-title">${chatEscapeHtml(n.title)}</div>
+          <div class="notif-body">${chatEscapeHtml(n.body)}</div>
+          <div class="notif-time">${chatEscapeHtml(formatTime(n.createdAt))}</div>
         </div>`).join('');
     }
 
@@ -1919,9 +1924,9 @@ async function loadNotifications() {
     if (commonNotifs.length) {
       cList.innerHTML = commonNotifs.map(n => `
         <div class="notif-item">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-body">${n.body}</div>
-          <div class="notif-time">${formatTime(n.createdAt)}</div>
+          <div class="notif-title">${chatEscapeHtml(n.title)}</div>
+          <div class="notif-body">${chatEscapeHtml(n.body)}</div>
+          <div class="notif-time">${chatEscapeHtml(formatTime(n.createdAt))}</div>
         </div>`).join('');
     } else {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
@@ -1999,7 +2004,6 @@ function markLocallySeenCommonId(uid, id) {
   catch(e) { /* localStorage unavailable — Firestore lastSeenCommonNotifId still applies */ }
 }
 
-let notifPollTimer = null;
 async function markNotificationsSeen() {
   // Instant UI feedback: clear the badges and the "unread" highlight in the
   // list the moment the tab is opened, rather than waiting on the Firestore
@@ -2059,18 +2063,33 @@ async function markNotificationsSeen() {
   try { await loadNotifications(); } catch(e) { console.warn('markNotificationsSeen refresh error', e); }
 }
 
-// Poll the Notifications section every 1s while it's open, so newly-arrived
-// notifications (and the read state above) show up without a page reload.
-// Only starts once markNotificationsSeen's writes have actually landed
-// (see showSection below), so a poll tick can no longer race the
-// mark-as-read call and re-show a badge that was just cleared.
+// Listen for live changes while the Notifications section is open, instead
+// of re-fetching both queries on a 1s timer. onSnapshot fires immediately
+// with the current data (same effect as the old first poll tick) and again
+// only when something actually changes server-side, so this replaces
+// continuous polling with change-driven reads. Only starts once
+// markNotificationsSeen's writes have actually landed (see showSection
+// below), so a snapshot can no longer race the mark-as-read call and
+// re-show a badge that was just cleared.
+let notifUnsubPersonal = null;
+let notifUnsubCommon = null;
 function startNotifPolling() {
   stopNotifPolling();
   if (document.visibilityState !== 'visible') return;
-  notifPollTimer = setInterval(loadNotifications, 1000);
+  notifUnsubPersonal = onSnapshot(
+    query(collection(db,'notifications'), where('type','==','personal'), where('targetUid','==',currentUid)),
+    () => loadNotifications(),
+    e => console.warn('Personal notifications listener error', e)
+  );
+  notifUnsubCommon = onSnapshot(
+    query(collection(db,'notifications'), where('type','==','common')),
+    () => loadNotifications(),
+    e => console.warn('Common notifications listener error', e)
+  );
 }
 function stopNotifPolling() {
-  if (notifPollTimer) { clearInterval(notifPollTimer); notifPollTimer = null; }
+  if (notifUnsubPersonal) { notifUnsubPersonal(); notifUnsubPersonal = null; }
+  if (notifUnsubCommon) { notifUnsubCommon(); notifUnsubCommon = null; }
 }
 
 // req 4: Personal notification as FIRST SCREEN on login
@@ -2425,7 +2444,13 @@ async function hashVoterSession(uid, sessionId) {
 }
 
 // ── ANALYSIS CHARTS ───────────────────────────────────────
+let Chart = null;
 async function loadAndRenderAnalysis() {
+  // Chart.js is only needed once someone opens the Analysis section — load
+  // it on demand instead of as a render-blocking <script> in <head>.
+  if (!Chart) {
+    ({ default: Chart } = await import('chart.js/auto'));
+  }
   // Load feedback where this user is the speaker
   let feedbacks = [];
   try {
@@ -2875,9 +2900,24 @@ function isChatAdmin() { return !!(userData && ['admin','core'].includes(userDat
 function chatEscapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str == null ? '' : String(str);
-  return d.innerHTML;
+  // textContent→innerHTML escapes & < > but leaves quotes untouched, which
+  // breaks attribute values like alt="..." or title="..." open to injection
+  // (see security finding S5). Escape those explicitly too.
+  return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 function chatEscapeRegex(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// Only allows http(s)/mailto/blob/data-image URLs through to href/src, so a
+// chat sender/profile field can never carry a javascript: URL or (for
+// avatars) break out of the src="..." attribute — see security findings S1/S6.
+function chatSafeUrl(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(String(url), window.location.href);
+    if (['http:', 'https:', 'mailto:', 'blob:'].includes(u.protocol)) return u.href;
+  } catch (_) { /* not a valid absolute/relative URL */ }
+  return '';
+}
 function chatToDate(ts) {
   if (!ts) return new Date();
   return ts.toDate ? ts.toDate() : new Date(ts);
@@ -2913,7 +2953,7 @@ window.initChatSection = async function() {
 function startChatPolling() {
   stopChatPolling();
   if (document.visibilityState !== 'visible') return;
-  chatPollTimer = setInterval(chatPoll, 1000);
+  chatPollTimer = setInterval(chatPoll, 3000);
 }
 function stopChatPolling() {
   if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
@@ -3419,7 +3459,12 @@ function chatBuildReactionsHtml(msg) {
   if (!msg.reactions) return '';
   const groups = {}; // emoji -> [names]
   Object.values(msg.reactions).forEach(r => {
-    if (!r || !r.emoji) return;
+    // Reaction docs are writable by any signed-in member with an arbitrary
+    // `emoji` string (see security finding S2) — only render/act on emojis
+    // from our own allow-listed set, which also guarantees `emo` below can
+    // never break out of the HTML attribute or the onclick JS string it's
+    // interpolated into.
+    if (!r || !r.emoji || !CHAT_EMOJI_LIST.includes(r.emoji)) return;
     (groups[r.emoji] = groups[r.emoji] || []).push(r.name || 'Member');
   });
   const entries = Object.entries(groups);
@@ -3452,8 +3497,9 @@ function renderChatBubble(msg) {
   const isMe = userData && msg.senderUid === currentUid;
   const isAdminUser = isChatAdmin();
   const initials = (msg.senderName||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const avatar = msg.senderPhoto
-    ? `<img src="${msg.senderPhoto}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
+  const safeSenderPhoto = chatSafeUrl(msg.senderPhoto);
+  const avatar = safeSenderPhoto
+    ? `<img src="${chatEscapeHtml(safeSenderPhoto)}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
     : initials;
   const timeLabel = chatIstTime(chatToDate(msg.createdAt));
   const dayLabel = chatIstDayLabel(chatToDate(msg.createdAt));

@@ -10,11 +10,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     /* Admin-specific overrides */
@@ -79,8 +77,6 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
@@ -1356,6 +1352,24 @@ import {
 } from '../js/danger-actions.js';
 import { normalizeEvent, resolveEventType } from '../js/event-status.js';
 
+// Escapes & < > " ' for safe interpolation into innerHTML (see security
+// findings S1/S3 — profile/event fields are user- or admin-editable and were
+// previously interpolated raw).
+function adminEscapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+// Only allows http(s)/mailto/blob URLs through to href/src (see S1/S6).
+function adminSafeUrl(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(String(url), window.location.href);
+    if (['http:', 'https:', 'mailto:', 'blob:'].includes(u.protocol)) return u.href;
+  } catch (_) { /* not a valid absolute/relative URL */ }
+  return '';
+}
+
 // ── SERVER CLOCK ────────────────────────────────────────
 // "Last Login" values are stamped with the SERVER's time (serverTimestamp()). If
 // we compared them against this laptop's clock, a laptop that is even a few
@@ -1406,19 +1420,25 @@ onAuthStateChanged(auth, async user => {
   document.querySelectorAll('.primary-admin-only').forEach(el => el.style.display = isPrimaryAdmin ? '' : 'none');
   watchPendingActions(document.getElementById('pendingApprovalsList'), me, isPrimaryAdmin);
   if (isPrimaryAdmin) loadPrimaryAdminPanel();
-  // "Last Login" tracking, same as the member dashboard: written on every open.
-  // Admins/core sometimes never visit dashboard.html, so this needs its own write.
-  // Also syncs the server clock (see SERVER CLOCK above) before the table renders;
-  // capped at 5s so a slow network can never block the dashboard.
-  await Promise.race([syncServerClock(user.uid), new Promise(r => setTimeout(r, 5000))]);
   document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
   const adminAvatar = document.getElementById('adminTopAvatar');
-  if (adminData.photoUrl) {
-    adminAvatar.innerHTML = `<img src="${adminData.photoUrl}" alt="${adminData.name||''}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
+  const safeAdminPhoto = adminSafeUrl(adminData.photoUrl);
+  if (safeAdminPhoto) {
+    adminAvatar.innerHTML = `<img src="${adminEscapeHtml(safeAdminPhoto)}" alt="${adminEscapeHtml(adminData.name||'')}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
   } else {
     adminAvatar.textContent = (adminData.name||'A').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   }
+
+  // "Last Login" tracking, same as the member dashboard: written on every
+  // open. Admins/core sometimes never visit dashboard.html, so this needs
+  // its own write. Also syncs the server clock (see SERVER CLOCK above),
+  // used only for "how long ago" display math — it no longer blocks first
+  // render; once it resolves, re-render the user table so any relative
+  // "Last Login" times that were computed against the local clock pick up
+  // the corrected server offset.
+  syncServerClock(user.uid).then(() => { if (allUsers.length) renderUserTable(); });
+
   loadAllData();
   loadGallery();
   loadVideos();
@@ -1445,7 +1465,7 @@ async function loadPrimaryAdminPanel() {
   const readOnly = document.getElementById('primaryAdminReadOnlyNote');
   const rows = admins.map(a => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.9rem;border:1px solid var(--border);border-radius:8px;margin-bottom:0.5rem;">
-      <div><strong>${a.name || a.id}</strong> ${a.isPrimaryAdmin ? '<span class="badge-admin">Primary Admin</span>' : '<span style="color:var(--text-light);font-size:0.8rem;">Admin</span>'}</div>
+      <div><strong>${adminEscapeHtml(a.name || a.id)}</strong> ${a.isPrimaryAdmin ? '<span class="badge-admin">Primary Admin</span>' : '<span style="color:var(--text-light);font-size:0.8rem;">Admin</span>'}</div>
       ${a.id === me.uid ? '<span style="font-size:0.78rem;color:var(--text-light);">(you)</span>' : `
         <button class="btn-outline btn-sm" onclick="requestPrimaryAdminChange('${a.id}', ${a.isPrimaryAdmin ? 'false' : 'true'})">
           ${a.isPrimaryAdmin ? 'Remove Primary Admin' : 'Make Primary Admin'}
@@ -1453,6 +1473,7 @@ async function loadPrimaryAdminPanel() {
     </div>`).join('');
   if (list) list.innerHTML = rows || '<p style="color:var(--text-light);">No admins found.</p>';
   if (readOnly) {
+    // textContent below, so no escaping needed for this one.
     const names = admins.filter(a => a.isPrimaryAdmin).map(a => a.name).join(', ') || 'none yet';
     readOnly.textContent = isPrimaryAdmin ? '' : `Current primary admins: ${names}. Only primary admins can change this.`;
   }
@@ -1495,10 +1516,13 @@ window.showSection = function(id) {
 // ── LOAD ALL DATA ────────────────────────────────────────
 async function loadAllData() {
   try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('name','asc')));
+    // Users and events are independent reads — fetch them concurrently
+    // instead of one after another.
+    const [snap] = await Promise.all([
+      getDocs(query(collection(db,'users'), orderBy('name','asc'))),
+      loadEvents(),
+    ]);
     allUsers = []; snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
-    // Load events FIRST so allEventsCache is populated before the table renders
-    await loadEvents();
     // req 1: backfill brand-new members as "ineligible" (not "absent") in
     // every event that already existed before they joined.
     await backfillNewMemberEligibility();
@@ -2108,8 +2132,12 @@ await updateDoc(doc(db, 'users', uid), updateData);
 
 // ── EXCEL UPLOAD (req 8) ─────────────────────────────────
 let excelData = [];
-window.previewExcel = function(input) {
+let XLSX = null;
+window.previewExcel = async function(input) {
   const file = input.files[0]; if (!file) return;
+  // xlsx is only needed once an admin actually uploads a member sheet —
+  // load it on demand instead of as a render-blocking <script> in <head>.
+  if (!XLSX) XLSX = await import('xlsx');
   document.getElementById('excelFileName').textContent = file.name;
   const reader = new FileReader();
   reader.onload = (e) => {
