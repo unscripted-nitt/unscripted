@@ -25,3 +25,7 @@ yarn-error.log*
 # System Files
 .DS_Store
 Thumbs.db
+
+# Service account credentials — never commit these
+functions/scripts/serviceAccountKey.json
+*serviceAccount*.json

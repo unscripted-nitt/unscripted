@@ -11,11 +11,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="../css/mobile.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <style>
+    .visually-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
     /* ── Roster ── */
     #loginRoster {
       margin-top: 2rem;
@@ -142,8 +148,6 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <!-- Theme toggle (unified — same button/system as every other page) -->
@@ -196,17 +200,19 @@
       <h2 id="loginTitle" style="font-size:1.75rem;margin-bottom:0.3rem;">Welcome Back</h2>
       <p id="loginSub" style="font-size:0.88rem;margin-bottom:2rem;">Sign in with your NIT Trichy webmail to access your member dashboard and progress.</p>
 
-      <div class="form-group">
-        <label for="email">NITT Webmail</label>
-        <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
-      </div>
+      <form id="memberLoginForm">
+        <div class="form-group">
+          <label for="email">NITT Webmail</label>
+          <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+        </div>
 
-      <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard &rarr;</button>
-      <div class="error-msg" id="errorMsg"></div>
+        <button type="submit" class="btn-primary login-btn" id="loginBtn">Log In to Dashboard &rarr;</button>
+        <div class="error-msg" id="errorMsg" role="alert"></div>
+      </form>
 
       <!-- ── GUEST LOGIN ──────────────────────────── -->
 <div style="text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
@@ -220,24 +226,25 @@
   </button>
 </div>
 
-<div id="guestLoginSection" style="display:none;margin-top:1.5rem;padding:1.5rem;
+<form id="guestLoginSection" style="display:none;margin-top:1.5rem;padding:1.5rem;
      border:1.5px solid rgba(255,87,34,0.3);border-radius:var(--radius);background:var(--orange-light);">
   <h4 style="margin:0 0 0.3rem;color:var(--orange);">Guest Access</h4>
   <p style="font-size:0.8rem;color:var(--text-mid);margin:0 0 1.1rem;">Enter the 6-digit code given by the admin.</p>
   <div class="form-group">
-    <input type="text" id="guestOtp" maxlength="6" inputmode="numeric"
+    <label for="guestOtp" class="visually-hidden">6-digit guest OTP</label>
+    <input type="text" id="guestOtp" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
       placeholder="• • • • • •"
       style="letter-spacing:0.4em;font-size:1.5rem;font-weight:900;text-align:center;font-family:monospace;" />
   </div>
-  <button type="button" class="btn-primary" id="guestLoginBtn" onclick="loginAsGuest()"
+  <button type="submit" class="btn-primary" id="guestLoginBtn"
     style="width:100%;padding:0.9rem;border-radius:100px;margin-top:0.25rem;">
     Enter as Guest →
   </button>
-  <div id="guestLoginError"
+  <div id="guestLoginError" role="alert"
     style="display:none;margin-top:0.75rem;padding:0.75rem;background:rgba(244,67,54,0.08);
            color:#c62828;border:1px solid rgba(244,67,54,0.2);border-radius:var(--radius-sm);
            font-size:0.85rem;font-weight:600;"></div>
-</div>
+</form>
 
       <div style="text-align:center;margin-top:1.5rem;">
         <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
@@ -270,6 +277,8 @@ window.toggleGuestLogin = function() {
   s.style.display = s.style.display === 'none' ? 'block' : 'none';
 };
 
+let guestFlowActive = false;
+
 window.loginAsGuest = async function() {
   const otp = (document.getElementById('guestOtp').value || '').trim();
   const btn = document.getElementById('guestLoginBtn');
@@ -287,6 +296,7 @@ window.loginAsGuest = async function() {
   let signedIn = false;
   try {
     // Need anon auth to read Firestore
+    guestFlowActive = true;
     await signInAnonymously(auth);
     signedIn = true;
 
@@ -294,6 +304,7 @@ window.loginAsGuest = async function() {
 
     if (snap.empty) {
       await signOut(auth);
+      guestFlowActive = false;
       err.textContent = 'Invalid OTP. Please check with the admin.';
       err.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Enter as Guest →';
@@ -308,6 +319,7 @@ window.loginAsGuest = async function() {
 
     if (new Date() > expiresAt) {
       await signOut(auth);
+      guestFlowActive = false;
       err.textContent = 'This OTP has expired. Ask the admin for a new one.';
       err.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Enter as Guest →';
@@ -325,7 +337,8 @@ window.loginAsGuest = async function() {
     window.location.href = 'guest-dashboard.html';
   } catch(e) {
     if (signedIn) await signOut(auth).catch(() => {});
-    err.textContent = 'Login failed: ' + e.message;
+    guestFlowActive = false;
+    err.textContent = 'Login failed: please try again.';
     err.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Enter as Guest →';
   }
@@ -352,6 +365,7 @@ import {
 // ── AUTH REDIRECT ──────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
+  if (guestFlowActive || user.isAnonymous) return;
   try {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     if (!userDoc.exists()) return;
@@ -439,7 +453,6 @@ window.doLogin = async function() {
     //   await auth.signOut(); return;
     // }
 
-    if (navigator.vibrate) navigator.vibrate(2000);
     window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html';
 
   } catch(e) {
@@ -458,8 +471,15 @@ window.doLogin = async function() {
   }
 };
 
-// Enter key support
-document.addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+// Form submit handlers (Enter submits the correct form)
+document.getElementById('memberLoginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  window.doLogin();
+});
+document.getElementById('guestLoginSection').addEventListener('submit', e => {
+  e.preventDefault();
+  window.loginAsGuest();
+});
 
 // ── ROSTER ────────────────────────────────────────────────
 async function loadLoginRoster() {
@@ -477,11 +497,20 @@ async function loadLoginRoster() {
 
     if (upcoming?.rolesDisplay?.length) {
       document.getElementById('loginRoster').style.display = 'block';
-      document.getElementById('rosterList').innerHTML = upcoming.rolesDisplay.map(rd => `
-        <div class="roster-item">
-          <div class="roster-role">${rd.role}</div>
-          <div class="roster-name">${rd.name}</div>
-        </div>`).join('');
+      const list = document.getElementById('rosterList');
+      list.innerHTML = '';
+      for (const rd of upcoming.rolesDisplay) {
+        const item = document.createElement('div');
+        item.className = 'roster-item';
+        const role = document.createElement('div');
+        role.className = 'roster-role';
+        role.textContent = rd.role;
+        const name = document.createElement('div');
+        name.className = 'roster-name';
+        name.textContent = rd.name;
+        item.append(role, name);
+        list.appendChild(item);
+      }
     }
   } catch(e) { console.warn('Roster load failed', e); }
 }

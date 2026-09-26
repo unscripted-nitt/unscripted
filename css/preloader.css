@@ -29,7 +29,7 @@
   line-height: 1;
   white-space: nowrap;
   text-align: center;
-  color: #FF5722;
+  color: #FF570E;
   opacity: 0;
   transform: scale(0.92);
 }
@@ -38,11 +38,11 @@
 #app-preloader .preloader-text.shine {
   background-image: linear-gradient(
     115deg,
-    #FF5722 0%,
-    #FF5722 40%,
+    #FF570E 0%,
+    #FF570E 40%,
     #FFCCB0 50%,
-    #FF5722 60%,
-    #FF5722 100%
+    #FF570E 60%,
+    #FF570E 100%
   );
   background-size: 250% 100%;
   background-position: 200% 0;
@@ -60,5 +60,5 @@
 @media (prefers-reduced-motion: reduce) {
   #app-preloader { transition: none; }
   #app-preloader .preloader-text { opacity: 1; transform: none; }
-  #app-preloader .preloader-text.shine { animation: none; background: none; -webkit-text-fill-color: initial; color: #FF5722; }
+  #app-preloader .preloader-text.shine { animation: none; background: none; -webkit-text-fill-color: initial; color: #FF570E; }
 }
