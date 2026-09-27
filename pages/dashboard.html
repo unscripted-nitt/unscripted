@@ -6,19 +6,15 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Unscripted NITT</title>
+  <title>Dashboard | Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="../css/live-chat.css" />
   <link rel="stylesheet" href="../css/celebrations.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <!-- ── DANGER OVERLAY (slow red tint on warning) ── -->
@@ -41,7 +37,7 @@
       <i class="fa-solid fa-bars"></i>
     </button>
     <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
-      <img src="../icons/logo.png" alt="Unscripted" style="height:48px;width:auto;" />
+      <img src="../icons/logo-sm.png" alt="Unscripted" style="height:48px;width:auto;" />
     </a>
   </div>
   <div style="display:flex;align-items:center;gap:1rem;">
@@ -72,7 +68,7 @@
 
       <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('chat')">
-        <span class="dash-nav-icon">😉</span> Live Chat
+        <span class="dash-nav-icon"><i class="fa-solid fa-comments"></i></span> Live Chat
         <span id="chatNavBadge" style="display:none;margin-left:auto;" class="notif-badge"></span>
       </a>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
@@ -139,18 +135,18 @@
       </div>
 
       <h2 class="section-title">My Progress</h2>
-      <p class="section-sub">Your speech curriculum journey at a glance</p>
+      <p class="section-sub">Your progress through the speech pathways</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
   <span>This page tracks your speech curriculum progress. Each time you give a prepared speech at a meet, your project automatically advances. Click any project card to see its guide and details.</span>
 </div>
 
       <div class="stats-cards" id="progressStats">
-        <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Done</div></div>
-        <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Current Project</div></div>
-        <div class="stat-card"><div class="big-num" id="statAttPct">—</div><div class="stat-name">Attendance %</div></div>
-        <div class="stat-card"><div class="big-num" id="statTotalRoles">—</div><div class="stat-name">Total Roles Taken</div></div>
-        <div class="stat-card"><div class="big-num" id="statTTCount">—</div><div class="stat-name">Table Topics Delivered</div></div>
+        <div class="stat-card"><div class="big-num" id="statSpeeches">-</div><div class="stat-name">Speeches Done</div></div>
+        <div class="stat-card"><div class="big-num" id="statLevel">-</div><div class="stat-name">Current Project</div></div>
+        <div class="stat-card"><div class="big-num" id="statAttPct">-</div><div class="stat-name">Attendance %</div></div>
+        <div class="stat-card"><div class="big-num" id="statTotalRoles">-</div><div class="stat-name">Total Roles Taken</div></div>
+        <div class="stat-card"><div class="big-num" id="statTTCount">-</div><div class="stat-name">Table Topics Delivered</div></div>
       </div>
 
       <div class="card">
@@ -206,10 +202,10 @@
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-achievements">
       <h2 class="section-title">Achievements</h2>
-      <p class="section-sub">Badges and recognitions earned on your Unscripted journey</p>
+      <p class="section-sub">Badges and awards you have earned</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Badges unlock automatically as you hit milestones. <strong>Meeting Awards</strong> are given by the admin after a voting session. <strong>My Upcoming Roles</strong> shows your assignment for the next meet. <strong>Role History</strong> is private — only you can see it.</span>
+  <span>You get badges automatically when you reach a milestone. <strong>Meeting Awards</strong> are given by the admin after a voting session. <strong>My Upcoming Roles</strong> shows your assignment for the next meet. <strong>Role History</strong> is private. Only you can see it.</span>
 </div>
 
       <!-- Win badges (req 15) -->
@@ -250,7 +246,7 @@
       <!-- Role & streak milestones -->
       <div class="card" style="margin-bottom:1.5rem;">
         <h3 style="margin-top:0;">Role &amp; Attendance Milestones</h3>
-        <p class="section-sub" style="margin-bottom:1rem;">Try new roles and show up consistently to unlock these</p>
+        <p class="section-sub" style="margin-bottom:1rem;">Take on different roles and attend regularly to earn these</p>
         <div class="badges-grid" id="roleBadgesGrid"></div>
       </div>
 
@@ -309,7 +305,7 @@
       <p class="section-sub">Historical role involvement and aggregated activity points</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Points are earned for every role you play at a meet. Sorted by total points. The <strong>Roles</strong> column counts major roles only — speeches and table topic slots are tracked separately. Check the <strong>Points Guide</strong> in the sidebar to see how much each role is worth.</span>
+  <span>Points are earned for every role you play at a meet. Sorted by total points. The <strong>Roles</strong> column counts major roles only. Speeches and table topics are counted separately. Check the <strong>Points Guide</strong> in the sidebar to see how much each role is worth.</span>
 </div>
       <div class="card" style="padding:0;">
         <div class="scroll-container" style="padding:1.5rem;">
@@ -353,9 +349,9 @@
 </div>
       <div class="card">
         <div class="att-summary">
-          <div class="att-stat"><div class="num" id="attPresent">—</div><div class="lbl">Present</div></div>
-          <div class="att-stat"><div class="num" id="attTotal">—</div><div class="lbl">Total Meets</div></div>
-          <div class="att-stat"><div class="num" id="attPct">—</div><div class="lbl">Attendance %</div></div>
+          <div class="att-stat"><div class="num" id="attPresent">-</div><div class="lbl">Present</div></div>
+          <div class="att-stat"><div class="num" id="attTotal">-</div><div class="lbl">Total Meets</div></div>
+          <div class="att-stat"><div class="num" id="attPct">-</div><div class="lbl">Attendance %</div></div>
         </div>
         <div class="att-calendar" id="attCalendar"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
@@ -366,7 +362,7 @@
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-gallery">
       <h2 class="section-title">Club Gallery</h2>
-      <p class="section-sub">Moments worth remembering (includes member-only photos)</p>
+      <p class="section-sub">Photos from past meets, including member-only ones</p>
       <div class="card">
         <div id="dashGallery"><div class="gallery-placeholder">Loading moments...</div></div>
       </div>
@@ -376,11 +372,11 @@
     <!-- SECTION: LIVE CHAT                                   -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-chat">
-      <h2 class="section-title">Live Chat 😉</h2>
+      <h2 class="section-title">Live Chat</h2>
       <p class="section-sub">Chat with the whole club in real time</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
         <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time) — click a folded row to expand it. Tap the reply icon on any message to tag it in your reply, react with an emoji, copy the text, or (for your own messages) edit/delete it. Type @ to tag any member, even inactive ones.</span>
+        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time). Click a folded row to open it. Tap the reply icon on any message to tag it in your reply, react with an emoji, copy the text, or (for your own messages) edit/delete it. Type @ to tag any member, even inactive ones.</span>
       </div>
       <div class="card" style="padding:0;overflow:hidden;">
         <div id="chatMessagesContainer" class="chat-messages"></div>
@@ -405,7 +401,7 @@
       <p class="section-sub">Club announcements and personal messages</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span><strong>Personal messages</strong> are sent directly to you by the admin — they also appear as a pop-up on your next login. <strong>Club announcements</strong> are broadcast to all members for meet updates and general news.</span>
+  <span><strong>Personal messages</strong> are sent directly to you by the admin and also show up as a pop-up the next time you log in. <strong>Club announcements</strong> are broadcast to all members for meet updates and general news.</span>
 </div>
 
       <div class="card" id="personalNotifsCard" style="display:none;border:1px solid rgba(255,87,34,0.2);">
@@ -431,7 +427,7 @@
       <p class="section-sub">Rate and provide written feedback for a speaker from a recent meeting</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Select a past meeting and a speaker to rate their speech across 8 dimensions. Your feedback is anonymous to the speaker — they only see the average scores. Rate at least 3 categories to submit.</span>
+  <span>Select a past meeting and a speaker to rate their speech across 8 dimensions. Your feedback is anonymous. The speaker only sees the average scores. Rate at least 3 categories to submit.</span>
 </div>
 
       <div class="card">
@@ -457,11 +453,11 @@
 
           <div class="form-group" style="margin-top:1rem;">
             <label>Written Feedback</label>
-            <textarea id="fbComment" placeholder="Share your thoughts on the speech — what worked well, what could improve..." style="min-height:120px;"></textarea>
+            <textarea id="fbComment" placeholder="What worked well, and what could be better?" style="min-height:120px;"></textarea>
           </div>
 
           <button class="btn-primary" onclick="submitFeedback()" style="margin-top:1rem;">
-            Submit Feedback &rarr;
+            Submit Feedback
           </button>
           <div id="fbMsg" class="success-msg"></div>
           <div id="fbErr" class="error-msg"></div>
@@ -484,7 +480,7 @@
       <p class="section-sub">Vote anonymously for the best performers of the meeting</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>After each meet, the admin opens a short voting window. Vote for the best speaker, evaluator, table topic speaker, and role player. Voting is completely anonymous — your identity is never linked to your choices.</span>
+  <span>After each meet, the admin opens a short voting window. Vote for the best speaker, evaluator, table topic speaker, and role player. Voting is anonymous and your name is never linked to your vote.</span>
 </div>
 
       <div id="votingContainer">
@@ -585,14 +581,14 @@
       <label>Confirm New Password</label>
       <input type="password" id="confirmPass" placeholder="Re-enter password" />
     </div>
-    <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">Update Password &rarr;</button>
+    <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">Update Password</button>
     <div id="settingsFeedback" style="display:none;padding:0.85rem;border-radius:var(--radius-sm);margin-top:1rem;font-size:0.9rem;"></div>
 
     <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
       <h4 style="margin:0 0 0.4rem;">Security</h4>
       <p style="font-size:0.82rem;color:var(--text-light);margin:0 0 0.75rem;">
         <i class="fa-solid fa-circle-info"></i>
-        If you signed in on a device you no longer control (shared computer, lost phone, etc.), use this to sign every device out at once — you'll need to log in again everywhere, including here.
+        If you signed in on a device you no longer control (shared computer, lost phone, etc.), use this to sign out of every device at once. You'll need to log in again everywhere, including here.
       </p>
       <p style="font-size:0.82rem;color:var(--text-light);margin:0 0 0.75rem;padding:0.6rem 0.75rem;border-left:3px solid var(--orange);background:var(--orange-light);border-radius:6px;">
         <i class="fa-solid fa-key" style="color:var(--orange);"></i>
@@ -643,10 +639,11 @@ body.has-warning .sidebar nav { padding-bottom: 12rem; }
   
 <script type="module">
 import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
+import { escapeHtml as chatEscapeHtml, safeUrl as chatSafeUrl, jsAttr } from '../js/escape.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, collectionGroup, query, orderBy, where,
-  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit
+  setDoc, updateDoc, addDoc, serverTimestamp, deleteDoc, arrayUnion, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { launchConfetti, launchBrokenHearts, showCelebToast } from '../js/celebrations.js';
 import { normalizeEvent } from '../js/event-status.js';
@@ -695,8 +692,14 @@ onAuthStateChanged(auth, async user => {
   const initials = (userData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   document.getElementById('topNavName').textContent = userData.name || '';
   const avatarEl = document.getElementById('topNavAvatar');
-  if (userData.photoUrl) { avatarEl.innerHTML = `<img src="${userData.photoUrl}" alt="${userData.name||''}"/>`; }
-  else { avatarEl.textContent = initials; }
+  const topNavSafePhoto = chatSafeUrl(userData.photoUrl);
+  if (topNavSafePhoto) {
+    avatarEl.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = topNavSafePhoto;
+    img.alt = userData.name || '';
+    avatarEl.appendChild(img);
+  } else { avatarEl.textContent = initials; }
 
   // Admin portal link
   if (['admin','core'].includes(userData.role)) document.getElementById('adminPortalLink').style.display = 'block';
@@ -724,9 +727,9 @@ if (userData.isActive === false) {
   document.querySelector('.main-content').prepend(banner);
 }
   
-// Load everything
-  await loadAllEvents();
-  await loadAllUsers();
+// Load everything. Events and the full user list are independent reads —
+  // fetch them concurrently instead of one after another.
+  await Promise.all([loadAllEvents(), loadAllUsers()]);
   await renderProgress();
   // Badge celebration must resolve BEFORE the leaderboard loads, so that if
   // this load also earned a badge, the leaderboard's rank-change check can
@@ -811,8 +814,9 @@ async function loadRoleGuidesForPointsPage() {
     const keys = ['hom','ttm','ge','mom','evaluator','tte','timer','listener','grammarian','tt'];
     keys.forEach(k => {
       const cell = document.getElementById('guide_'+k);
-      if (cell && guides[k]) {
-        cell.innerHTML = `<a href="${guides[k]}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.8rem;">View Guide →</a>`;
+      const safeGuideUrl = chatSafeUrl(guides[k]);
+      if (cell && safeGuideUrl) {
+        cell.innerHTML = `<a href="${chatEscapeHtml(safeGuideUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--orange);font-weight:700;font-size:0.8rem;">View Guide</a>`;
       }
     });
   } catch(e) { console.warn('Role guides load error',e); }
@@ -841,7 +845,7 @@ function loadDashEvents() {
     container.innerHTML = '<p style="color:var(--text-mid);">No events yet.</p>'; return;
   }
   container.innerHTML = allEventsCache.map(e => {
-    let dateStr = '—';
+    let dateStr = '-';
     if (e.date) {
       try {
         const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
@@ -858,23 +862,25 @@ function loadDashEvents() {
       for (const [rk, uid] of Object.entries(e.roles)) {
         if (uid === currentUid) {
           const rd = e.rolesDisplay?.find(r => r.uid === currentUid);
-          return rd ? `<span style="font-size:0.75rem;font-weight:700;color:var(--orange);margin-top:0.3rem;display:block;">Your role: ${rd.role}</span>` : '';
+          return rd ? `<span style="font-size:0.75rem;font-weight:700;color:var(--orange);margin-top:0.3rem;display:block;">Your role: ${chatEscapeHtml(rd.role)}</span>` : '';
         }
       }
       return '';
     })();
+    const safeGalleryLink = chatSafeUrl(e.galleryLink);
+    const safeDocLink = chatSafeUrl(e.docLink);
     return `<div style="padding:1.1rem 1.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.75rem;">
       <div>
-        <div style="font-weight:700;font-size:0.97rem;">${e.title || 'Untitled'}</div>
-        <div style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem;">${dateStr}</div>
+        <div style="font-weight:700;font-size:0.97rem;">${chatEscapeHtml(e.title || 'Untitled')}</div>
+        <div style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem;">${chatEscapeHtml(dateStr)}</div>
         ${myRole}
-        ${e.description ? `<div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.4rem;">${e.description}</div>` : ''}
+        ${e.description ? `<div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.4rem;">${chatEscapeHtml(e.description)}</div>` : ''}
       </div>
       <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
         <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;${badgeStyle}">${badgeText}</span>
-        ${e.galleryLink ? `<a href="${e.galleryLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Gallery →</a>` : ''}
-        ${e.docLink ? `<a href="${e.docLink}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Docs →</a>` : ''}
-        ${(e.eventVideos||[]).map((v,i) => `<a href="${v.url}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--orange);font-weight:700;">${v.title || 'Video '+(i+1)} →</a>`).join('')}
+        ${safeGalleryLink ? `<a href="${chatEscapeHtml(safeGalleryLink)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Gallery</a>` : ''}
+        ${safeDocLink ? `<a href="${chatEscapeHtml(safeDocLink)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">Docs</a>` : ''}
+        ${(e.eventVideos||[]).map((v,i) => { const safeVUrl = chatSafeUrl(v.url); return safeVUrl ? `<a href="${chatEscapeHtml(safeVUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:0.78rem;color:var(--orange);font-weight:700;">${chatEscapeHtml(v.title || 'Video '+(i+1))}</a>` : ''; }).join('')}
       </div>
     </div>`;
   }).join('');
@@ -947,12 +953,12 @@ if (hasChosenL3)
     // Always load L3K + L3H so the picker can show descriptions even before choice
     const docsToLoad = new Set([...levelsToShow, 'L3K', 'L3H']);
     const pathwayDocs = {};
-    for (const k of docsToLoad) {
+    await Promise.all([...docsToLoad].map(async k => {
       try {
         const snap = await getDoc(doc(db, 'pathways', k));
         if (snap.exists()) pathwayDocs[k] = snap.data();
       } catch (_) {}
-    }
+    }));
  
     // ── Total slots (only count chosen path) ───────────────
     const totalSlots = levelsToShow.reduce(
@@ -960,8 +966,8 @@ if (hasChosenL3)
     );
  
     const pathwayNames = {
-      L1:'Level 1 — Foundation', L2:'Level 2 — Proficiency',
-      L3K:'Level 3 — Keynote',   L3H:'Level 3 — Humorous'
+      L1:'Level 1: Foundation', L2:'Level 2: Proficiency',
+      L3K:'Level 3: Keynote',   L3H:'Level 3: Humorous'
     };
  
     document.getElementById('pathwayTitle').textContent   = 'Curriculum Progress';
@@ -981,7 +987,7 @@ if (hasChosenL3)
  
       html += `<div style="font-size:0.68rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;
         color:var(--text-light);padding:1.5rem 0 0.5rem;border-top:1px solid var(--border);margin-top:0.5rem;">
-        ${pathwayNames[levelKey] || levelKey}</div>`;
+        ${chatEscapeHtml(pathwayNames[levelKey] || levelKey)}</div>`;
  
       ranges.forEach((range, i) => {
   const isDone    = speechIndex > range.e;
@@ -992,7 +998,7 @@ if (hasChosenL3)
   const projName  = typeof projData === 'object' ? (projData.name  || range.label) : (projData || range.label);
   const projDesc  = typeof projData === 'object' ? (projData.purpose || '') : '';
   const guideLink = typeof projData === 'object' ? (projData.guideLink || '') : '';
-  const multiHint = (range.e - range.s + 1) > 1 ? ' — 2 speeches required' : '';
+  const multiHint = (range.e - range.s + 1) > 1 ? ' (2 speeches required)' : '';
 
   const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
   const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
@@ -1003,11 +1009,11 @@ if (hasChosenL3)
   window._projCache[cacheKey] = projData || range.label;
 
   html += `<div class="step-item ${stepClass}" style="${isPending ? 'opacity:0.38;' : ''}"
-    onclick="showSpeechDetails(window._projCache['${cacheKey}'], '${levelKey}', ${i + 1}, '${guideLink.replace(/'/g, "\\'")}')">
+    onclick="showSpeechDetails(window._projCache['${jsAttr(cacheKey)}'], '${jsAttr(levelKey)}', ${i + 1}, '${jsAttr(guideLink)}')">
     <div class="step-num ${numClass}">${icon}</div>
     <div class="step-info">
-      <h4>${projName}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
-      <p>${projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label}</p>
+      <h4>${chatEscapeHtml(projName)}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
+      <p>${chatEscapeHtml(projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label)}</p>
     </div>
     ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
   </div>`;
@@ -1016,8 +1022,8 @@ if (hasChosenL3)
  
     // ── L3 Elective Picker (shown when L2 exists and no L3 chosen yet) ──
     if (levelsToShow.includes('L2') && !hasChosenL3) {
-      const l3kName = (pathwayDocs['L3K']?.name || 'Level 3 — Keynote').replace(/\b3a\b/gi, 'L3K');
-      const l3hName = (pathwayDocs['L3H']?.name || 'Level 3 — Humorous').replace(/\b3b\b/gi, 'L3H');
+      const l3kName = (pathwayDocs['L3K']?.name || 'Level 3: Keynote').replace(/\b3a\b/gi, 'L3K');
+      const l3hName = (pathwayDocs['L3H']?.name || 'Level 3: Humorous').replace(/\b3b\b/gi, 'L3H');
       const l3kDesc = pathwayDocs['L3K']?.description || 'TED-style delivery, signature talks, leadership narratives.';
       const l3hDesc = pathwayDocs['L3H']?.description || 'Comedic timing, wit, punchlines, and entertaining speaking.';
       const l3kProjects = (pathwayDocs['L3K']?.projects || []).length || 4;
@@ -1043,11 +1049,11 @@ if (hasChosenL3)
               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
               <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
                            color:var(--orange);margin-bottom:0.4rem;">L3K</div>
-              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3kName}</div>
-              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3kDesc}</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${chatEscapeHtml(l3kName)}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${chatEscapeHtml(l3kDesc)}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:0.72rem;color:var(--text-light);">${l3kProjects} projects</span>
-                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+                <span style="font-size:0.72rem;color:var(--text-light);">${chatEscapeHtml(l3kProjects)} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select</span>
               </div>
             </button>
  
@@ -1058,11 +1064,11 @@ if (hasChosenL3)
               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
               <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
                            color:var(--orange);margin-bottom:0.4rem;">L3H</div>
-              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${l3hName}</div>
-              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${l3hDesc}</div>
+              <div style="font-weight:800;font-size:0.97rem;margin-bottom:0.4rem;">${chatEscapeHtml(l3hName)}</div>
+              <div style="font-size:0.78rem;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;">${chatEscapeHtml(l3hDesc)}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:0.72rem;color:var(--text-light);">${l3hProjects} projects</span>
-                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select →</span>
+                <span style="font-size:0.72rem;color:var(--text-light);">${chatEscapeHtml(l3hProjects)} projects</span>
+                <span style="font-size:0.75rem;font-weight:800;color:var(--orange);">Select</span>
               </div>
             </button>
  
@@ -1142,7 +1148,7 @@ function checkLowActivityWarning() {
 // ADD this new function anywhere after renderProgress()
 // ─────────────────────────────────────────────────────────────
 window.selectElective = async function(key) {
-  const label = key === 'L3K' ? 'Level 3 — Keynote (L3K)' : 'Level 3 — Humorous (L3H)';
+  const label = key === 'L3K' ? 'Level 3: Keynote (L3K)' : 'Level 3: Humorous (L3H)';
   if (!confirm(`Choose ${label} as your Level 3 elective?\n\nThis choice is permanent and cannot be changed later.`)) return;
   try {
     await updateDoc(doc(db, 'users', currentUid), { pathwayKey: key });
@@ -1160,14 +1166,14 @@ function renderUpcomingRolesCard(upcoming) {
   const container = document.getElementById('upcomingRolesContainer');
   container.innerHTML = `
     <div style="margin-bottom:1rem;padding:1rem;background:var(--surface);border-radius:var(--radius-sm);">
-      <strong style="color:var(--orange);">${upcoming.title}</strong>
+      <strong style="color:var(--orange);">${chatEscapeHtml(upcoming.title)}</strong>
       <span style="font-size:0.75rem;color:var(--text-light);margin-left:0.75rem;">Upcoming roster</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.75rem;">
       ${upcoming.rolesDisplay.map(rd => `
         <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:0.7rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${rd.role}</span>
-          <span style="font-weight:700;color:var(--text);">${rd.name}</span>
+          <span style="font-size:0.7rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${chatEscapeHtml(rd.role)}</span>
+          <span style="font-weight:700;color:var(--text);">${chatEscapeHtml(rd.name)}</span>
         </div>`).join('')}
     </div>`;
 }
@@ -1199,8 +1205,8 @@ function renderMyUpcomingRoles(upcoming) {
     grid.innerHTML = myRoles.map(r => `
       <div class="badge-item earned">
         <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:var(--orange);"></i></div>
-        <div class="badge-name">${r.role}</div>
-        <div class="badge-desc" style="color:var(--orange);font-weight:700;">${r.meet}</div>
+        <div class="badge-name">${chatEscapeHtml(r.role)}</div>
+        <div class="badge-desc" style="color:var(--orange);font-weight:700;">${chatEscapeHtml(r.meet)}</div>
       </div>`).join('');
   }
 }
@@ -1369,9 +1375,9 @@ function renderBadgeGrid(el, list) {
     const iconColor = b.earned ? 'var(--badge-c1)' : 'var(--text-light)';
     return `<div class="badge-item${tierClass}">
       ${!b.earned ? '<div class="badge-lock"><i class="fa-solid fa-lock"></i></div>' : ''}
-      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.6rem;color:${iconColor};"></i></div>
-      <div class="badge-name">${b.name}</div>
-      <div class="badge-desc">${b.desc}</div>
+      <div class="badge-icon"><i class="fa-solid ${chatEscapeHtml(b.icon)}" style="font-size:1.6rem;color:${iconColor};"></i></div>
+      <div class="badge-name">${chatEscapeHtml(b.name)}</div>
+      <div class="badge-desc">${chatEscapeHtml(b.desc)}</div>
       ${b.earned && b.tier ? `<span class="badge-tier-tag">${b.tier}</span>` : ''}
     </div>`;
   }).join('');
@@ -1402,8 +1408,8 @@ async function loadAchievements() {
         const parts = r.split(' M-');
         return `<div class="badge-item completed">
           <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
-          <div class="badge-name">${parts[0]}</div>
-          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${parts[1]||''}</div>
+          <div class="badge-name">${chatEscapeHtml(parts[0])}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(parts[1]||'')}</div>
         </div>`;
       }).join('');
     }
@@ -1416,8 +1422,8 @@ async function loadAchievements() {
         <div class="badge-item won">
           <div class="badge-ribbon">Winner</div>
           <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
-          <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${wb.meet}</div>
+          <div class="badge-name">${chatEscapeHtml(wb.category)}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(wb.meet)}</div>
         </div>`).join('');
     }
   } catch(e) { console.warn('Achievements error',e); }
@@ -1529,19 +1535,19 @@ function renderStreakFire() {
       streak === 2  ? 'Kindling' : 'First Spark';
 
     document.getElementById('streakFireSub').textContent =
-      streak >= RAMP_END ? "Locked at full strength for good — this streak is legendary." :
-      streak >= 15       ? "Elite territory, and still climbing." :
-      streak >= 11       ? "Double digits and building — keep it going." :
-      streak === 10 ? "10 in a row — ignition! The fire truly takes hold now." :
-      streak === 9  ? "9 straight — one more for double digits." :
-      streak === 8  ? "8 in a row — sparks are flying." :
-      streak === 7  ? "A full week-plus streak — twin flames now." :
-      streak === 6  ? "6 meets running — a steady, confident burn." :
-      streak === 5  ? "5 in a row — you're heating up fast." :
-      streak === 4  ? "4 straight — momentum is building." :
-      streak === 3  ? "3 in a row — you're catching on!" :
-      streak === 2  ? "2 meets back to back — kindling started." :
-                      "Your streak begins! Come back next meet to keep it alive.";
+      streak >= RAMP_END ? "You've kept this going a long time. Great work." :
+      streak >= 15       ? "15+ meets in a row." :
+      streak >= 11       ? "Over 10 meets in a row." :
+      streak === 10 ? "10 meets in a row." :
+      streak === 9  ? "9 in a row. One more for 10." :
+      streak === 8  ? "8 meets in a row." :
+      streak === 7  ? "7 meets in a row." :
+      streak === 6  ? "6 meets in a row." :
+      streak === 5  ? "5 meets in a row." :
+      streak === 4  ? "4 meets in a row." :
+      streak === 3  ? "3 meets in a row." :
+      streak === 2  ? "2 meets in a row." :
+                      "Come to the next meet to keep your streak going.";
   } catch (e) { console.warn('Streak fire render error', e); }
 }
 
@@ -1619,8 +1625,8 @@ async function checkNewBadgeCelebration() {
     addDoc(collection(db, 'notifications'), {
       type: 'personal',
       targetUid: currentUid,
-      title: '🎉 New Badge Unlocked!',
-      body: newlyEarned.length === 1 ? `You earned the "${names}" badge!` : `You earned ${newlyEarned.length} new badges: ${names}`,
+      title: 'New badge',
+      body: newlyEarned.length === 1 ? `You earned the "${names}" badge.` : `You earned ${newlyEarned.length} new badges: ${names}`,
       read: false,
       createdAt: serverTimestamp()
     }).catch(()=>{});
@@ -1635,7 +1641,7 @@ async function checkNewBadgeCelebration() {
     sessionCelebrationShown = true;
     showCelebToast({
       type: 'badge',
-      title: newlyEarned.length === 1 ? `New Badge Unlocked: "${names}"!` : `${newlyEarned.length} New Badges Unlocked!`,
+      title: newlyEarned.length === 1 ? `New badge: ${names}` : `${newlyEarned.length} new badges`,
       body: newlyEarned.length === 1 ? newlyEarned[0].desc : names
     });
   } catch (e) { console.warn('Badge celebration error', e); }
@@ -1680,7 +1686,7 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
       showCelebToast({
         type: 'rankdown',
         title: 'You dropped on the leaderboard',
-        body: `You fell ${places} place${places>1?'s':''} — now #${myRank} of ${totalRanked}.`
+        body: `You fell ${places} place${places>1?'s':''} and are now #${myRank} of ${totalRanked}.`
       });
     } else {
       const places = lastRank - myRank;
@@ -1688,8 +1694,8 @@ async function checkLeaderboardRankChange(myRank, totalRanked) {
       launchConfetti();
       showCelebToast({
         type: 'rankup',
-        title: 'You climbed the leaderboard!',
-        body: `You moved up ${places} place${places>1?'s':''} — now #${myRank} of ${totalRanked}.`
+        title: 'You moved up the leaderboard',
+        body: `You moved up ${places} place${places>1?'s':''} and are now #${myRank} of ${totalRanked}.`
       });
     }
   } catch (e) { console.warn('Leaderboard celebration error', e); }
@@ -1718,9 +1724,9 @@ async function loadLeaderboard() {
         })
       : allEventsCache;
 
-    const snap = await getDocs(collection(db,'users'));
-    const users = [];
-    snap.forEach(d => { const u={id:d.id,...d.data()}; if(u.isActive!==false) users.push(u); });
+    // Reuse the users list already fetched at boot instead of a second
+    // full-collection scan.
+    const users = allUsersCache.filter(u => u.isActive !== false);
 
     const f = v => v===0?'':v;
     const rows = users.map(u => {
@@ -1758,7 +1764,7 @@ async function loadLeaderboard() {
     rows.forEach(({u,c,totalRoles,totalPoints}) => {
       const isMe = u.id === currentUid;
       html += `<tr style="${isMe?'background:var(--orange-light);font-weight:700;':''}">
-        <td style="padding:0.9rem;font-weight:${isMe?'800':'700'};white-space:nowrap;">${u.name||''}${isMe?' (you)':''}</td>
+        <td style="padding:0.9rem;font-weight:${isMe?'800':'700'};white-space:nowrap;">${chatEscapeHtml(u.name||'')}${isMe?' (you)':''}</td>
         ${[f(c.hom),f(c.speaker),f(c.evaluator),f(c.ttm),f(c.tte),f(c.ge),f(c.timer),f(c.tt),f(c.listener),f(c.grammarian),f(c.attendance),f(c.mom),f(totalPoints),f(totalRoles)].map(v=>`<td style="text-align:center;">${v}</td>`).join('')}
       </tr>`;
     });
@@ -1816,11 +1822,11 @@ function loadAttendance() {
                       : isUpcoming   ? 'att-upcoming'
                       : isPresent    ? 'att-present'
                       : 'att-absent';
-      const label = isIneligible ? '—' : isUpcoming ? '?' : isPresent ? 'P' : 'A';
-      return `<div class="att-cell ${cellClass}" title="${e.title||''}"
+      const label = isIneligible ? '-' : isUpcoming ? '?' : isPresent ? 'P' : 'A';
+      return `<div class="att-cell ${cellClass}" title="${chatEscapeHtml(e.title||'')}"
         style="${isIneligible?'opacity:0.45;background:var(--surface2);border-color:var(--border);':isUpcoming?'opacity:0.5;background:var(--surface2);border-style:dashed;':''}">
-        <div class="day-num">${label}</div>
-        <div style="font-size:0.6rem;">${dateStr}</div>
+        <div class="day-num">${chatEscapeHtml(label)}</div>
+        <div style="font-size:0.6rem;">${chatEscapeHtml(dateStr)}</div>
       </div>`;
     }).join('');
   } catch(e) { console.warn('Attendance error', e); }
@@ -1831,13 +1837,14 @@ async function loadMentorship() {
   try {
     const mentorInfo = document.getElementById('mentorInfo');
     if (userData.mentor) {
-      const mSnap = await getDoc(doc(db,'users',userData.mentor));
-      if (mSnap.exists()) {
-        const m = mSnap.data();
+      // Reuse the users list already fetched at boot instead of a per-load read.
+      const m = allUsersCache.find(u => u.id === userData.mentor);
+      if (m) {
         const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const mPhoto = chatSafeUrl(m.photoUrl);
         mentorInfo.innerHTML = `<div class="mentor-card">
-          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
-          <div class="mentor-info"><h3>${m.name}</h3><p>${m.email||''}</p></div>
+          <div class="mentor-avatar">${mPhoto?`<img src="${chatEscapeHtml(mPhoto)}" alt="${chatEscapeHtml(m.name||'')}"/>`:`<span>${chatEscapeHtml(initials)}</span>`}</div>
+          <div class="mentor-info"><h3>${chatEscapeHtml(m.name||'')}</h3><p>${chatEscapeHtml(m.email||'')}</p></div>
         </div>`;
       } else {
         mentorInfo.innerHTML = '<p style="color:var(--text-mid);">Mentor not found.</p>';
@@ -1846,18 +1853,17 @@ async function loadMentorship() {
       mentorInfo.innerHTML = '<p style="color:var(--text-mid);">No mentor assigned yet.</p>';
     }
 
-    // Mentees
-    const menteeSnap = await getDocs(query(collection(db,'users'), where('mentor','==',currentUid)));
-    const mentees = [];
-    menteeSnap.forEach(d => mentees.push({id:d.id,...d.data()}));
+    // Mentees — reuse the users list already fetched at boot.
+    const mentees = allUsersCache.filter(u => u.mentor === currentUid);
     const menteesCard = document.getElementById('menteesCard');
     if (mentees.length) {
       menteesCard.style.display = 'block';
       document.getElementById('menteesList').innerHTML = mentees.map(m => {
         const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const mPhoto = chatSafeUrl(m.photoUrl);
         return `<div class="mentor-card">
-          <div class="mentor-avatar">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}"/>`:`<span>${initials}</span>`}</div>
-          <div class="mentor-info"><h3>${m.name}</h3><p>${m.pathway||'L1P1'}</p></div>
+          <div class="mentor-avatar">${mPhoto?`<img src="${chatEscapeHtml(mPhoto)}" alt="${chatEscapeHtml(m.name||'')}"/>`:`<span>${chatEscapeHtml(initials)}</span>`}</div>
+          <div class="mentor-info"><h3>${chatEscapeHtml(m.name||'')}</h3><p>${chatEscapeHtml(m.pathway||'L1P1')}</p></div>
         </div>`;
       }).join('');
     }
@@ -1878,7 +1884,7 @@ async function loadGallery() {
       img.onclick = () => {
         const lb = document.createElement('div');
         lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);z-index:3000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-        lb.innerHTML = `<img src="${p.url}" style="max-width:90vw;max-height:90vh;border-radius:12px;"/>`;
+        lb.innerHTML = `<img src="${chatEscapeHtml(chatSafeUrl(p.url))}" style="max-width:90vw;max-height:90vh;border-radius:12px;"/>`;
         lb.onclick = () => lb.remove();
         document.body.appendChild(lb);
       };
@@ -1903,9 +1909,9 @@ async function loadNotifications() {
       const locallySeenForList = currentUid ? getLocallySeenPersonalIds(currentUid) : new Set();
       pList.innerHTML = personalNotifs.map(n => `
         <div class="notif-item ${(n.read || locallySeenForList.has(n.id))?'':'unread'}">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-body">${n.body}</div>
-          <div class="notif-time">${formatTime(n.createdAt)}</div>
+          <div class="notif-title">${chatEscapeHtml(n.title)}</div>
+          <div class="notif-body">${chatEscapeHtml(n.body)}</div>
+          <div class="notif-time">${chatEscapeHtml(formatTime(n.createdAt))}</div>
         </div>`).join('');
     }
 
@@ -1919,9 +1925,9 @@ async function loadNotifications() {
     if (commonNotifs.length) {
       cList.innerHTML = commonNotifs.map(n => `
         <div class="notif-item">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-body">${n.body}</div>
-          <div class="notif-time">${formatTime(n.createdAt)}</div>
+          <div class="notif-title">${chatEscapeHtml(n.title)}</div>
+          <div class="notif-body">${chatEscapeHtml(n.body)}</div>
+          <div class="notif-time">${chatEscapeHtml(formatTime(n.createdAt))}</div>
         </div>`).join('');
     } else {
       cList.innerHTML = '<p style="color:var(--text-mid);">No announcements yet.</p>';
@@ -1999,7 +2005,6 @@ function markLocallySeenCommonId(uid, id) {
   catch(e) { /* localStorage unavailable — Firestore lastSeenCommonNotifId still applies */ }
 }
 
-let notifPollTimer = null;
 async function markNotificationsSeen() {
   // Instant UI feedback: clear the badges and the "unread" highlight in the
   // list the moment the tab is opened, rather than waiting on the Firestore
@@ -2059,18 +2064,33 @@ async function markNotificationsSeen() {
   try { await loadNotifications(); } catch(e) { console.warn('markNotificationsSeen refresh error', e); }
 }
 
-// Poll the Notifications section every 1s while it's open, so newly-arrived
-// notifications (and the read state above) show up without a page reload.
-// Only starts once markNotificationsSeen's writes have actually landed
-// (see showSection below), so a poll tick can no longer race the
-// mark-as-read call and re-show a badge that was just cleared.
+// Listen for live changes while the Notifications section is open, instead
+// of re-fetching both queries on a 1s timer. onSnapshot fires immediately
+// with the current data (same effect as the old first poll tick) and again
+// only when something actually changes server-side, so this replaces
+// continuous polling with change-driven reads. Only starts once
+// markNotificationsSeen's writes have actually landed (see showSection
+// below), so a snapshot can no longer race the mark-as-read call and
+// re-show a badge that was just cleared.
+let notifUnsubPersonal = null;
+let notifUnsubCommon = null;
 function startNotifPolling() {
   stopNotifPolling();
   if (document.visibilityState !== 'visible') return;
-  notifPollTimer = setInterval(loadNotifications, 1000);
+  notifUnsubPersonal = onSnapshot(
+    query(collection(db,'notifications'), where('type','==','personal'), where('targetUid','==',currentUid)),
+    () => loadNotifications(),
+    e => console.warn('Personal notifications listener error', e)
+  );
+  notifUnsubCommon = onSnapshot(
+    query(collection(db,'notifications'), where('type','==','common')),
+    () => loadNotifications(),
+    e => console.warn('Common notifications listener error', e)
+  );
 }
 function stopNotifPolling() {
-  if (notifPollTimer) { clearInterval(notifPollTimer); notifPollTimer = null; }
+  if (notifUnsubPersonal) { notifUnsubPersonal(); notifUnsubPersonal = null; }
+  if (notifUnsubCommon) { notifUnsubCommon(); notifUnsubCommon = null; }
 }
 
 // req 4: Personal notification as FIRST SCREEN on login
@@ -2229,13 +2249,13 @@ window.loadExistingFeedback = async function() {
     // Averages per category
     const avgs = FB_CATEGORIES.map((_,i) => {
       const vals = feedbacks.map(f=>f.ratings?.[i]||0).filter(v=>v>0);
-      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
     });
     const overallAvg = feedbacks.map(f=>{
       const vals = Object.values(f.ratings||{}).filter(v=>v>0);
       return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
     }).filter(v=>v>0);
-    const overall = overallAvg.length ? (overallAvg.reduce((a,b)=>a+b,0)/overallAvg.length).toFixed(1) : '—';
+    const overall = overallAvg.length ? (overallAvg.reduce((a,b)=>a+b,0)/overallAvg.length).toFixed(1) : '-';
 
     document.getElementById('fbAverages').innerHTML = `
       <div class="feedback-avg-card" style="margin-bottom:1.5rem;">
@@ -2248,7 +2268,7 @@ window.loadExistingFeedback = async function() {
 
     const comments = feedbacks.filter(f=>f.comment).map(f=>`
       <div style="padding:1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.75rem;font-size:0.9rem;color:var(--text);">
-        ${f.comment}
+        ${chatEscapeHtml(f.comment)}
       </div>`).join('');
     document.getElementById('fbComments').innerHTML = comments ? `<h4 style="margin-bottom:1rem;">Written Feedback</h4>${comments}` : '';
   } catch(e) { console.warn('Load feedback error',e); }
@@ -2308,7 +2328,7 @@ window.submitFeedback = async function() {
   } catch(e) {
     fbErr.textContent = 'Failed to submit. Try again.'; fbErr.style.display='block';
   } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback →'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
     _feedbackSubmissionInProgress = false;
   }
 };
@@ -2341,7 +2361,7 @@ async function loadVoting() {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
         <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
         <h3 style="font-family:var(--font-body);color:#2e7d32;">You Have Already Voted</h3>
-        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${sessionData.meetTitle||'this meeting'}</strong> has been recorded.</p>
+        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${chatEscapeHtml(sessionData.meetTitle||'this meeting')}</strong> has been recorded.</p>
       </div>`; return;
     }
 
@@ -2356,22 +2376,22 @@ async function loadVoting() {
     const voteSelections = {};
     container.innerHTML = `
       <div class="card" style="margin-bottom:1.5rem;border:1px solid rgba(255,87,34,0.2);background:var(--orange-light);">
-        <h3 style="margin:0;display:flex;align-items:center;gap:0.6rem;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);"></i> ${sessionData.meetTitle||'Meeting'} — Voting Open</h3>
+        <h3 style="margin:0;display:flex;align-items:center;gap:0.6rem;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);"></i> ${chatEscapeHtml(sessionData.meetTitle||'Meeting')}: Voting Open</h3>
         <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--text-mid);">Your vote is anonymous and non-traceable.</p>
       </div>
       <form id="voteForm">
         ${categories.map(cat => `
           <div class="vote-category">
-            <h4>${cat.label}</h4>
+            <h4>${chatEscapeHtml(cat.label)}</h4>
             <div class="vote-options">
               ${cat.candidates.map(c => `
                 <label class="vote-option" onclick="this.classList.add('selected');this.closest('.vote-options').querySelectorAll('.vote-option:not(label:has(input:checked))').forEach(el=>el.classList.remove('selected'));">
-                  <input type="radio" name="${cat.key}" value="${c.uid||c.name}" style="pointer-events:none;" />
-                  <span>${c.name}</span>
+                  <input type="radio" name="${cat.key}" value="${chatEscapeHtml(c.uid||c.name)}" style="pointer-events:none;" />
+                  <span>${chatEscapeHtml(c.name)}</span>
                 </label>`).join('')}
             </div>
           </div>`).join('')}
-        <button type="button" class="btn-primary" onclick="submitVote('${sessionId}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote &rarr;</button>
+        <button type="button" class="btn-primary" onclick="submitVote('${jsAttr(sessionId)}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote</button>
         <p style="text-align:center;font-size:0.8rem;color:var(--text-light);margin-top:0.75rem;">Your identity will not be stored with your vote.</p>
       </form>`;
   } catch(e) { console.warn('Voting error',e); container.innerHTML = '<div class="card"><p style="color:var(--text-mid);">Could not load voting session.</p></div>'; }
@@ -2403,29 +2423,26 @@ window.submitVote = async function(sessionId) {
     const choices = {};
     radios.forEach(r => { choices[r.name] = r.value; });
 
-    // Deterministic, per-voter-per-session ID — resubmits OVERWRITE instead of duplicating.
-    const voteDocId = await hashVoterSession(currentUid, sessionId);
-
-    await setDoc(doc(db,'votes',voteDocId), { sessionId, choices, updatedAt: serverTimestamp() });
-    await setDoc(doc(db,'voteRecords',currentUid+'_'+sessionId), { sessionId, voterUid: currentUid, createdAt: serverTimestamp() });
+    // castVote checks eligibility and records exactly one anonymous vote.
+    await httpsCallable(functions, 'castVote')({ sessionId, choices });
     loadVoting();
   } catch(e) {
-    alert('Failed to submit vote. Please try again.');
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote →'; }
+    alert(e.code === 'functions/already-exists' ? 'You have already voted in this session.' : 'Failed to submit vote. Please try again.');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote'; }
   } finally {
     // Always release the lock, whether we succeeded, failed, or returned early on validation
     _voteSubmissionInProgress = false;
   }
 };
 
-async function hashVoterSession(uid, sessionId) {
-  const data = new TextEncoder().encode(uid + '_' + sessionId);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
 // ── ANALYSIS CHARTS ───────────────────────────────────────
+let Chart = null;
 async function loadAndRenderAnalysis() {
+  // Chart.js is only needed once someone opens the Analysis section — load
+  // it on demand instead of as a render-blocking <script> in <head>.
+  if (!Chart) {
+    ({ default: Chart } = await import('chart.js/auto'));
+  }
   // Load feedback where this user is the speaker
   let feedbacks = [];
   try {
@@ -2511,7 +2528,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
         x: xIdx,
         y: yIdx + jitter,
         _color: ROLE_DEFS[yIdx].color,
-        _tooltip: `${roleLabel}  —  ${e.title || 'Event'}  (${ROLE_DEFS[yIdx].pts} pt${ROLE_DEFS[yIdx].pts !== 1 ? 's' : ''})`
+        _tooltip: `${roleLabel}: ${e.title || 'Event'}  (${ROLE_DEFS[yIdx].pts} pt${ROLE_DEFS[yIdx].pts !== 1 ? 's' : ''})`
       });
     };
 
@@ -2601,7 +2618,7 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
             grid: { color: 'rgba(128,128,128,0.1)', lineWidth: 1 },
             title: {
               display: true,
-              text: '← higher value roles',
+              text: 'Higher value roles at the top',
               color: '#444444', // <-- CHANGED TO DARKER GREY
               font: { size: 11 }
             }
@@ -2640,25 +2657,25 @@ function renderCharts(avgScores, eventsCache, feedbacks) {
       const vals = Object.values(f.ratings||{}).map(Number).filter(v=>v>0);
       return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
     }).filter(v=>v>0);
-    const avg = perFeedback.length ? (perFeedback.reduce((a,b)=>a+b,0)/perFeedback.length).toFixed(1) : '—';
+    const avg = perFeedback.length ? (perFeedback.reduce((a,b)=>a+b,0)/perFeedback.length).toFixed(1) : '-';
     const catAvgs = FB_CATEGORIES.map((_,i) => {
       const vals = fbs.map(f=>Number(f.ratings?.[i])||0).filter(v=>v>0);
-      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
     });
     const comments = fbs.filter(f=>f.comment?.trim());
     return `<div style="padding:1.1rem 1.25rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:1rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-        <strong style="font-size:0.95rem;">${evTitle}</strong>
+        <strong style="font-size:0.95rem;">${chatEscapeHtml(evTitle)}</strong>
         <span style="font-size:1.2rem;font-weight:800;color:var(--orange);">${avg}<span style="font-size:0.75rem;font-weight:600;color:var(--text-light);">/5</span></span>
       </div>
       <div style="font-size:0.78rem;color:var(--text-light);margin-bottom:0.75rem;">${fbs.length} response${fbs.length!==1?'s':''}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.4rem;margin-bottom:${comments.length?'0.75rem':'0'};">
         ${FB_CATEGORIES.map((cat,i)=>`<div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
           <span style="color:var(--text-mid);">${cat}</span>
-          <span style="font-weight:700;color:${catAvgs[i]==='—'?'var(--text-light)':'var(--text)'};">${catAvgs[i]}</span>
+          <span style="font-weight:700;color:${catAvgs[i]==='-'?'var(--text-light)':'var(--text)'};">${catAvgs[i]}</span>
         </div>`).join('')}
       </div>
-      ${comments.map(f=>`<div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);margin-top:0.5rem;font-size:0.85rem;color:var(--text-mid);font-style:italic;">"${f.comment}"</div>`).join('')}
+      ${comments.map(f=>`<div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);margin-top:0.5rem;font-size:0.85rem;color:var(--text-mid);font-style:italic;">"${chatEscapeHtml(f.comment)}"</div>`).join('')}
     </div>`;
   }).join('');
 }
@@ -2669,7 +2686,7 @@ window.showSpeechDetails = function(speech, lvlKey, stepNum, guideLink) {
   const modal = document.getElementById('speechModal');
   const name = typeof speech==='string' ? speech : (speech.name||`Project ${stepNum}`);
   document.getElementById('modalTitle').textContent = name;
-  document.getElementById('modalLvl').textContent = `${lvlKey} — Project ${stepNum}`;
+  document.getElementById('modalLvl').textContent = `${lvlKey}, Project ${stepNum}`;
 
 const purpWrap = document.getElementById('modalPurposeWrap');
 if (typeof speech==='object' && speech.purpose) {
@@ -2687,14 +2704,14 @@ if (typeof speech==='object' && speech.purpose) {
   const guideBtn = document.getElementById('modalGuideBtn');
   const effectiveLink = (typeof speech==='object'&&speech.guideLink) ? speech.guideLink : guideLink;
   if (effectiveLink) {
-    guideBtn.href = effectiveLink; guideBtn.style.display='inline-flex';
+    guideBtn.href = chatSafeUrl(effectiveLink) || '#'; guideBtn.style.display='inline-flex';
   } else { guideBtn.style.display='none'; }
 
   const filesWrap = document.getElementById('modalFiles');
   filesWrap.innerHTML = '';
   if (typeof speech==='object'&&speech.files?.length) {
     speech.files.forEach(f => {
-      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault()"><i class="fa-solid fa-file-pdf"></i> ${f}</a>`;
+      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault()"><i class="fa-solid fa-file-pdf"></i> ${chatEscapeHtml(f)}</a>`;
     });
   }
   modal.style.display = 'flex';
@@ -2872,12 +2889,8 @@ const CHAT_EMOJI_LIST = [
 
 function isChatAdmin() { return !!(userData && ['admin','core'].includes(userData.role)); }
 
-function chatEscapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str == null ? '' : String(str);
-  return d.innerHTML;
-}
 function chatEscapeRegex(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
 function chatToDate(ts) {
   if (!ts) return new Date();
   return ts.toDate ? ts.toDate() : new Date(ts);
@@ -2913,7 +2926,7 @@ window.initChatSection = async function() {
 function startChatPolling() {
   stopChatPolling();
   if (document.visibilityState !== 'visible') return;
-  chatPollTimer = setInterval(chatPoll, 1000);
+  chatPollTimer = setInterval(chatPoll, 3000);
 }
 function stopChatPolling() {
   if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
@@ -3206,7 +3219,7 @@ function renderChatMessages(scrollToBottom) {
   // node, which by itself resets scrollTop to 0 — previously nothing
   // restored it unless wasNearBottom was true. That's what made opening the
   // reaction picker (or a reaction chip's names dropdown) on a message
-  // inside a collapsed day fold "jump to the top": every click on 😊 (or a
+  // inside a collapsed day fold "jump to the top": every click on the emoji button (or a
   // chip) calls renderChatMessages(false) to redraw the picker, the fold's
   // open state is preserved (see chatOpenFolds below) so the message stayed
   // visible, but at a completely different on-screen Y position. The user's
@@ -3298,13 +3311,13 @@ function renderChatMessages(scrollToBottom) {
     const monthCount = yearEntry.months.size;
     const msgCount = [...yearEntry.months.values()].reduce((a,mo)=>a+mo.days.reduce((b,d)=>b+d.messages.length,0),0);
     html += `<details class="chat-fold chat-fold-year" data-fold-key="year:${y}">
-      <summary>📅 ${y} <span class="chat-fold-meta">${monthCount} month${monthCount!==1?'s':''} &middot; ${msgCount} message${msgCount!==1?'s':''}</span></summary>
+      <summary>${y} <span class="chat-fold-meta">${monthCount} month${monthCount!==1?'s':''} &middot; ${msgCount} message${msgCount!==1?'s':''}</span></summary>
       <div class="chat-fold-body">`;
     [...yearEntry.months.keys()].sort((a,b)=>a-b).forEach(m => {
       const monthEntry = yearEntry.months.get(m);
       const monthMsgCount = monthEntry.days.reduce((a,d)=>a+d.messages.length,0);
       html += `<details class="chat-fold chat-fold-month" data-fold-key="month:${y}-${m}">
-        <summary>🗓️ ${chatEscapeHtml(chatIstMonthLabel(y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
+        <summary>${chatEscapeHtml(chatIstMonthLabel(y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
         <div class="chat-fold-body">`;
       monthEntry.days.forEach(day => { html += renderChatDayGroup(day); });
       html += `</div></details>`;
@@ -3319,7 +3332,7 @@ function renderChatMessages(scrollToBottom) {
       const monthEntry = curYearEntry.months.get(m);
       const monthMsgCount = monthEntry.days.reduce((a,d)=>a+d.messages.length,0);
       html += `<details class="chat-fold chat-fold-month" data-fold-key="month:${nowP.y}-${m}">
-        <summary>🗓️ ${chatEscapeHtml(chatIstMonthLabel(nowP.y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
+        <summary>${chatEscapeHtml(chatIstMonthLabel(nowP.y,m))} <span class="chat-fold-meta">${monthMsgCount} message${monthMsgCount!==1?'s':''}</span></summary>
         <div class="chat-fold-body">`;
       monthEntry.days.forEach(day => { html += renderChatDayGroup(day); });
       html += `</div></details>`;
@@ -3334,7 +3347,7 @@ function renderChatMessages(scrollToBottom) {
   if (todayBucket && todayBucket.messages.length) {
     html += todayBucket.messages.map(renderChatBubble).join('');
   } else {
-    html += `<p style="padding:1.5rem;text-align:center;color:var(--text-mid);font-size:0.85rem;">No messages yet today — say hi! 👋</p>`;
+    html += `<p style="padding:1.5rem;text-align:center;color:var(--text-mid);font-size:0.85rem;">No messages yet today.</p>`;
   }
 
   container.innerHTML = html || '<p style="padding:2rem;text-align:center;color:var(--text-mid);">No messages yet. Start the conversation!</p>';
@@ -3388,7 +3401,7 @@ function renderChatMessages(scrollToBottom) {
 function renderChatDayGroup(day) {
   const label = chatIstDayLabel(new Date(Date.UTC(day.y, day.m-1, day.d, 12)));
   return `<details class="chat-fold chat-fold-day" data-fold-key="day:${day.y}-${day.m}-${day.d}">
-    <summary>📆 ${chatEscapeHtml(label)} <span class="chat-fold-meta">${day.messages.length} message${day.messages.length!==1?'s':''}</span></summary>
+    <summary>${chatEscapeHtml(label)} <span class="chat-fold-meta">${day.messages.length} message${day.messages.length!==1?'s':''}</span></summary>
     <div class="chat-fold-body">${day.messages.map(renderChatBubble).join('')}</div>
   </details>`;
 }
@@ -3413,13 +3426,18 @@ function chatRenderText(msg) {
 // Aggregates the { uid: {emoji,name} } reaction map into emoji chips with
 // counts (req 2), highlighting the one the current user picked. Clicking a
 // chip opens a small dropdown listing who reacted with that emoji, rather
-// than reacting — reacting/un-reacting stays on the 😊 picker button so the
+// than reacting — reacting/un-reacting stays on the emoji picker button so the
 // two actions (react vs. see who reacted) don't fight over the same click.
 function chatBuildReactionsHtml(msg) {
   if (!msg.reactions) return '';
   const groups = {}; // emoji -> [names]
   Object.values(msg.reactions).forEach(r => {
-    if (!r || !r.emoji) return;
+    // Reaction docs are writable by any signed-in member with an arbitrary
+    // `emoji` string (see security finding S2) — only render/act on emojis
+    // from our own allow-listed set, which also guarantees `emo` below can
+    // never break out of the HTML attribute or the onclick JS string it's
+    // interpolated into.
+    if (!r || !r.emoji || !CHAT_EMOJI_LIST.includes(r.emoji)) return;
     (groups[r.emoji] = groups[r.emoji] || []).push(r.name || 'Member');
   });
   const entries = Object.entries(groups);
@@ -3452,13 +3470,16 @@ function renderChatBubble(msg) {
   const isMe = userData && msg.senderUid === currentUid;
   const isAdminUser = isChatAdmin();
   const initials = (msg.senderName||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const avatar = msg.senderPhoto
-    ? `<img src="${msg.senderPhoto}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
-    : initials;
+  const safeSenderPhoto = chatSafeUrl(msg.senderPhoto);
+  const avatar = safeSenderPhoto
+    ? `<img src="${chatEscapeHtml(safeSenderPhoto)}" alt="${chatEscapeHtml(msg.senderName||'')}" />`
+    : chatEscapeHtml(initials);
   const timeLabel = chatIstTime(chatToDate(msg.createdAt));
   const dayLabel = chatIstDayLabel(chatToDate(msg.createdAt));
-  const safeName = chatEscapeHtml(msg.senderName||'Member').replace(/'/g,"\\'");
-  const safeSnippet = chatEscapeHtml((msg.text||'').slice(0,120)).replace(/'/g,"\\'");
+  // jsAttr: these go inside onclick="...('...')", where HTML entities are
+  // decoded BEFORE the JS runs, so plain HTML escaping is not enough.
+  const safeName = jsAttr(msg.senderName||'Member');
+  const safeSnippet = jsAttr((msg.text||'').slice(0,120));
 
   // req 5: soft-deleted placeholder — no text, reactions, or further actions.
   if (msg.deleted) {
@@ -3479,7 +3500,7 @@ function renderChatBubble(msg) {
   }
 
   const replyHtml = msg.replyTo
-    ? `<div class="chat-reply-tag" onclick="scrollToChatMessage('${msg.replyTo.id}')">
+    ? `<div class="chat-reply-tag" onclick="scrollToChatMessage('${jsAttr(msg.replyTo.id)}')">
         <i class="fa-solid fa-reply"></i> <strong>${chatEscapeHtml(msg.replyTo.name)}</strong>: ${chatEscapeHtml(msg.replyTo.text)}
       </div>`
     : '';
@@ -3774,8 +3795,8 @@ function chatUpdateMentionDropdown() {
   box.innerHTML = matches.map(u => {
     const initials = (u.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const inactiveTag = u.isActive === false ? '<span class="chat-mention-inactive">inactive</span>' : '';
-    return `<button type="button" class="chat-mention-item" onclick="pickChatMention('${u.id}')">
-      <span class="chat-mention-avatar">${u.photoUrl ? `<img src="${u.photoUrl}"/>` : initials}</span>
+    return `<button type="button" class="chat-mention-item" onclick="pickChatMention('${jsAttr(u.id)}')">
+      <span class="chat-mention-avatar">${chatSafeUrl(u.photoUrl) ? `<img src="${chatEscapeHtml(chatSafeUrl(u.photoUrl))}"/>` : chatEscapeHtml(initials)}</span>
       <span class="chat-mention-name">${chatEscapeHtml(u.name||'Member')}</span>
       ${inactiveTag}
     </button>`;

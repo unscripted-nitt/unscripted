@@ -229,6 +229,11 @@
     font-size: 1rem;
     color: rgba(240,237,232,0.75);
   }
+  .hero .hero-cta {
+    margin-top: 1.75rem;
+    justify-content: center;
+  }
+  .hero .hero-cta a { flex: 1 1 10rem; justify-content: center; }
 }
 
 
@@ -538,9 +543,6 @@
   .login-card h2 { font-size: 1.5rem; }
 }
 @media (max-width: 380px) {
-  #newVisitorModal > div {
-    padding: 2rem 1.25rem !important;
-  }
   .modal-card {
     padding: 1.5rem 1.25rem;
   }

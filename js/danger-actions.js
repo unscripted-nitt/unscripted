@@ -32,17 +32,18 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
+import { escapeHtml, jsAttr } from './escape.js';
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, serverTimestamp
+  doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SIMPLE_DELETE_COLLECTIONS = ['users', 'gallery', 'videos', 'votingSessions', 'notifications'];
 
 /** Three sequential confirm() dialogs, as required for every dangerous action. */
 export function tripleConfirm(label) {
-  if (!confirm(`⚠️ ${label}`)) return false;
-  if (!confirm('Second confirmation — are you absolutely sure you want to proceed?')) return false;
-  if (!confirm('Final (3rd) confirmation — this also requires a SECOND admin to approve before it takes effect. Continue?')) return false;
+  if (!confirm(`Warning: ${label}`)) return false;
+  if (!confirm('Second confirmation. Are you sure you want to go ahead?')) return false;
+  if (!confirm('Final (3rd) confirmation. A second admin also has to approve this before it takes effect. Continue?')) return false;
   return true;
 }
 
@@ -56,7 +57,9 @@ export function tripleConfirm(label) {
  * @param {string} label     shown in the confirm dialogs / pending list
  * @param {{uid:string,name:string}} me   the current admin
  * @param {{collection:string, docId:string}} target  what this deletes/resets
- * @param {Function} performFn  async () => void — the real delete/write
+ * @param {Function} performFn  async (pendingRef) => void — the real delete/write.
+ *   Return 'executed' if it already marked pendingRef executed itself
+ *   (see resetSettingsDoc, which must do both in one batch).
  */
 export async function runDualApprovalAction(actionId, label, me, target, performFn) {
   if (!tripleConfirm(label)) return;
@@ -71,7 +74,7 @@ export async function runDualApprovalAction(actionId, label, me, target, perform
       requestedBy: me.uid, requestedByName: me.name || '',
       approvals: [me.uid], status: 'pending', createdAt: serverTimestamp(),
     });
-    alert('Request recorded. This needs approval from a second admin — see "Pending Approvals" below.');
+    alert('Request recorded. This needs approval from a second admin. See "Pending Approvals" below.');
     return;
   }
 
@@ -91,13 +94,26 @@ export async function runDualApprovalAction(actionId, label, me, target, perform
   }
 
   try {
-    await performFn();
-    await updateDoc(ref, { status: 'executed', executedAt: serverTimestamp() });
-    alert('Approved by 2 admins — action completed.');
+    const result = await performFn(ref);
+    if (result !== 'executed') await updateDoc(ref, { status: 'executed', executedAt: serverTimestamp() });
+    alert('Approved by 2 admins. Done.');
   } catch (e) {
     await updateDoc(ref, { status: 'failed', error: String(e.message || e) }).catch(() => {});
     alert('Approved, but the action failed: ' + e.message);
   }
+}
+
+/**
+ * Resets a settings doc (the leaderboard) and marks its approval executed
+ * in ONE batch. Firestore rules require both together, so an approval
+ * can only ever be used once.
+ */
+export async function resetSettingsDoc(docId, pendingRef) {
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'settings', docId), { resetAt: serverTimestamp() }, { merge: true });
+  batch.update(pendingRef, { status: 'executed', executedAt: serverTimestamp() });
+  await batch.commit();
+  return 'executed';
 }
 
 /**
@@ -118,7 +134,7 @@ export async function requestOrApproveServerAction(actionId, kind, label, me, ex
       requestedBy: me.uid, requestedByName: me.name || '',
       approvals: [me.uid], status: 'pending', createdAt: serverTimestamp(),
     });
-    alert('Request recorded. This needs approval from a second admin before it runs — see "Pending Approvals" below.');
+    alert('Request recorded. This needs approval from a second admin before it runs. See "Pending Approvals" below.');
     return;
   }
 
@@ -132,7 +148,7 @@ export async function requestOrApproveServerAction(actionId, kind, label, me, ex
   const nowApproved = approvals.length >= 2;
   await updateDoc(ref, { approvals, status: nowApproved ? 'approved' : 'pending' });
   alert(nowApproved
-    ? 'Approved by 2 admins — this will run in the background within a few seconds.'
+    ? 'Approved by 2 admins. This will run in the background in a few seconds.'
     : 'Approval recorded. Still needs one more admin.');
 }
 
@@ -147,19 +163,19 @@ export function watchPendingActions(containerEl, me, isPrimaryAdmin) {
       const mine = a.approvals.includes(me.uid);
       const needsManualRerun = a.status === 'approved' && a.kind === 'delete' && a.targetCollection === 'events';
       const statusTag = a.status === 'failed'
-        ? `<span style="color:#c62828;font-weight:700;">FAILED — ${a.error || ''}</span>`
+        ? `<span style="color:#c62828;font-weight:700;">FAILED: ${escapeHtml(a.error || '')}</span>`
         : a.status === 'approved' ? (needsManualRerun
-            ? '<span style="color:#e65100;font-weight:700;">Approved — click Delete on that event again to finish</span>'
-            : '<span style="color:#2e7d32;font-weight:700;">Approved — executing…</span>')
+            ? '<span style="color:#e65100;font-weight:700;">Approved. Click Delete on that event again to finish</span>'
+            : '<span style="color:#2e7d32;font-weight:700;">Approved, running…</span>')
         : `<span>${a.approvals.length}/2 approvals</span>`;
       rows.push(`
         <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:8px;margin-bottom:0.6rem;">
           <div>
-            <div style="font-weight:600;">${a.label}</div>
-            <div style="font-size:0.78rem;color:var(--text-light);">Requested by ${a.requestedByName || a.requestedBy} · ${statusTag}</div>
+            <div style="font-weight:600;">${escapeHtml(a.label)}</div>
+            <div style="font-size:0.78rem;color:var(--text-light);">Requested by ${escapeHtml(a.requestedByName || a.requestedBy)} · ${statusTag}</div>
           </div>
           ${a.status === 'pending' && !mine
-            ? `<button class="btn-primary" style="padding:0.4rem 0.9rem;font-size:0.82rem;" onclick="window.__approvePendingAction('${d.id}')">Approve</button>`
+            ? `<button class="btn-primary" style="padding:0.4rem 0.9rem;font-size:0.82rem;" onclick="window.__approvePendingAction('${jsAttr(d.id)}')">Approve</button>`
             : mine ? '<span style="font-size:0.78rem;color:var(--text-light);">You approved this</span>' : ''}
         </div>`);
     });
@@ -200,9 +216,8 @@ export async function approvePendingActionGeneric(actionId, me) {
     }
   } else if (data.kind === 'delete' && data.targetCollection === 'settings') {
     try {
-      await setDoc(doc(db, 'settings', data.targetDocId), { resetAt: serverTimestamp() }, { merge: true });
-      await updateDoc(ref, { status: 'executed', executedAt: serverTimestamp() });
-      alert('Approved — leaderboard reset.');
+      await resetSettingsDoc(data.targetDocId, ref);
+      alert('Approved. Leaderboard reset.');
     } catch (e) {
       await updateDoc(ref, { status: 'failed', error: String(e.message || e) }).catch(() => {});
       alert('Approved, but the reset failed: ' + e.message);

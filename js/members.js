@@ -1,5 +1,6 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { escapeHtml, attrUrl, safeColor } from './escape.js';
 
 const COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315'];
 let allMembers = [];
@@ -31,20 +32,21 @@ function renderMembers(members) {
   }
   grid.innerHTML = members.map((m, i) => {
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const color = m.avatarColor || COLORS[i % COLORS.length];
+    const color = safeColor(m.avatarColor, COLORS[i % COLORS.length]);
     const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
     const roleColor = m.role === 'core' || m.role === 'admin' ? 'var(--orange)' : 'var(--text-light)';
-    const avatarHtml = m.photoUrl
-      ? '<img src="' + m.photoUrl + '" alt="' + (m.name||'Member') + '" />'
-      : initials;
+    const photo = attrUrl(m.photoUrl);
+    const avatarHtml = photo
+      ? '<img src="' + photo + '" alt="' + escapeHtml(m.name||'Member') + '" />'
+      : escapeHtml(initials);
     const degreeHtml = m.degree
-      ? '<div class="dept" style="font-size:0.72rem;">' + m.degree + '</div>'
+      ? '<div class="dept" style="font-size:0.72rem;">' + escapeHtml(m.degree) + '</div>'
       : '';
-    const batchHtml = m.batch ? ' &middot; ' + m.batch : '';
+    const batchHtml = m.batch ? ' &middot; ' + escapeHtml(m.batch) : '';
     return '<div class="member-card fade-up visible">'
-      + '<div class="avatar" style="background:' + (m.photoUrl ? 'transparent' : color) + '">' + avatarHtml + '</div>'
-      + '<h3>' + (m.name||'Member') + '</h3>'
-      + '<div class="dept">' + (m.department||m.dept||'') + batchHtml + '</div>'
+      + '<div class="avatar" style="background:' + (photo ? 'transparent' : color) + '">' + avatarHtml + '</div>'
+      + '<h3>' + escapeHtml(m.name||'Member') + '</h3>'
+      + '<div class="dept">' + escapeHtml(m.department||m.dept||'') + batchHtml + '</div>'
       + degreeHtml
       + '<div class="video-meta" style="color:' + roleColor + ';margin-top:0.4rem;">' + roleLabel + '</div>'
       + '</div>';

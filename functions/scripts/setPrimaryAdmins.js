@@ -60,18 +60,18 @@ async function run() {
   for (const name of NAMES_TO_PROMOTE) {
     const match = usersSnap.docs.find((d) => (d.data().name || "").trim() === name);
     if (!match) {
-      console.warn(`⚠️  No user found with name "${name}" — skipped. (Check spelling / that they've logged in at least once.)`);
+      console.warn(`Warning: no user found with name "${name}" — skipped. (Check spelling / that they've logged in at least once.)`);
       continue;
     }
     const data = match.data();
     const role = ["admin", "core"].includes(data.role) ? data.role : "admin";
     await match.ref.set({ role, isPrimaryAdmin: true }, { merge: true });
-    console.log(`✅ ${name} (${match.id}) set as primary admin, role="${role}".`);
+    console.log(`${name} (${match.id}) set as primary admin, role="${role}".`);
   }
   process.exit(0);
 }
 
 run().catch((e) => {
-  console.error("❌ Failed:", e);
+  console.error("Failed:", e);
   process.exit(1);
 });

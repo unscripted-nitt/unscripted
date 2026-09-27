@@ -3,6 +3,7 @@ import { db, auth } from './firebase-config.js';
 import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { cachedFetch } from './data-cache.js';
+import { escapeHtml } from './escape.js';
 import { StackGallery } from './stack-gallery.js';
 import { resolveEventType, eventEndMs } from './event-status.js';
 
@@ -20,14 +21,14 @@ function renderEvents(container, events) {
     if (e.rolesDisplay?.length) {
       rolesHtml = '<div class="event-roles-grid">' +
         e.rolesDisplay.map(r =>
-          `<span class="role-tag"><strong>${r.role}</strong> ${r.name}</span>`
+          `<span class="role-tag"><strong>${escapeHtml(r.role)}</strong> ${escapeHtml(r.name)}</span>`
         ).join('') + '</div>';
     }
     container.innerHTML += `
       <div class="event-card fade-up active-event">
-        <div class="event-date">${e.dateStr}</div>
-        <div class="event-title">${e.title || 'Untitled Event'}</div>
-        <div class="event-desc">${e.description || ''}</div>
+        <div class="event-date">${escapeHtml(e.dateStr)}</div>
+        <div class="event-title">${escapeHtml(e.title || 'Untitled Event')}</div>
+        <div class="event-desc">${escapeHtml(e.description || '')}</div>
         ${rolesHtml}
         <span class="event-badge badge-upcoming" style="margin-top:1rem;">Upcoming</span>
       </div>`;
@@ -51,7 +52,7 @@ async function loadEventsPreview() {
       snap.forEach(doc => {
         const e = doc.data();
         if (resolveEventType(e) !== 'upcoming') return;
-        let dateStr = '—';
+        let dateStr = '-';
         if (e.date) {
           try {
             const d = e.date.toDate ? e.date.toDate() : new Date(e.date);
@@ -82,16 +83,18 @@ async function loadGalleryPreview(isLoggedIn = false) {
   if (!container) return;
   try {
     await cachedFetch(`gallery:${isLoggedIn}`, async () => {
-      // Always fetch all, filter client-side to avoid needing composite Firestore index
-      const q = query(collection(db, 'gallery'), orderBy('date', 'desc'));
+      // Visitors may only read public photos (firestore.rules enforce it), so
+      // they must ask for exactly those. Sorted here to avoid needing a
+      // composite Firestore index for where() + orderBy().
+      const q = isLoggedIn
+        ? query(collection(db, 'gallery'), orderBy('date', 'desc'))
+        : query(collection(db, 'gallery'), where('visibility', '==', 'public'));
       const snap = await getDocs(q);
-      const urls = [];
-      snap.forEach(doc => {
-        const p = doc.data();
-        if (!isLoggedIn && p.visibility !== 'public') return;
-        urls.push(p.url);
-      });
-      return urls;
+      const ms = d => d?.toMillis ? d.toMillis() : (d ? new Date(d).getTime() : 0);
+      return snap.docs
+        .map(doc => doc.data())
+        .sort((a, b) => ms(b.date) - ms(a.date))
+        .map(p => p.url);
     }, urls => renderGallery(container, urls));
   } catch (err) {
     console.warn('Gallery error:', err);
@@ -99,7 +102,8 @@ async function loadGalleryPreview(isLoggedIn = false) {
   }
 }
 
-onAuthStateChanged(auth, user => loadGalleryPreview(!!user));
+// Guests (anonymous accounts) only get the public photos, like visitors.
+onAuthStateChanged(auth, user => loadGalleryPreview(!!user && !user.isAnonymous));
 
 function openLightbox(src) {
   const lb  = document.getElementById('lightbox');
@@ -122,8 +126,8 @@ function renderPathways(container, data) {
     card.style.transitionDelay = (i * 0.1) + 's';
     card.innerHTML = `
       <div class="pathway-num">${nums[i]}</div>
-      <h3>${p.name || id}</h3>
-      <p>${p.description || ''}</p>
+      <h3>${escapeHtml(p.name || id)}</h3>
+      <p>${escapeHtml(p.description || '')}</p>
       <span class="pathway-tag">${labels[i]}</span>`;
     container.appendChild(card);
   });

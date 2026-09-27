@@ -6,15 +6,13 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — Unscripted NITT</title>
+  <title>Admin Dashboard | Unscripted NITT</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     /* Admin-specific overrides */
@@ -79,8 +77,6 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <!-- ── TOP NAV ──────────────────────────────────────────── -->
@@ -89,7 +85,7 @@
     <button class="hamburger-admin" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
     <!-- req 12: same logo as other pages, working home link -->
     <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
-      <img src="../icons/logo.png" alt="Unscripted" style="height:42px;width:auto;" />
+      <img src="../icons/logo-sm.png" alt="Unscripted" style="height:42px;width:auto;" />
     </a>
     <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-light);border-left:1px solid var(--border);padding-left:1rem;display:none;" id="adminLabel">ADMIN COMMAND</span>
   </div>
@@ -150,22 +146,22 @@
       <p class="section-sub">Live overview of club activity</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Live snapshot of club activity. <strong>Total Members</strong>, <strong>Avg Attendance</strong>, <strong>Perfect Attendance</strong>, <strong>Total Roles Filled</strong>, <strong>Avg Points / Member</strong>, <strong>Top Contributors</strong>, and <strong>Pathway Distribution</strong> all reflect <strong>active members only</strong> — inactive members are excluded from every one of those numbers. <strong>Speeches Delivered</strong>, <strong>Total Events</strong>, and <strong>Meets This Month</strong> are club-wide counts across every event, regardless of any member's active status. <strong>Upcoming Meet Roles</strong> shows the roster for the next active or upcoming event — assign roles first in the Role Assignments section.</span>
+  <span>Live snapshot of club activity. <strong>Total Members</strong>, <strong>Avg Attendance</strong>, <strong>Perfect Attendance</strong>, <strong>Total Roles Filled</strong>, <strong>Avg Points / Member</strong>, <strong>Top Contributors</strong>, and <strong>Pathway Distribution</strong> all reflect <strong>active members only</strong>. Inactive members are left out of those numbers. <strong>Speeches Delivered</strong>, <strong>Total Events</strong>, and <strong>Meets This Month</strong> are club-wide counts across every event, regardless of any member's active status. <strong>Upcoming Meet Roles</strong> shows the roster for the next active or upcoming event. Assign roles first in the Role Assignments section.</span>
 </div>
       <div class="grid-insights">
-        <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">—</div></div>
-        <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">—</div></div>
-        <div class="stat-box"><div class="label">Avg Attendance</div><div class="num" id="insightAvgAtt">—</div></div>
-        <div class="stat-box"><div class="label">Total Events</div><div class="num" id="insightEvents">—</div></div>
-        <div class="stat-box"><div class="label">Perfect Attendance</div><div class="num" id="insightPerfectAtt">—</div></div>
-        <div class="stat-box"><div class="label">Total Roles Filled</div><div class="num" id="insightTotalRoles">—</div></div>
-        <div class="stat-box"><div class="label">Avg Points / Member</div><div class="num" id="insightAvgPoints">—</div></div>
-        <div class="stat-box"><div class="label">Meets This Month</div><div class="num" id="insightMeetsMonth">—</div></div>
+        <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">-</div></div>
+        <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">-</div></div>
+        <div class="stat-box"><div class="label">Avg Attendance</div><div class="num" id="insightAvgAtt">-</div></div>
+        <div class="stat-box"><div class="label">Total Events</div><div class="num" id="insightEvents">-</div></div>
+        <div class="stat-box"><div class="label">Perfect Attendance</div><div class="num" id="insightPerfectAtt">-</div></div>
+        <div class="stat-box"><div class="label">Total Roles Filled</div><div class="num" id="insightTotalRoles">-</div></div>
+        <div class="stat-box"><div class="label">Avg Points / Member</div><div class="num" id="insightAvgPoints">-</div></div>
+        <div class="stat-box"><div class="label">Meets This Month</div><div class="num" id="insightMeetsMonth">-</div></div>
       </div>
       <div class="admin-grid-2">
         <div class="card">
           <h3><i class="fa-solid fa-ranking-star" style="color:var(--orange);margin-right:0.4rem;"></i>Top Contributors</h3>
-          <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">By total leaderboard points — updates with the Activity Matrix.</p>
+          <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">By total leaderboard points. Updates with the Activity Matrix.</p>
           <div id="insightTopContributors"><p style="color:var(--text-mid);">Loading...</p></div>
         </div>
         <div class="card">
@@ -186,7 +182,7 @@
       <p class="section-sub">Aggregated role points and involvement across all meetings</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>Full breakdown of every active member's role counts and total points across all meets. Sorted by points (highest first). Use <strong>Export CSV</strong> to download. Use <strong>Clear Leaderboard</strong> at the bottom to reset totals to zero — no data is deleted, only the display resets from that point.</span>
+  <span>Full breakdown of every active member's role counts and total points across all meets. Sorted by points (highest first). Use <strong>Export CSV</strong> to download. Use <strong>Clear Leaderboard</strong> at the bottom to reset totals to zero. No data is deleted, only the display resets from that point.</span>
 </div>
       <div class="card" style="padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem;">
@@ -202,7 +198,7 @@
         <div class="card" style="margin-top:1.5rem;border:1px solid rgba(198,40,40,0.15);">
   <h4 style="margin:0 0 0.5rem;color:var(--text);">Danger Zone</h4>
   <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1rem;">
-    Clears all leaderboard totals to zero. <strong>No data is deleted</strong> — roles, attendance, and member records are untouched. New events added after this point will start accumulating again.
+    Clears all leaderboard totals to zero. <strong>No data is deleted</strong>. Roles, attendance and member records stay as they are. New events added after this point will start accumulating again.
   </p>
   <button onclick="clearLeaderboard()" style="background:#fff0f0;color:#c62828;border:1px solid rgba(198,40,40,0.2);padding:0.6rem 1.4rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.82rem;">
     Clear Leaderboard (Reset to Zero)
@@ -216,7 +212,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
         <h1 class="section-title" style="margin:0;">Member Control</h1>
         <input type="text" id="userSearch" placeholder="Search by name, email..." style="max-width:300px;" oninput="filterUsers()" />
-        <p style="font-size:0.82rem;color:var(--text-mid);width:100%;margin:0;">Edit member profiles, assign mentors, set pathway progress, and toggle active/inactive status. <strong>Inactive members</strong> are hidden from all dropdowns, leaderboards, and attendance lists — but their historical data is preserved.</p>
+        <p style="font-size:0.82rem;color:var(--text-mid);width:100%;margin:0;">Edit member profiles, assign mentors, set pathway progress, and toggle active/inactive status. <strong>Inactive members</strong> are hidden from all dropdowns, leaderboards, and attendance lists, but their past data is kept.</p>
       </div>
       <!-- Sort & Filter toolbar (Member Control) -->
       <div class="card" id="userToolbar" style="padding:1rem 1.25rem;margin-bottom:1rem;">
@@ -235,29 +231,29 @@
         <div class="uf-grid">
           <div><label for="userSort">Sort by</label>
             <select id="userSort" onchange="applyUserView()">
-              <option value="default">Default (active first, A–Z)</option>
-              <option value="name_asc">Name A → Z</option>
-              <option value="name_desc">Name Z → A</option>
-              <option value="att_desc">Attendance % — high → low</option>
-              <option value="att_asc">Attendance % — low → high</option>
-              <option value="present_desc">Meets attended — most</option>
-              <option value="present_asc">Meets attended — fewest</option>
-              <option value="meets_desc">Eligible meets — most</option>
-              <option value="meets_asc">Eligible meets — fewest</option>
-              <option value="roles_desc">Total roles — most</option>
-              <option value="roles_asc">Total roles — fewest</option>
-              <option value="tt_desc">Table topics — most</option>
-              <option value="tt_asc">Table topics — fewest</option>
-              <option value="pathway_asc">Project / pathway A → Z</option>
-              <option value="pathway_desc">Project / pathway Z → A</option>
-              <option value="mentor_asc">Mentor A → Z</option>
-              <option value="status_active">Status — active first</option>
-              <option value="status_inactive">Status — inactive first</option>
-              <option value="login_desc">Last login — most recent</option>
-              <option value="login_asc">Last login — oldest</option>
-              <option value="joined_desc">Joined — newest</option>
-              <option value="joined_asc">Joined — oldest</option>
-              <option value="inactive_desc">Inactive since — most recent</option>
+              <option value="default">Default (active first, A-Z)</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+              <option value="att_desc">Attendance % (high to low)</option>
+              <option value="att_asc">Attendance % (low to high)</option>
+              <option value="present_desc">Meets attended (most)</option>
+              <option value="present_asc">Meets attended (fewest)</option>
+              <option value="meets_desc">Eligible meets (most)</option>
+              <option value="meets_asc">Eligible meets (fewest)</option>
+              <option value="roles_desc">Total roles (most)</option>
+              <option value="roles_asc">Total roles (fewest)</option>
+              <option value="tt_desc">Table topics (most)</option>
+              <option value="tt_asc">Table topics (fewest)</option>
+              <option value="pathway_asc">Project / pathway (A-Z)</option>
+              <option value="pathway_desc">Project / pathway (Z-A)</option>
+              <option value="mentor_asc">Mentor (A-Z)</option>
+              <option value="status_active">Status (active first)</option>
+              <option value="status_inactive">Status (inactive first)</option>
+              <option value="login_desc">Last login (most recent)</option>
+              <option value="login_asc">Last login (oldest)</option>
+              <option value="joined_desc">Joined (newest)</option>
+              <option value="joined_asc">Joined (oldest)</option>
+              <option value="inactive_desc">Inactive since (most recent)</option>
             </select></div>
           <div><label for="ufStatus">Status</label>
             <select id="ufStatus" onchange="applyUserView()">
@@ -280,18 +276,18 @@
           <div><label for="ufAttendance">Attendance</label>
             <select id="ufAttendance" onchange="applyUserView()">
               <option value="">All</option><option value="ge90">90% and above</option>
-              <option value="75_89">75 – 89%</option><option value="50_74">50 – 74%</option>
+              <option value="75_89">75-89%</option><option value="50_74">50-74%</option>
               <option value="lt50">Below 50%</option><option value="nomeets">No eligible meets</option>
             </select></div>
           <div><label for="ufRoles">Total roles</label>
             <select id="ufRoles" onchange="applyUserView()">
-              <option value="">All</option><option value="none">None</option><option value="1_3">1 – 3</option>
-              <option value="4_9">4 – 9</option><option value="10plus">10 or more</option>
+              <option value="">All</option><option value="none">None</option><option value="1_3">1-3</option>
+              <option value="4_9">4-9</option><option value="10plus">10 or more</option>
             </select></div>
           <div><label for="ufTT">Table topics</label>
             <select id="ufTT" onchange="applyUserView()">
-              <option value="">All</option><option value="none">None</option><option value="1_3">1 – 3</option>
-              <option value="4_9">4 – 9</option><option value="10plus">10 or more</option>
+              <option value="">All</option><option value="none">None</option><option value="1_3">1-3</option>
+              <option value="4_9">4-9</option><option value="10plus">10 or more</option>
             </select></div>
           <div><label for="ufLogin">Last login</label>
             <select id="ufLogin" onchange="applyUserView()">
@@ -359,7 +355,7 @@
         </div>
 
         <button class="btn-primary" id="excelUploadBtn" onclick="importExcelToFirestore()" style="display:none;width:100%;padding:1rem;">
-          Import to Firestore &rarr;
+          Import to Firestore
         </button>
         <div id="excelStatus" style="display:none;margin-top:1rem;padding:0.85rem;border-radius:var(--radius-sm);font-size:0.9rem;font-weight:600;"></div>
       </div>
@@ -380,7 +376,7 @@
         <div id="memberPhotoPreview" style="display:none;margin-bottom:1rem;">
           <img id="memberPhotoImg" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" />
         </div>
-        <button class="btn-primary" onclick="uploadMemberPhoto()" style="padding:0.75rem 2rem;">Upload &amp; Save Photo &rarr;</button>
+        <button class="btn-primary" onclick="uploadMemberPhoto()" style="padding:0.75rem 2rem;">Upload &amp; Save Photo</button>
         <div class="upload-progress" id="memberPhotoProgress"><div class="upload-progress-fill" id="memberPhotoProgressBar"></div></div>
         <div id="memberPhotoStatus" style="display:none;margin-top:1rem;font-size:0.88rem;font-weight:600;"></div>
       </div>
@@ -413,7 +409,7 @@
           </div>
         </div>
         <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem;">
-          <button class="btn-primary" onclick="submitAttendanceChecklist()" style="width:100%;padding:1.1rem;border-radius:100px;">Save Meeting Attendance &rarr;</button>
+          <button class="btn-primary" onclick="submitAttendanceChecklist()" style="width:100%;padding:1.1rem;border-radius:100px;">Save Meeting Attendance</button>
         </div>
       </div>
     </div>
@@ -427,7 +423,7 @@
         </button>
       </div>
       <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1.5rem;">
-        Store meeting minutes, guidelines, resources and references. Starred documents are highlighted for high importance. Documents cannot be deleted — use editing to update content.
+        Store meeting minutes, guidelines, resources and references. Starred documents are highlighted for high importance. Documents cannot be deleted. Edit them to update the content.
       </p>
 
       <!-- Add/Edit Form -->
@@ -475,7 +471,7 @@
           </div>
 
           <div style="display:flex;gap:0.75rem;">
-            <button class="btn-primary" id="saveDocBtn" onclick="saveDoc()" style="flex:2;">Save Document &rarr;</button>
+            <button class="btn-primary" id="saveDocBtn" onclick="saveDoc()" style="flex:2;">Save Document</button>
             <button class="btn-outline" onclick="toggleDocForm(false)" style="flex:1;">Cancel</button>
           </div>
           <div id="docSaveStatus" style="display:none;padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:600;"></div>
@@ -519,7 +515,7 @@
         </div>
         <div id="rolesSelectorsContainer"><p style="color:var(--text-mid);">Select an event to assign roles.</p></div>
         <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem;">
-          <button class="btn-primary" id="saveRolesBtn" onclick="saveMeetRoles()" style="padding:1rem 2.5rem;border-radius:100px;">Save Role Assignments &rarr;</button>
+          <button class="btn-primary" id="saveRolesBtn" onclick="saveMeetRoles()" style="padding:1rem 2.5rem;border-radius:100px;">Save Role Assignments</button>
         </div>
       </div>
     </div>
@@ -530,7 +526,7 @@
       <p class="section-sub">Create anonymous post-meeting voting sessions and view results</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-  <span>After a meet, select the event and open a voting session — candidates are auto-filled from the role assignments. Members vote anonymously from their dashboards. Once voting closes, view results and use <strong>Award Badge</strong> to permanently add winner badges to member profiles.</span>
+  <span>After a meet, select the event and open a voting session. Candidates are filled in automatically from the role assignments. Members vote anonymously from their dashboards. Once voting closes, view results and use <strong>Award Badge</strong> to permanently add winner badges to member profiles.</span>
 </div>
 
       <!-- Create session -->
@@ -566,7 +562,7 @@
                 <textarea id="vcRolePlayers" rows="4"></textarea>
               </div>
             </div>
-            <button class="btn-primary" onclick="createVotingSession()" style="width:100%;padding:1rem;border-radius:100px;">Open Voting Session &rarr;</button>
+            <button class="btn-primary" onclick="createVotingSession()" style="width:100%;padding:1rem;border-radius:100px;">Open Voting Session</button>
           </div>
         </div>
       </div>
@@ -596,7 +592,7 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem;" id="roleGuidesContainer">
           <p style="color:var(--text-mid);">Loading...</p>
         </div>
-        <button class="btn-primary btn-sm" style="margin-top:1rem;" onclick="saveRoleGuides()">Save Role Guides →</button>
+        <button class="btn-primary btn-sm" style="margin-top:1rem;" onclick="saveRoleGuides()">Save Role Guides</button>
         <div id="roleGuideStatus" style="display:none;margin-top:0.75rem;font-size:0.85rem;font-weight:600;color:#2e7d32;"></div>
       </div>
 
@@ -655,7 +651,7 @@
             <input type="url" id="evGalleryLink" placeholder="https://photos.google.com/..." />
           </div>
           <div class="form-group">
-            <label class="form-label">Event Documentation Link (Google Drive — agenda, notes, etc.)</label>
+            <label class="form-label">Event Documentation Link (Google Drive: agenda, notes, etc.)</label>
             <input type="url" id="evDocLink" placeholder="https://drive.google.com/..." />
           </div>
 
@@ -669,7 +665,7 @@
           </div>
 
           <div style="display:flex;gap:0.75rem;">
-            <button class="btn-primary" id="saveEventBtn" onclick="saveEvent()" style="flex:2;">Save Event &rarr;</button>
+            <button class="btn-primary" id="saveEventBtn" onclick="saveEvent()" style="flex:2;">Save Event</button>
             <button class="btn-outline" onclick="toggleEventForm(false)" style="flex:1;">Cancel</button>
           </div>
         </div>
@@ -722,11 +718,11 @@
             <div class="form-group">
               <label class="form-label">Visibility</label>
               <select id="galVisibility">
-                <option value="public">Public — visible to everyone</option>
+                <option value="public">Public (visible to everyone)</option>
                 <option value="members">Members only</option>
               </select>
             </div>
-            <button class="btn-primary" id="uploadGalBtn" onclick="uploadToGallery()" style="width:100%;padding:1rem;">Upload to Gallery &rarr;</button>
+            <button class="btn-primary" id="uploadGalBtn" onclick="uploadToGallery()" style="width:100%;padding:1rem;">Upload to Gallery</button>
             <div class="upload-progress" id="galUploadProgress"><div class="upload-progress-fill" id="galProgressBar"></div></div>
           </div>
         </div>
@@ -785,7 +781,7 @@
               <option value="workshop">Workshop</option>
             </select>
           </div>
-          <button class="btn-primary" onclick="addVideo()" style="padding:1rem;border-radius:100px;">Add to Speeches Page &rarr;</button>
+          <button class="btn-primary" onclick="addVideo()" style="padding:1rem;border-radius:100px;">Add to Speeches Page</button>
         </div>
       </div>
 
@@ -827,7 +823,7 @@
               <input type="url" id="nUrl" placeholder="https://..." />
             </div>
             <button class="btn-primary" onclick="sendCommonNotification()" style="width:100%;padding:1rem;border-radius:100px;">
-              Broadcast to All Members &rarr;
+              Broadcast to All Members
             </button>
           </div>
         </div>
@@ -852,7 +848,7 @@
               <textarea id="pnBody" rows="4" placeholder="Your message to this member..."></textarea>
             </div>
             <button class="btn-primary" onclick="sendPersonalNotification()" style="width:100%;padding:1rem;border-radius:100px;background:var(--orange);">
-              Send Personal Message &rarr;
+              Send Personal Message
             </button>
           </div>
         </div>
@@ -892,7 +888,7 @@
         </div>
         <button class="btn-primary" id="generateOtpBtn" onclick="generateGuestToken()"
           style="width:100%;padding:1rem;border-radius:100px;">
-          Generate OTP →
+          Generate OTP
         </button>
       </div>
 
@@ -920,7 +916,7 @@
           <i class="fa-solid fa-rotate"></i> Refresh
         </button>
       </div>
-      <input type="text" id="guestTokenSearch" placeholder="Search guests — name, event or OTP (includes older guests)..."
+      <input type="text" id="guestTokenSearch" placeholder="Search guests by name, event or OTP (includes older guests)..."
         oninput="filterGuestTokens()" style="width:100%;margin-bottom:0.75rem;" />
       <div id="guestTokensList"><p style="color:var(--text-mid);">Loading...</p></div>
     </div>
@@ -961,7 +957,7 @@
       <i class="fa-solid fa-circle-info"></i>
       <strong>Only a primary admin can grant or remove primary-admin status</strong>, and doing so needs
       <strong>2 different primary admins</strong> to approve. Making or removing a regular admin (in Member
-      Control) needs no extra approval — only promoting/demoting to <em>primary</em> admin does.
+      Control) needs no extra approval. Only promoting/demoting to <em>primary</em> admin does.
     </p>
     <div id="primaryAdminList" class="primary-admin-only" style="display:none;"></div>
     <div id="primaryAdminReadOnlyNote" style="font-size:0.82rem;color:var(--text-light);"></div>
@@ -980,7 +976,7 @@
     <p style="font-size:0.85rem;color:#c62828;font-weight:600;">
       Only press these if you are certain some data was lost or corrupted and needs to be rolled back.
       Restoring replaces events, gallery, videos, feedback, votes, guest tokens/feedback, and notifications
-      with a saved copy from that date — anything created or changed after that point in those areas is lost.
+      with a saved copy from that date. Anything created or changed after that point in those areas is lost.
       Member accounts, roles, and pathway content are never touched by a restore.
     </p>
     <p style="font-size:0.8rem;color:var(--text-light);">
@@ -1039,7 +1035,7 @@
   <label class="form-label" style="color:#c62828;">Inactive Since</label>
   <input type="date" id="editInactiveSince" />
   <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.3rem;">
-    Events on or before this date count toward their attendance record. All events after this date are completely ignored — they will not appear as absent.
+    Events on or before this date count toward their attendance record. All events after this date are ignored and will not show as absent.
   </p>
   <label class="form-label" style="margin-top:0.75rem;color:#c62828;">Reason</label>
   <select id="editInactiveReason">
@@ -1048,7 +1044,7 @@
     <option value="left_removed">Left / Removed</option>
   </select>
 </div>
-      <button class="btn-primary" onclick="saveUserChanges()" style="width:100%;padding:1rem;border-radius:100px;margin-top:0.5rem;">Apply Changes &rarr;</button>
+      <button class="btn-primary" onclick="saveUserChanges()" style="width:100%;padding:1rem;border-radius:100px;margin-top:0.5rem;">Apply Changes</button>
     </div>
   </div>
 </div>
@@ -1107,7 +1103,7 @@
       </div>
 
       <button class="btn-primary" onclick="saveProjectEdit()" style="width:100%;padding:1rem;border-radius:100px;">
-        Save Project →
+        Save Project
       </button>
 
     </div>
@@ -1122,7 +1118,7 @@ function populateGuestEventSelect() {
   const sel = document.getElementById('guestEventSelect');
   if (!sel) return;
   sel.innerHTML = '<option value="">-- Select an event --</option>' +
-    allEventsCache.map(e => `<option value="${e.id}" data-title="${e.title}">${e.title}</option>`).join('');
+    allEventsCache.map(e => `<option value="${escapeHtml(e.id)}" data-title="${escapeHtml(e.title)}">${escapeHtml(e.title)}</option>`).join('');
 }
 
 // req 2: debounce lock — same synchronous-guard pattern as _voteSubmissionInProgress
@@ -1181,9 +1177,9 @@ function renderGuestTokenRow(t, now) {
             border-radius:var(--radius-sm);margin-bottom:0.5rem;
             display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
     <div>
-      <div style="font-weight:700;">${t.guestName}</div>
+      <div style="font-weight:700;">${escapeHtml(t.guestName)}</div>
       <div style="font-size:0.72rem;color:var(--text-light);">
-        ${t.eventTitle}&nbsp;·&nbsp;OTP:&nbsp;<strong style="letter-spacing:0.15em;font-family:monospace;">${t.otp}</strong>
+        ${escapeHtml(t.eventTitle)}&nbsp;·&nbsp;OTP:&nbsp;<strong style="letter-spacing:0.15em;font-family:monospace;">${escapeHtml(t.otp)}</strong>
       </div>
     </div>
     <span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;
@@ -1231,7 +1227,7 @@ async function loadGuestTokensList() {
     container.innerHTML = html;
     filterGuestTokens();   // keep the current search applied after a refresh
   } catch(e) {
-    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
+    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1309,8 +1305,8 @@ async function loadGuestExperienceFeedback() {
         <div style="display:flex;justify-content:space-between;align-items:center;
                     flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
           <div>
-            <div style="font-weight:700;">${f.guestName}</div>
-            <div style="font-size:0.72rem;color:var(--text-light);">${f.eventTitle} · ${dateStr}</div>
+            <div style="font-weight:700;">${escapeHtml(f.guestName)}</div>
+            <div style="font-size:0.72rem;color:var(--text-light);">${escapeHtml(f.eventTitle)} · ${escapeHtml(dateStr)}</div>
           </div>
           <span style="font-size:1.2rem;font-weight:800;color:var(--orange);">
             ${avg}<span style="font-size:0.72rem;color:var(--text-light);">/5</span>
@@ -1337,11 +1333,11 @@ async function loadGuestExperienceFeedback() {
         </div>
         ${f.comment ? `<div style="padding:0.6rem 0.75rem;background:var(--surface2);
             border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text-mid);
-            font-style:italic;">"${f.comment}"</div>` : ''}
+            font-style:italic;">"${escapeHtml(f.comment)}"</div>` : ''}
       </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${e.message}</p>`;
+    container.innerHTML = `<p style="color:var(--text-mid);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
 import { auth, db, storage } from '../js/firebase-config.js';
@@ -1352,9 +1348,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import {
-  runDualApprovalAction, requestOrApproveServerAction, watchPendingActions, tripleConfirm
+  runDualApprovalAction, requestOrApproveServerAction, watchPendingActions, tripleConfirm, resetSettingsDoc
 } from '../js/danger-actions.js';
+import { compressImage } from '../js/image-compress.js';
 import { normalizeEvent, resolveEventType } from '../js/event-status.js';
+import { escapeHtml, safeUrl, attrUrl, jsAttr } from '../js/escape.js';
+
+// Escapes & < > " ' for safe interpolation into innerHTML (see security
+// findings S1/S3 — profile/event fields are user- or admin-editable and were
+// previously interpolated raw).
+const adminEscapeHtml = escapeHtml;
+const adminSafeUrl = safeUrl;
 
 // ── SERVER CLOCK ────────────────────────────────────────
 // "Last Login" values are stamped with the SERVER's time (serverTimestamp()). If
@@ -1406,19 +1410,25 @@ onAuthStateChanged(auth, async user => {
   document.querySelectorAll('.primary-admin-only').forEach(el => el.style.display = isPrimaryAdmin ? '' : 'none');
   watchPendingActions(document.getElementById('pendingApprovalsList'), me, isPrimaryAdmin);
   if (isPrimaryAdmin) loadPrimaryAdminPanel();
-  // "Last Login" tracking, same as the member dashboard: written on every open.
-  // Admins/core sometimes never visit dashboard.html, so this needs its own write.
-  // Also syncs the server clock (see SERVER CLOCK above) before the table renders;
-  // capped at 5s so a slow network can never block the dashboard.
-  await Promise.race([syncServerClock(user.uid), new Promise(r => setTimeout(r, 5000))]);
   document.getElementById('adminName').textContent = adminData.name || 'Admin';
   document.getElementById('adminLabel').style.display = 'block';
   const adminAvatar = document.getElementById('adminTopAvatar');
-  if (adminData.photoUrl) {
-    adminAvatar.innerHTML = `<img src="${adminData.photoUrl}" alt="${adminData.name||''}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
+  const safeAdminPhoto = adminSafeUrl(adminData.photoUrl);
+  if (safeAdminPhoto) {
+    adminAvatar.innerHTML = `<img src="${adminEscapeHtml(safeAdminPhoto)}" alt="${adminEscapeHtml(adminData.name||'')}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
   } else {
     adminAvatar.textContent = (adminData.name||'A').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   }
+
+  // "Last Login" tracking, same as the member dashboard: written on every
+  // open. Admins/core sometimes never visit dashboard.html, so this needs
+  // its own write. Also syncs the server clock (see SERVER CLOCK above),
+  // used only for "how long ago" display math — it no longer blocks first
+  // render; once it resolves, re-render the user table so any relative
+  // "Last Login" times that were computed against the local clock pick up
+  // the corrected server offset.
+  syncServerClock(user.uid).then(() => { if (allUsers.length) renderUserTable(); });
+
   loadAllData();
   loadGallery();
   loadVideos();
@@ -1445,7 +1455,7 @@ async function loadPrimaryAdminPanel() {
   const readOnly = document.getElementById('primaryAdminReadOnlyNote');
   const rows = admins.map(a => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.9rem;border:1px solid var(--border);border-radius:8px;margin-bottom:0.5rem;">
-      <div><strong>${a.name || a.id}</strong> ${a.isPrimaryAdmin ? '<span class="badge-admin">Primary Admin</span>' : '<span style="color:var(--text-light);font-size:0.8rem;">Admin</span>'}</div>
+      <div><strong>${adminEscapeHtml(a.name || a.id)}</strong> ${a.isPrimaryAdmin ? '<span class="badge-admin">Primary Admin</span>' : '<span style="color:var(--text-light);font-size:0.8rem;">Admin</span>'}</div>
       ${a.id === me.uid ? '<span style="font-size:0.78rem;color:var(--text-light);">(you)</span>' : `
         <button class="btn-outline btn-sm" onclick="requestPrimaryAdminChange('${a.id}', ${a.isPrimaryAdmin ? 'false' : 'true'})">
           ${a.isPrimaryAdmin ? 'Remove Primary Admin' : 'Make Primary Admin'}
@@ -1453,6 +1463,7 @@ async function loadPrimaryAdminPanel() {
     </div>`).join('');
   if (list) list.innerHTML = rows || '<p style="color:var(--text-light);">No admins found.</p>';
   if (readOnly) {
+    // textContent below, so no escaping needed for this one.
     const names = admins.filter(a => a.isPrimaryAdmin).map(a => a.name).join(', ') || 'none yet';
     readOnly.textContent = isPrimaryAdmin ? '' : `Current primary admins: ${names}. Only primary admins can change this.`;
   }
@@ -1495,10 +1506,13 @@ window.showSection = function(id) {
 // ── LOAD ALL DATA ────────────────────────────────────────
 async function loadAllData() {
   try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('name','asc')));
+    // Users and events are independent reads — fetch them concurrently
+    // instead of one after another.
+    const [snap] = await Promise.all([
+      getDocs(query(collection(db,'users'), orderBy('name','asc'))),
+      loadEvents(),
+    ]);
     allUsers = []; snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
-    // Load events FIRST so allEventsCache is populated before the table renders
-    await loadEvents();
     // req 1: backfill brand-new members as "ineligible" (not "absent") in
     // every event that already existed before they joined.
     await backfillNewMemberEligibility();
@@ -1616,10 +1630,10 @@ document.getElementById('insightAvgAtt').textContent = avgAtt + '%';
     document.getElementById('insightAvgPoints').textContent = avgPoints;
 
     const top3 = [...rolesDataList].sort((a,b) => (parseInt(b.points)||0) - (parseInt(a.points)||0)).slice(0,3);
-    const medal = ['🥇','🥈','🥉'];
+    const medal = ['1.','2.','3.'];
     document.getElementById('insightTopContributors').innerHTML = top3.length
       ? top3.map((r,i) => `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0;${i<top3.length-1?'border-bottom:1px solid var(--border);':''}">
-          <span style="font-weight:700;">${medal[i]||''} ${r.name}</span>
+          <span style="font-weight:700;">${medal[i]||''} ${escapeHtml(r.name)}</span>
           <span style="font-size:0.82rem;color:var(--text-mid);">${r.points||0} pts &middot; ${r.totalRoles||0} roles</span>
         </div>`).join('')
       : '<p style="color:var(--text-mid);">No role activity yet.</p>';
@@ -1760,7 +1774,7 @@ function renderUserTable() {
       const status = isIneligible ? 'ineligible' : (isPresent ? 'present' : 'absent');
       const s = chipStyles[status];
       const eTitle = (e.title || 'Event').replace(/"/g,'&quot;');
-      return `<span title="${eTitle} — ${s.label}"
+      return `<span title="${escapeHtml(eTitle)}: ${escapeHtml(s.label)}"
         style="width:18px;height:18px;border-radius:4px;flex-shrink:0;display:inline-flex;
                align-items:center;justify-content:center;color:#fff;font-size:0.6rem;background:${s.bg};">
         ${s.icon}
@@ -1770,7 +1784,7 @@ function renderUserTable() {
       ? `<div style="display:flex;gap:3px;margin-top:0.4rem;">${attChips}</div>`
       : '';
 
-    const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '—') : '—';
+    const mentorName = u.mentor ? (allUsers.find(x => x.id === u.mentor)?.name || '-') : '-';
     let totalRoles = 0, ttCount = 0;
     allEventsCache.forEach(e => {
       const rm = e.roles || {};
@@ -1789,30 +1803,30 @@ function renderUserTable() {
 
     const html = `<tr>
       <td style="padding-left:1.5rem;">
-        <div style="font-weight:700;">${u.name}</div>
-        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${u.email || ''}</div>
-        ${u.personalEmail ? `<div style="font-size:0.68rem;color:var(--text-light);">📱 ${u.personalEmail}</div>` : ''}
+        <div style="font-weight:700;">${escapeHtml(u.name)}</div>
+        <div style="font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;">${escapeHtml(u.email || '')}</div>
+        ${u.personalEmail ? `<div style="font-size:0.68rem;color:var(--text-light);"><i class="fa-solid fa-envelope" style="margin-right:3px;"></i>${escapeHtml(u.personalEmail)}</div>` : ''}
         ${joinedSinceStr ? `<div style="font-size:0.68rem;color:var(--text-light);margin-top:2px;"><i class="fa-solid fa-calendar-plus" style="margin-right:3px;"></i>Joined ${joinedSinceStr}</div>` : ''}
         ${u.role === 'admin' || u.role === 'core'
-          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${u.role}</span>`
+          ? `<span class="badge-admin" style="margin-top:4px;display:inline-block;">${escapeHtml(u.role)}</span>`
           : ''}
       </td>
       <td>
         <span style="font-weight:800;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;">
-          ${u.pathway || 'L1P1'}
+          ${escapeHtml(u.pathway || 'L1P1')}
         </span>
       </td>
-      <td><span style="font-size:0.88rem;">${mentorName}</span></td>
+      <td><span style="font-size:0.88rem;">${escapeHtml(mentorName)}</span></td>
       <td>
         <div style="font-weight:800;">${pct}%</div>
         <div style="font-size:0.72rem;color:var(--text-light);">${presentCount} / ${totalMeets} eligible meets</div>
         ${attChipsHtml}
       </td>
       <td style="text-align:center;">
-        <div style="font-weight:800;font-size:1rem;color:var(--orange);">${totalRoles || '—'}</div>
+        <div style="font-weight:800;font-size:1rem;color:var(--orange);">${totalRoles || '-'}</div>
       </td>
       <td style="text-align:center;">
-        <div style="font-weight:800;font-size:1rem;color:var(--orange);">${ttCount || '—'}</div>
+        <div style="font-weight:800;font-size:1rem;color:var(--orange);">${ttCount || '-'}</div>
       </td>
       <td>
         <span style="width:10px;height:10px;border-radius:50%;background:${isActive ? '#4CAF50' : '#f44336'};display:inline-block;margin-right:0.4rem;"></span>
@@ -1827,8 +1841,8 @@ function renderUserTable() {
       <td>${lastLoginHtml}</td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
-          <button class="btn-primary btn-sm" onclick="openEditModal('${u.id}')">Edit</button>
-          <button class="btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name?.replace(/'/g, "\\'")}')">Delete</button>
+          <button class="btn-primary btn-sm" onclick="openEditModal('${jsAttr(u.id)}')">Edit</button>
+          <button class="btn-danger btn-sm" onclick="deleteUser('${jsAttr(u.id)}','${jsAttr(u.name)}')">Delete</button>
         </div>
       </td>
     </tr>`;
@@ -1851,7 +1865,7 @@ function populateUserFilterOptions() {
     const sel = document.getElementById(id); if (!sel) return;
     const keep = sel.value;
     sel.innerHTML = `<option value="">${firstLabel}</option>` +
-      opts.map(([v, l]) => `<option value="${String(v).replace(/"/g,'&quot;')}">${l}</option>`).join('');
+      opts.map(([v, l]) => `<option value="${String(v).replace(/"/g,'&quot;')}">${escapeHtml(l)}</option>`).join('');
     if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
   };
   const numCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
@@ -1946,7 +1960,7 @@ window.applyUserView = () => {
     roles_desc: num('totalRoles', -1),               roles_asc:  num('totalRoles', 1),
     tt_desc:    num('ttCount', -1),                  tt_asc:     num('ttCount', 1),
     pathway_asc:  (x, y) => str(x.pathway, y.pathway),  pathway_desc: (x, y) => str(y.pathway, x.pathway),
-    mentor_asc: (x, y) => (x.mentorName === '—') - (y.mentorName === '—') || str(x.mentorName, y.mentorName),
+    mentor_asc: (x, y) => (x.mentorName === '-') - (y.mentorName === '-') || str(x.mentorName, y.mentorName),
     status_active:   (x, y) => (x.isActive ? 0 : 1) - (y.isActive ? 0 : 1),
     status_inactive: (x, y) => (x.isActive ? 1 : 0) - (y.isActive ? 1 : 0),
     login_desc: num('loginMs', -1),                  login_asc:  num('loginMs', 1),
@@ -1981,11 +1995,12 @@ window.deleteUser = async (uid, name) => {
 
 window.clearLeaderboard = async () => {
   await runDualApprovalAction('del_settings_leaderboard',
-    'Clear the leaderboard? Totals will reset to zero. No data is deleted — only the leaderboard display resets from this point forward.', me,
+    'Clear the leaderboard? Totals will reset to zero. No data is deleted. Only the leaderboard display resets from this point forward.', me,
     { collection: 'settings', docId: 'leaderboard' },
-    async () => {
-      await setDoc(doc(db, 'settings', 'leaderboard'), { resetAt: serverTimestamp() }, { merge: true });
+    async (pendingRef) => {
+      await resetSettingsDoc('leaderboard', pendingRef);
       loadMeetRoles();
+      return 'executed';
     });
 };
 
@@ -2031,7 +2046,7 @@ window.closeModal = () => document.getElementById('editModal').classList.remove(
 function populateMentorDropdown() {
   document.getElementById('editMentor').innerHTML =
   '<option value="">(None)</option>' + allUsers.map(u =>
-    `<option value="${u.id}">${u.name}${u.isActive === false ? ' (inactive)' : ''}</option>`
+    `<option value="${escapeHtml(u.id)}">${escapeHtml(u.name)}${u.isActive === false ? ' (inactive)' : ''}</option>`
   ).join('');
 }
 
@@ -2101,15 +2116,19 @@ await updateDoc(doc(db, 'users', uid), updateData);
   } catch (e) {
     alert('Failed: ' + e.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Apply Changes →';
+    btn.disabled = false; btn.textContent = 'Apply Changes';
   }
 };
  
 
 // ── EXCEL UPLOAD (req 8) ─────────────────────────────────
 let excelData = [];
-window.previewExcel = function(input) {
+let XLSX = null;
+window.previewExcel = async function(input) {
   const file = input.files[0]; if (!file) return;
+  // xlsx is only needed once an admin actually uploads a member sheet —
+  // load it on demand instead of as a render-blocking <script> in <head>.
+  if (!XLSX) XLSX = await import('xlsx');
   document.getElementById('excelFileName').textContent = file.name;
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -2120,8 +2139,8 @@ window.previewExcel = function(input) {
     // Preview table
     if (!excelData.length) return;
     const cols = Object.keys(excelData[0]);
-    const thead = `<thead><tr>${cols.map(c=>`<th style="padding:0.5rem 0.75rem;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:800;text-transform:uppercase;">${c}</th>`).join('')}</tr></thead>`;
-    const tbody = `<tbody>${excelData.slice(0,8).map(row=>`<tr>${cols.map(c=>`<td style="padding:0.5rem 0.75rem;">${row[c]||''}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    const thead = `<thead><tr>${cols.map(c=>`<th style="padding:0.5rem 0.75rem;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:800;text-transform:uppercase;">${escapeHtml(c)}</th>`).join('')}</tr></thead>`;
+    const tbody = `<tbody>${excelData.slice(0,8).map(row=>`<tr>${cols.map(c=>`<td style="padding:0.5rem 0.75rem;">${escapeHtml(row[c]||'')}</td>`).join('')}</tr>`).join('')}</tbody>`;
     document.getElementById('excelPreviewTable').innerHTML = thead+tbody;
     document.getElementById('excelPreview').style.display = 'block';
     document.getElementById('excelUploadBtn').style.display = 'block';
@@ -2189,7 +2208,7 @@ window.importExcelToFirestore = async function() {
 function populateMemberPhotoSelect() {
   const sel = document.getElementById('photoMemberSelect');
   sel.innerHTML = '<option value="">-- Select Member --</option>' +
-    allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    allUsers.filter(u=>u.isActive!==false).map(u=>`<option value="${escapeHtml(u.id)}">${escapeHtml(u.name)}</option>`).join('');
 }
 
 window.previewMemberPhoto = function(input) {
@@ -2204,12 +2223,13 @@ window.previewMemberPhoto = function(input) {
 
 window.uploadMemberPhoto = async function() {
   const uid = document.getElementById('photoMemberSelect').value;
-  const file = document.getElementById('memberPhotoFile').files[0];
+  let file = document.getElementById('memberPhotoFile').files[0];
   const status = document.getElementById('memberPhotoStatus');
   const progressWrap = document.getElementById('memberPhotoProgress');
   const progressBar = document.getElementById('memberPhotoProgressBar');
   if (!uid||!file) { alert('Select a member and a photo file.'); return; }
   progressWrap.style.display='block';
+  file = await compressImage(file, { maxSize: 512 });
   const storageRef = ref(storage, `avatars/${uid}`);
   const task = uploadBytesResumable(storageRef, file);
   task.on('state_changed',
@@ -2291,7 +2311,7 @@ window.filterAttList = () => {
     msg.textContent = 'No members match "' + input.value.trim() + '".';
   } else if (msg) msg.remove();
 };
-let attState = {}; // uid → 'present' | 'absent' | 'ineligible'
+let attState = {}; // uid 'present' | 'absent' | 'ineligible'
  
 function renderAttendanceChecklist() {
   const list = document.getElementById('attList');
@@ -2306,26 +2326,26 @@ function renderAttendanceChecklist() {
   activeUsers.forEach(u => { attState[u.id] = 'ineligible'; });
  
   list.innerHTML = activeUsers.map(u => `
-    <div id="attrow-${u.id}" style="display:flex;align-items:center;justify-content:space-between;
+    <div id="attrow-${escapeHtml(u.id)}" style="display:flex;align-items:center;justify-content:space-between;
       padding:0.85rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem;flex-wrap:wrap;">
       <div>
-        <div style="font-weight:700;">${u.name}</div>
-        <div style="font-size:0.72rem;color:var(--text-light);">${u.email||''}</div>
+        <div style="font-weight:700;">${escapeHtml(u.name)}</div>
+        <div style="font-size:0.72rem;color:var(--text-light);">${escapeHtml(u.email||'')}</div>
       </div>
       <div style="display:flex;gap:0.4rem;flex-shrink:0;">
-        <button onclick="setAttState('${u.id}','present')"
-          id="attbtn-${u.id}-present"
+        <button onclick="setAttState('${jsAttr(u.id)}','present')"
+          id="attbtn-${escapeHtml(u.id)}-present"
           style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
                  cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">P</button>
-        <button onclick="setAttState('${u.id}','absent')"
-          id="attbtn-${u.id}-absent"
+        <button onclick="setAttState('${jsAttr(u.id)}','absent')"
+          id="attbtn-${escapeHtml(u.id)}-absent"
           style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #ccc;background:#fff;
                  cursor:pointer;font-size:0.75rem;font-weight:800;color:#888;transition:0.15s;">A</button>
-        <button onclick="setAttState('${u.id}','ineligible')"
-          id="attbtn-${u.id}-ineligible"
+        <button onclick="setAttState('${jsAttr(u.id)}','ineligible')"
+          id="attbtn-${escapeHtml(u.id)}-ineligible"
           style="padding:0.35rem 0.85rem;border-radius:6px;border:1.5px solid #9e9e9e;
                  background:rgba(158,158,158,0.15);cursor:pointer;font-size:0.75rem;font-weight:800;
-                 color:#555;transition:0.15s;">—</button>
+                 color:#555;transition:0.15s;">-</button>
       </div>
     </div>`).join('');
   filterAttList();   // keep any typed search applied after a re-render
@@ -2405,15 +2425,15 @@ async function loadEvents() {
       allEventsCache.push({id,...ne});
       const isActive = ne.isActive===true;
       const isUpcoming = ne.type==='upcoming';
-      let displayDate='—';
+      let displayDate='-';
       if (e.date) {
         const dObj = e.date.toDate?e.date.toDate():new Date(e.date);
         displayDate = dObj.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
       }
-      optionsHtml += `<option value="${id}">${e.title} (${displayDate})</option>`;
+      optionsHtml += `<option value="${escapeHtml(id)}">${escapeHtml(e.title)} (${escapeHtml(displayDate)})</option>`;
       const galleryCell = e.galleryLink
-        ? `<a href="${e.galleryLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>`
-        : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
+        ? `<a href="${attrUrl(e.galleryLink)}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>`
+        : '<span style="color:var(--text-light);font-size:0.78rem;">-</span>';
       // Description (same text the member dashboard shows under the event title).
       // Escaped so free text containing < > & can't break the table.
       const descHtml = e.description
@@ -2424,17 +2444,17 @@ async function loadEvents() {
       const videoCell = videoCount
         ? `<div style="display:flex;flex-direction:column;gap:0.25rem;">
             ${(e.eventVideos||[]).map((v,i) =>
-              `<a href="${v.url}" target="_blank" rel="noopener"
+              `<a href="${attrUrl(v.url)}" target="_blank" rel="noopener"
                 style="font-size:0.75rem;color:var(--orange);font-weight:700;white-space:nowrap;">
                 <i class="fa-solid fa-play" style="font-size:0.6rem;"></i> ${v.title || 'Video '+(i+1)}
               </a>`).join('')}
            </div>`
-        : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
+        : '<span style="color:var(--text-light);font-size:0.78rem;">-</span>';
       tbody.innerHTML += `
         <tr>
           <td style="padding-left:1.5rem;">
-            <div style="font-weight:700;">${e.title}</div>
-            <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${displayDate}</div>
+            <div style="font-weight:700;">${escapeHtml(e.title)}</div>
+            <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${escapeHtml(displayDate)}</div>
             ${descHtml}
           </td>
           <td>
@@ -2443,12 +2463,12 @@ async function loadEvents() {
             </span>
           </td>
           <td>${galleryCell}</td>
-          <td>${e.docLink ? `<a href="${e.docLink}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>` : '<span style="color:var(--text-light);font-size:0.78rem;">—</span>'}</td>
+          <td>${e.docLink ? `<a href="${attrUrl(e.docLink)}" target="_blank" class="btn-outline btn-sm" style="font-size:0.72rem;">View</a>` : '<span style="color:var(--text-light);font-size:0.78rem;">-</span>'}</td>
           <td>${videoCell}</td>
           <td style="padding-right:1.5rem;">
             <div class="action-row">
-              <button class="btn-outline btn-sm" onclick="editEvent('${id}')">Edit</button>
-              <button class="btn-danger btn-sm" onclick="deleteEvent('${id}')">Delete</button>
+              <button class="btn-outline btn-sm" onclick="editEvent('${jsAttr(id)}')">Edit</button>
+              <button class="btn-danger btn-sm" onclick="deleteEvent('${jsAttr(id)}')">Delete</button>
             </div>
           </td>
         </tr>`;
@@ -2483,8 +2503,8 @@ window.editEvent = async (id) => {
     (e.eventVideos||[]).forEach(v => {
       const row = document.createElement('div');
       row.style.cssText='display:flex;gap:0.5rem;align-items:center;';
-      row.innerHTML = `<input type="url" class="ev-video-url" value="${v.url||''}" placeholder="YouTube URL" style="flex:1;" />
-        <input type="text" class="ev-video-title" value="${v.title||''}" placeholder="Video title" style="width:200px;" />
+      row.innerHTML = `<input type="url" class="ev-video-url" value="${escapeHtml(v.url||'')}" placeholder="YouTube URL" style="flex:1;" />
+        <input type="text" class="ev-video-title" value="${escapeHtml(v.title||'')}" placeholder="Video title" style="width:200px;" />
         <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;padding:0.4rem;">&times;</button>`;
       videoContainer.appendChild(row);
     });
@@ -2619,7 +2639,7 @@ window.cleanOrphanedBadges = async () => {
     const totalCleaned = usersCleaned + guestsCleaned;
     alert(totalCleaned
       ? `Cleanup complete. Updated ${usersCleaned} member(s) and ${guestsCleaned} guest(s): removed ${roleBadgesRemoved} role badge(s), ${winBadgesRemoved} member win badge(s), and ${guestWinBadgesRemoved} guest win badge(s) tied to deleted events.`
-      : 'No orphaned badges found — everything is already clean.');
+      : 'No orphaned badges found. Nothing to clean up.');
     loadAllData();
   } catch (e) {
     alert('Cleanup failed: ' + e.message);
@@ -2792,7 +2812,7 @@ const ROLE_KEYS = [
 function renderRoleDropdowns() {
   const container = document.getElementById('rolesSelectorsContainer');
   let opts = '<option value="">-- Unassigned --</option>';
-  allUsers.filter(u => u.isActive !== false).forEach(u => { opts += `<option value="${u.id}">${u.name}</option>`; });
+  allUsers.filter(u => u.isActive !== false).forEach(u => { opts += `<option value="${escapeHtml(u.id)}">${escapeHtml(u.name)}</option>`; });
  
   let html = '<div class="roles-grid" style="margin-bottom:1.5rem;">';
   ROLE_KEYS.forEach(r => {
@@ -2976,7 +2996,7 @@ async function loadMeetRoles() {
   rolesDataList = rows.map(r => ({ ...r, points: r._pts || '' }));
 
   tbody.innerHTML = rows.map(r => `<tr style="border-bottom:1px solid var(--border);">
-    <td style="padding:0.9rem;font-weight:700;">${r.name}</td>
+    <td style="padding:0.9rem;font-weight:700;">${escapeHtml(r.name)}</td>
     ${[r.hom, r.speaker, r.evaluator, r.ttm, r.tte, r.ge, r.timer, r.tt,
        r.listener, r.grammarian, r.attendance, r.mom, r._pts || '', r.totalRoles]
       .map(v => `<td style="padding:0.75rem;text-align:center;">${v}</td>`).join('')}
@@ -3009,12 +3029,12 @@ function renderUpcomingRoles() {
     container.innerHTML='<p style="color:var(--text-mid);">No roles assigned for next meet.</p>'; return;
   }
   container.innerHTML = `<div style="margin-bottom:1rem;padding:1rem;background:var(--orange-light);border-radius:var(--radius-sm);border:1px solid rgba(255,87,34,0.15);">
-    <strong style="color:var(--orange);">${upcoming.title}</strong></div>
+    <strong style="color:var(--orange);">${escapeHtml(upcoming.title)}</strong></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.75rem;">
       ${upcoming.rolesDisplay.map(rd=>`
         <div style="padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:0.7rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${rd.role}</span>
-          <span style="font-weight:700;">${rd.name}</span>
+          <span style="font-size:0.7rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${escapeHtml(rd.role)}</span>
+          <span style="font-weight:700;">${escapeHtml(rd.name)}</span>
         </div>`).join('')}
     </div>`;
 }
@@ -3033,11 +3053,11 @@ window.uploadToGallery = async () => {
   const visibility=document.getElementById('galVisibility').value;
   const btn=document.getElementById('uploadGalBtn');
   if (!fileInput.files[0]) { alert('Select an image.'); return; }
-  const file=fileInput.files[0];
+  btn.disabled=true;
+  const file=await compressImage(fileInput.files[0], { maxSize: 1600 });
   const fileName=Date.now()+'_'+file.name;
   const storageRef=ref(storage,'gallery/'+fileName);
   const task=uploadBytesResumable(storageRef,file);
-  btn.disabled=true;
   document.getElementById('galUploadProgress').style.display='block';
   task.on('state_changed',
     snap=>document.getElementById('galProgressBar').style.width=(snap.bytesTransferred/snap.totalBytes*100)+'%',
@@ -3066,14 +3086,14 @@ async function loadGallery() {
       const p=d.data();
       const card=document.createElement('div');
       card.className='gallery-admin-item';
-      card.innerHTML=`<img src="${p.url}" alt="${p.caption||''}" loading="lazy" />
+      card.innerHTML=`<img src="${attrUrl(p.url)}" alt="${escapeHtml(p.caption||'')}" loading="lazy" />
         <div class="item-info">
-          <div style="font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.caption||'No caption'}</div>
+          <div style="font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.caption||'No caption')}</div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.4rem;">
-            <span class="${p.visibility==='public'?'badge-live':'badge-past'}" style="font-size:0.62rem;">${p.visibility?.toUpperCase()||'PUBLIC'}</span>
+            <span class="${p.visibility==='public'?'badge-live':'badge-past'}" style="font-size:0.62rem;">${escapeHtml(p.visibility?.toUpperCase()||'PUBLIC')}</span>
           </div>
         </div>
-        <button class="delete-overlay" onclick="deletePhoto('${d.id}','${p.fileName||''}')" title="Delete"><i class="fa-solid fa-trash-can"></i></button>`;
+        <button class="delete-overlay" onclick="deletePhoto('${jsAttr(d.id)}','${jsAttr(p.fileName||'')}')" title="Delete"><i class="fa-solid fa-trash-can"></i></button>`;
       container.appendChild(card);
     });
   } catch(e) { container.innerHTML='<p style="color:red;grid-column:1/-1;text-align:center;padding:2rem;">Error loading gallery.</p>'; }
@@ -3111,11 +3131,11 @@ async function loadVideos() {
     snap.forEach(d=>{
       const v=d.data();
       list.innerHTML+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;position:relative;">
-        <div style="font-weight:800;margin-bottom:0.25rem;">${v.title}</div>
-        <div style="font-size:0.75rem;color:var(--text-light);text-transform:uppercase;font-weight:700;margin-bottom:0.5rem;">${v.category||''} — ${v.speaker||''}</div>
-        ${v.description?`<div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:0.75rem;">${v.description}</div>`:''}
-        <a href="${v.url}" target="_blank" rel="noopener" style="color:var(--orange);font-size:0.8rem;font-weight:700;">Watch on YouTube &rarr;</a>
-        <button onclick="deleteVideo('${d.id}')" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#ff5252;cursor:pointer;font-size:1rem;"><i class="fa-solid fa-trash-can"></i></button>
+        <div style="font-weight:800;margin-bottom:0.25rem;">${escapeHtml(v.title)}</div>
+        <div style="font-size:0.75rem;color:var(--text-light);text-transform:uppercase;font-weight:700;margin-bottom:0.5rem;">${escapeHtml(v.category||'')}: ${escapeHtml(v.speaker||'')}</div>
+        ${v.description?`<div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:0.75rem;">${escapeHtml(v.description)}</div>`:''}
+        <a href="${attrUrl(v.url)}" target="_blank" rel="noopener" style="color:var(--orange);font-size:0.8rem;font-weight:700;">Watch on YouTube</a>
+        <button onclick="deleteVideo('${jsAttr(d.id)}')" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#ff5252;cursor:pointer;font-size:1rem;"><i class="fa-solid fa-trash-can"></i></button>
       </div>`;
     });
   } catch(e) { list.innerHTML='<p style="color:var(--text-mid);padding:2rem;text-align:center;">Error loading videos.</p>'; }
@@ -3129,7 +3149,7 @@ window.deleteVideo = async (id) => {
 function populateNotifTargets() {
   const sel = document.getElementById('pnTarget');
   sel.innerHTML = '<option value="">-- Select Member --</option>' +
-    allUsers.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    allUsers.map(u=>`<option value="${escapeHtml(u.id)}">${escapeHtml(u.name)}</option>`).join('');
 }
 
 window.sendCommonNotification = async () => {
@@ -3177,12 +3197,12 @@ async function loadSentNotifications() {
       if (n.createdAt) { try { dateStr=n.createdAt.toDate().toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); } catch(_){} }
       list.innerHTML+=`<div style="padding:1rem 1.25rem;border-left:3px solid ${isPersonal?'var(--orange)':'var(--border)'};background:var(--surface2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
         <div>
-          <div style="font-weight:700;font-size:0.9rem;">${n.title}</div>
-          <div style="font-size:0.8rem;color:var(--text-mid);margin-top:0.2rem;">${n.body}</div>
-          ${isPersonal?`<div style="font-size:0.72rem;color:var(--orange);font-weight:700;margin-top:0.3rem;">Personal &rarr; ${n.targetName||''} ${n.read?'(Read)':'(Unread)'}</div>`:'<div style="font-size:0.72rem;color:var(--text-light);font-weight:700;margin-top:0.3rem;">Broadcast</div>'}
+          <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(n.title)}</div>
+          <div style="font-size:0.8rem;color:var(--text-mid);margin-top:0.2rem;">${escapeHtml(n.body)}</div>
+          ${isPersonal?`<div style="font-size:0.72rem;color:var(--orange);font-weight:700;margin-top:0.3rem;">Personal, to ${escapeHtml(n.targetName||'')} ${n.read?'(Read)':'(Unread)'}</div>`:'<div style="font-size:0.72rem;color:var(--text-light);font-weight:700;margin-top:0.3rem;">Broadcast</div>'}
           <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.2rem;">${dateStr}</div>
         </div>
-        <button onclick="deleteNotif('${d.id}')" style="background:none;border:none;color:var(--text-light);cursor:pointer;flex-shrink:0;"><i class="fa-solid fa-trash-can" style="font-size:0.85rem;"></i></button>
+        <button onclick="deleteNotif('${jsAttr(d.id)}')" style="background:none;border:none;color:var(--text-light);cursor:pointer;flex-shrink:0;"><i class="fa-solid fa-trash-can" style="font-size:0.85rem;"></i></button>
       </div>`;
     });
   } catch(e) { list.innerHTML='<p style="color:var(--text-mid);">Could not load notifications.</p>'; }
@@ -3278,14 +3298,14 @@ async function loadVotingSessions() {
       if (s.createdAt) { try { dateStr=s.createdAt.toDate().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(_){} }
       list.innerHTML+=`<div style="padding:1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
         <div>
-          <div style="font-weight:700;">${s.meetTitle}</div>
+          <div style="font-weight:700;">${escapeHtml(s.meetTitle)}</div>
           <div style="font-size:0.78rem;color:var(--text-light);">${dateStr}</div>
         </div>
         <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           ${s.active?'<span class="badge-live">OPEN</span>':'<span class="badge-past">CLOSED</span>'}
-          <button class="btn-primary btn-sm" onclick="viewVoteResults('${sid}')"><i class="fa-solid fa-chart-bar"></i> Results</button>
-          ${s.active?`<button class="btn-outline btn-sm" onclick="closeVotingSession('${sid}')">Close Session</button>`:''}
-          <button class="btn-danger btn-sm" onclick="deleteVotingSession('${sid}')">Delete</button>
+          <button class="btn-primary btn-sm" onclick="viewVoteResults('${jsAttr(sid)}')"><i class="fa-solid fa-chart-bar"></i> Results</button>
+          ${s.active?`<button class="btn-outline btn-sm" onclick="closeVotingSession('${jsAttr(sid)}')">Close Session</button>`:''}
+          <button class="btn-danger btn-sm" onclick="deleteVotingSession('${jsAttr(sid)}')">Delete</button>
         </div>
       </div>`;
     });
@@ -3317,7 +3337,7 @@ window.viewVoteResults = async (sid) => {
   // Fetch all votes and filter client-side to avoid needing a composite Firestore index
   const vSnap=await getDocs(collection(db,'votes'));
   const votes=[]; vSnap.forEach(d=>{ const v=d.data(); if(v.sessionId===sid) votes.push(v); });
-  document.getElementById('voteResultsTitle').textContent=`Results — ${sData.meetTitle}`;
+  document.getElementById('voteResultsTitle').textContent=`Results: ${sData.meetTitle}`;
   document.getElementById('voteResultsCount').textContent=`${votes.length} anonymous vote${votes.length!==1?'s':''} received`;
   const categories=[
     {key:'bestSpeaker',label:'Best Speaker',candidates:sData.speakers||[]},
@@ -3340,13 +3360,13 @@ window.viewVoteResults = async (sid) => {
     const sorted=Object.entries(tallies).sort((a,b)=>b[1]-a[1]);
     const topVotes=sorted[0]?.[1]||0;
     html+=`<div style="margin-bottom:1.5rem;">
-      <h4 style="margin-bottom:1rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);">${cat.label}</h4>
+      <h4 style="margin-bottom:1rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);">${escapeHtml(cat.label)}</h4>
       ${sorted.map(([name,count])=>{
         const pct=votes.length?Math.round(count/votes.length*100):0;
         const isWinner=count===topVotes&&count>0;
         return `<div style="margin-bottom:0.75rem;">
           <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
-            <span style="font-weight:${isWinner?'800':'600'};color:${isWinner?'var(--orange)':'var(--text)'};">${name}${isWinner?' (Top)':''}</span>
+            <span style="font-weight:${isWinner?'800':'600'};color:${isWinner?'var(--orange)':'var(--text)'};">${escapeHtml(name)}${isWinner?' (Top)':''}</span>
             <span style="font-weight:700;color:var(--text-mid);">${count} votes</span>
           </div>
           <div class="vote-result-bar"><div class="vote-result-fill" style="width:${pct}%;"></div></div>
@@ -3381,10 +3401,10 @@ document.getElementById('winnerConfirmButtons').innerHTML=winnerButtons.map((wb,
       );
     }
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
-      <span style="font-weight:700;font-size:0.88rem;">${wb.category}: <span style="color:var(--orange);">${wb.winner}</span></span>
+      <span style="font-weight:700;font-size:0.88rem;">${escapeHtml(wb.category)}: <span style="color:var(--orange);">${escapeHtml(wb.winner)}</span></span>
       ${alreadyAwarded
         ? `<span style="display:inline-flex;align-items:center;gap:0.4rem;background:#4CAF50;color:#fff;padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:700;opacity:0.75;"><i class="fa-solid fa-check"></i> Awarded</span>`
-        : `<button class="btn-success btn-sm" onclick="awardWinnerBadge('${wb.winnerUid||''}','${wb.winner}','${wb.category}','${wb.meetTitle}',this)"><i class="fa-solid fa-crown"></i> Award Badge</button>`
+        : `<button class="btn-success btn-sm" onclick="awardWinnerBadge('${jsAttr(wb.winnerUid||'')}','${jsAttr(wb.winner)}','${jsAttr(wb.category)}','${jsAttr(wb.meetTitle)}',this)"><i class="fa-solid fa-crown"></i> Award Badge</button>`
       }
     </div>`;
   }).join('');
@@ -3446,26 +3466,26 @@ window.selectPathway = async (key, btn) => {
     container.innerHTML=`
       <div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <h3 style="margin:0;">${data.name||key}</h3>
+          <h3 style="margin:0;">${escapeHtml(data.name||key)}</h3>
           <p style="margin:0.3rem 0 0;font-size:0.85rem;color:var(--text-mid);">${projects.length} projects</p>
         </div>
-        <button class="btn-primary btn-sm" onclick="addNewProject('${key}')">+ Add Project</button>
+        <button class="btn-primary btn-sm" onclick="addNewProject('${jsAttr(key)}')">+ Add Project</button>
       </div>
       ${projects.map((p,i)=>{
         const name=typeof p==='string'?p:(p.name||`Project ${i+1}`);
         const guide=typeof p==='object'&&p.guideLink?p.guideLink:'';
         return `<div style="padding:1.1rem 1.25rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
           <div style="flex:1;">
-            <div style="font-weight:700;">${name}</div>
+            <div style="font-weight:700;">${escapeHtml(name)}</div>
             ${guide?`<div style="font-size:0.75rem;color:var(--orange);margin-top:0.2rem;"><i class="fa-solid fa-link"></i> Guide linked</div>`:'<div style="font-size:0.75rem;color:var(--text-light);margin-top:0.2rem;">No guide link</div>'}
           </div>
           <div style="display:flex;gap:0.5rem;">
-            <button class="btn-outline btn-sm" onclick="editProject('${key}',${i})"><i class="fa-solid fa-pen"></i> Edit</button>
-            <button class="btn-danger btn-sm" onclick="deleteProject('${key}',${i})">Delete</button>
+            <button class="btn-outline btn-sm" onclick="editProject('${jsAttr(key)}',${i})"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn-danger btn-sm" onclick="deleteProject('${jsAttr(key)}',${i})">Delete</button>
           </div>
         </div>`;
       }).join('')}`;
-  } catch(e) { container.innerHTML=`<p style="color:red;">Error: ${e.message}</p>`; }
+  } catch(e) { container.innerHTML=`<p style="color:red;">Error: ${escapeHtml(e.message)}</p>`; }
 };
 
 window.editProject = (key, idx) => {
@@ -3520,7 +3540,7 @@ window.saveProjectEdit = async () => {
     const btn2 = document.querySelector('.filter-btn.active');
     if (btn2) { const k = btn2.getAttribute('onclick').match(/'([^']+)'/)?.[1]; if (k) selectPathway(k, btn2); }
   } catch (e) { alert('Error: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Save Project →'; }
+  finally { btn.disabled = false; btn.textContent = 'Save Project'; }
 };
 window.deleteProject = async (key, idx) => {
   if (!confirm('Delete this project?')) return;
@@ -3562,7 +3582,7 @@ async function loadRoleGuides() {
   container.innerHTML = ROLE_GUIDE_KEYS.map(r => `
     <div>
       <label class="form-label">${r.label}</label>
-      <input type="url" id="rg_${r.id}" value="${existing[r.id]||''}"
+      <input type="url" id="rg_${escapeHtml(r.id)}" value="${escapeHtml(existing[r.id]||'')}"
         placeholder="https://drive.google.com/..."
         style="font-size:0.82rem;" />
     </div>`).join('');
@@ -3594,9 +3614,9 @@ window.uploadRoleGuideFile = async function(roleId, input) {
     });
     const url = await getDownloadURL(task.snapshot.ref);
     document.getElementById('rg_' + roleId).value = url;
-    status.textContent = '✓ Ready to save'; status.style.color = '#4CAF50';
+    status.textContent = 'Ready to save'; status.style.color = '#4CAF50';
   } catch(e) {
-    status.textContent = '✗ Failed'; status.style.color = '#f44336';
+    status.textContent = 'Failed'; status.style.color = '#f44336';
     alert('Upload failed: ' + e.message);
   } finally {
     input.value = '';
@@ -3616,7 +3636,7 @@ async function loadDocs() {
     snap.forEach(d => allDocsCache.push({ id: d.id, ...d.data() }));
     renderDocs(allDocsCache);
   } catch(e) {
-    if (container) container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load documents: ${e.message}</p></div>`;
+    if (container) container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load documents: ${escapeHtml(e.message)}</p></div>`;
   }
 }
 
@@ -3642,11 +3662,11 @@ function renderDocs(docs) {
       } catch(_) {}
     }
     const linksHtml = (d.links || []).filter(l => l.url).map(l =>
-      `<a href="${l.url}" target="_blank" rel="noopener"
+      `<a href="${attrUrl(l.url)}" target="_blank" rel="noopener"
         style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.85rem;background:var(--orange-light);color:var(--orange);border:1px solid rgba(255,87,34,0.2);border-radius:100px;font-size:0.78rem;font-weight:700;text-decoration:none;transition:all 0.2s;"
         onmouseover="this.style.background='var(--orange)';this.style.color='#fff'"
         onmouseout="this.style.background='var(--orange-light)';this.style.color='var(--orange)'">
-        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>${l.name || l.url}
+        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>${escapeHtml(l.name || l.url)}
       </a>`
     ).join('');
 
@@ -3655,17 +3675,17 @@ function renderDocs(docs) {
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.3rem;">
             ${starred ? '<i class="fa-solid fa-star" style="color:#f59e0b;font-size:0.95rem;"></i>' : ''}
-            <h3 style="margin:0;font-size:1.15rem;font-family:var(--font-display);">${d.title || 'Untitled'}</h3>
+            <h3 style="margin:0;font-size:1.15rem;font-family:var(--font-display);">${escapeHtml(d.title || 'Untitled')}</h3>
           </div>
           ${dateStr ? `<div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.08em;">${dateStr}</div>` : ''}
         </div>
         <div style="display:flex;gap:0.5rem;flex-shrink:0;">
-          <button onclick="editDoc('${d.id}')" class="btn-outline btn-sm">
+          <button onclick="editDoc('${jsAttr(d.id)}')" class="btn-outline btn-sm">
             <i class="fa-solid fa-pen"></i> Edit
           </button>
         </div>
       </div>
-      ${d.description ? `<p style="font-size:0.88rem;color:var(--text-mid);line-height:1.65;margin-bottom:${linksHtml?'1.1rem':'0'};">${d.description.replace(/\n/g,'<br>')}</p>` : ''}
+      ${d.description ? `<p style="font-size:0.88rem;color:var(--text-mid);line-height:1.65;margin-bottom:${linksHtml?'1.1rem':'0'};">${escapeHtml(d.description).replace(/\n/g,'<br>')}</p>` : ''}
       ${linksHtml ? `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">${linksHtml}</div>` : ''}
     </div>`;
   }).join('');
@@ -3739,8 +3759,8 @@ window.editDoc = async function(id) {
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;';
       row.innerHTML = `
-        <input type="text" class="doc-link-name" value="${l.name||''}" placeholder="Link name" style="width:200px;flex-shrink:0;" />
-        <input type="url" class="doc-link-url" value="${l.url||''}" placeholder="https://..." style="flex:1;" />
+        <input type="text" class="doc-link-name" value="${escapeHtml(l.name||'')}" placeholder="Link name" style="width:200px;flex-shrink:0;" />
+        <input type="url" class="doc-link-url" value="${escapeHtml(l.url||'')}" placeholder="https://..." style="flex:1;" />
         <button type="button" onclick="this.parentElement.remove()"
           style="background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;padding:0.4rem;flex-shrink:0;">&times;</button>`;
       lc.appendChild(row);
@@ -3795,7 +3815,7 @@ window.saveDoc = async function() {
     status.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:600;';
     status.style.display = 'block';
   } finally {
-    btn.textContent = 'Save Document →'; btn.disabled = false;
+    btn.textContent = 'Save Document'; btn.disabled = false;
   }
 };
 

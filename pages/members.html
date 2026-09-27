@@ -6,7 +6,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Members — Unscripted NITT</title>
+  <title>Members | Unscripted NITT</title>
   <meta name="description" content="Meet the members of Unscripted, the public speaking club of NIT Trichy." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -48,7 +48,7 @@
 
 
 <nav class="navbar" id="navbar">
-  <a class="nav-logo" href="../index.html"><img src="../icons/logo.png" alt="Unscripted NITT" /></a>
+  <a class="nav-logo" href="../index.html"><img src="../icons/logo-sm.png" alt="Unscripted NITT" /></a>
   <div class="nav-links" id="navLinks">
     <a href="../index.html#about">About</a>
     <a href="../index.html#events">Events</a>
@@ -97,7 +97,7 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" /></div>
+        <div class="footer-logo"><img src="../icons/logo-sm.png" alt="Unscripted" /></div>
         <p class="footer-tagline">Official Public Speaking and Leadership Club of NIT Trichy.</p>
       </div>
       <div class="footer-nav"><h4>Pages</h4><ul>
@@ -119,6 +119,7 @@
 import { db } from '../js/firebase-config.js';
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { PixelTransition } from '../js/pixel-transition.js';
+import { escapeHtml, safeUrl, attrUrl, cssUrl, safeColor, jsAttr } from '../js/escape.js';
 
 const COLORS = ['#FF5722','#E64A19','#FF7043','#F4511E','#BF360C','#D84315'];
 let allMembers = [];
@@ -159,22 +160,23 @@ function initPixelAvatars(orderedMembers, colorOffset = 0) {
     const m = orderedMembers[i];
     if (!m) return;
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const color = m.avatarColor || COLORS[(i + colorOffset) % COLORS.length];
+    const color = safeColor(m.avatarColor, COLORS[(i + colorOffset) % COLORS.length]);
     const roleLabel = { core:'Core Team', mentor:'Mentor', admin:'Admin' }[m.role] || 'Member';
-    const deptLine = `${m.department||m.dept||''}${m.batch?' &middot; '+m.batch:''}`;
+    const deptLine = `${escapeHtml(m.department||m.dept||'')}${m.batch?' &middot; '+escapeHtml(m.batch):''}`;
+    const photo = safeUrl(m.photoUrl);
 
     // req: a dark, semi-transparent version of the member's own photo sits
     // behind the name/details text on the default face (faded silhouette),
     // while hovering still pixel-dissolves into the full clear photo via
     // the existing PixelTransition secondContent below.
-    const overlayBgStyle = m.photoUrl
-      ? `style="background-image:linear-gradient(180deg, rgba(10,10,10,0.62) 0%, rgba(10,10,10,0.72) 100%), url('${m.photoUrl}');background-size:cover;background-position:center;"`
+    const overlayBgStyle = photo
+      ? `style="background-image:linear-gradient(180deg, rgba(10,10,10,0.62) 0%, rgba(10,10,10,0.72) 100%), url('${cssUrl(photo)}');background-size:cover;background-position:center;"`
       : `style="background:${color};"`;
 
     const firstContent = `<div class="member-overlay" ${overlayBgStyle}>
-      <h3>${m.name||'Member'}</h3>
+      <h3>${escapeHtml(m.name||'Member')}</h3>
       <div class="dept">${deptLine}</div>
-      ${m.degree?`<div class="dept" style="font-size:0.72rem;">${m.degree}</div>`:''}
+      ${m.degree?`<div class="dept" style="font-size:0.72rem;">${escapeHtml(m.degree)}</div>`:''}
       <div class="role">${roleLabel}</div>
       <div class="reveal-hint">
         <span class="hint-hover">Hover to reveal photo</span>
@@ -182,9 +184,9 @@ function initPixelAvatars(orderedMembers, colorOffset = 0) {
       </div>
     </div>`;
 
-    const secondContent = m.photoUrl
-      ? `<img src="${m.photoUrl}" alt="${m.name||'Member'}" loading="lazy" />`
-      : `<div class="member-photo-fallback" style="background:${color};">${initials}</div>`;
+    const secondContent = photo
+      ? `<img src="${attrUrl(photo)}" alt="${escapeHtml(m.name||'Member')}" loading="lazy" />`
+      : `<div class="member-photo-fallback" style="background:${color};">${escapeHtml(initials)}</div>`;
 
     new PixelTransition(el, {
       firstContent,
@@ -242,11 +244,11 @@ function renderMembers(members) {
     const safeId = 'batch_' + batch.replace(/[^a-zA-Z0-9]/g, '_');
     return `
       <div style="margin-bottom:1rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-        <button onclick="toggleBatchSection('${safeId}','${batch}')"
+        <button onclick="toggleBatchSection('${safeId}','${jsAttr(batch)}')"
           style="width:100%;padding:1.1rem 1.5rem;background:var(--surface2);border:none;cursor:pointer;
                  display:flex;justify-content:space-between;align-items:center;
                  font-weight:800;font-size:1rem;color:var(--text);text-align:left;">
-          <span>Batch of ${batch}</span>
+          <span>Batch of ${escapeHtml(batch)}</span>
           <span style="display:flex;align-items:center;gap:1rem;">
             <span style="font-size:0.78rem;font-weight:600;color:var(--text-light);">${items.length} member${items.length!==1?'s':''}</span>
             <i class="fa-solid fa-chevron-down" id="icon_${safeId}" style="color:var(--orange);transition:transform 0.12s;"></i>

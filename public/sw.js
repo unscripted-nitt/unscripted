@@ -1,7 +1,7 @@
 // sw.js — Service Worker for Unscripted NITT PWA
 // Provides offline caching and push notification support
 
-const CACHE_NAME = 'unscripted-v5';
+const CACHE_NAME = 'unscripted-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -30,17 +30,39 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — network-first: every visit, for every user, tries the network
-// first and always gets the latest file when online. The cache is only
-// used as a fallback when the network is unreachable (offline support),
-// never served ahead of a fresh copy. Firestore/auth calls are never
-// intercepted — those always go straight to the network.
+// Fetch strategy:
+// - Hashed, immutable build assets (Vite's /assets/*) are cache-first: they
+//   never change without a new hash, so re-downloading them on every
+//   navigation is pure waste.
+// - Everything else (HTML, unhashed static files) is network-first, so a
+//   new deploy is always picked up, with the cache as an offline fallback.
+// Firestore/auth calls are never intercepted — those always go straight to
+// the network.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('firebasejs') || event.request.url.includes('googleapis') || event.request.url.includes('firestore')) return;
+  const url = event.request.url;
+  if (url.includes('firebasejs') || url.includes('googleapis') || url.includes('firestore') || url.includes('/__/auth/')) return;
+
+  const isHashedAsset = new URL(url).pathname.startsWith('/assets/');
+
+  if (isHashedAsset) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
 
   event.respondWith(
-    fetch(event.request, { cache: 'no-store' })
+    fetch(event.request)
       .then(response => {
         if (response.ok) {
           const clone = response.clone();
@@ -66,10 +88,15 @@ self.addEventListener('push', event => {
   );
 });
 
-// Notification click — open app
+// Notification click — open app. The URL comes from a push payload, so it
+// is only ever opened when it resolves to this same origin.
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const url = event.notification.data?.url || '/';
+  let url = '/';
+  try {
+    const candidate = new URL(event.notification.data?.url || '/', self.location.origin);
+    if (candidate.origin === self.location.origin) url = candidate.href;
+  } catch { /* keep default */ }
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {

@@ -56,10 +56,10 @@
         ];
         for(let l of leaderboard) await addDoc(collection(db, 'leaderboard'), l);
 
-        status.textContent = '✅ Success! Initial data added. You can now close this tab.';
+        status.textContent = 'Success! Initial data added. You can now close this tab.';
         btn.textContent = 'All Set!';
       } catch (e) {
-        status.textContent = '❌ Error: ' + e.message;
+        status.textContent = 'Error: ' + e.message;
         btn.disabled = false;
       }
     };

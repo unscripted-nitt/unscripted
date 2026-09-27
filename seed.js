@@ -16,7 +16,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function seed() {
-  console.log("🚀 Starting seed process...");
+  console.log("Starting seed process...");
 
   try {
     // 1. ADD EVENTS
@@ -50,10 +50,10 @@ async function seed() {
     ];
     for(let l of leaderboard) await addDoc(collection(db, 'leaderboard'), l);
 
-    console.log("✅ SUCCESS! All data seeded successfully to the new database.");
+    console.log("Done. All data seeded successfully to the new database.");
     process.exit(0);
   } catch (error) {
-    console.error("❌ ERROR:", error.message);
+    console.error("Error:", error.message);
     console.log("\nTIP: Make sure you have enabled 'Firestore' in your Firebase console and set rules to allow writes.");
     process.exit(1);
   }

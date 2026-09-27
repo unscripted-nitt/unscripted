@@ -6,9 +6,8 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guest Dashboard — Unscripted NITT</title>  
+  <title>Guest Dashboard | Unscripted NITT</title>  
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/preloader.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -24,8 +23,6 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
-<script type="module" src="../js/preloader.js"></script>
 
 
 <div class="dash-top-nav">
@@ -34,7 +31,7 @@
       <i class="fa-solid fa-bars"></i>
     </button>
     <a href="../index.html" class="nav-logo" style="display:flex;align-items:center;">
-      <img src="../icons/logo.png" alt="Unscripted" style="height:44px;width:auto;" />
+      <img src="../icons/logo-sm.png" alt="Unscripted" style="height:44px;width:auto;" />
     </a>
     <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);border-left:1px solid var(--border);padding-left:1rem;">Guest Session</span>
   </div>
@@ -84,7 +81,7 @@
       <p class="section-sub">Rate a speaker from today's event</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
         <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-        <span>Your feedback is anonymous to the speaker — they only see the average scores. Your responses will appear as <strong>Guest Feedback</strong> on their profile.</span>
+        <span>Your feedback is anonymous. The speaker only sees the average scores. Your responses will appear as <strong>Guest Feedback</strong> on their profile.</span>
       </div>
       <div class="card">
         <div class="form-group" style="margin-bottom:1.5rem;">
@@ -100,7 +97,7 @@
             <label>Written Feedback</label>
             <textarea id="guestFbComment" placeholder="What worked well? What could be improved?" style="min-height:100px;"></textarea>
           </div>
-          <button class="btn-primary" onclick="submitGuestFeedback()" style="margin-top:1rem;width:100%;">Submit Feedback &rarr;</button>
+          <button class="btn-primary" onclick="submitGuestFeedback()" style="margin-top:1rem;width:100%;">Submit Feedback</button>
           <div id="guestFbMsg" style="display:none;margin-top:1rem;padding:0.85rem;border-radius:var(--radius-sm);font-weight:600;"></div>
         </div>
       </div>
@@ -125,7 +122,7 @@
     <!-- MY EXPERIENCE -->
     <div class="dash-section" id="section-experience">
       <h2 class="section-title">My Experience</h2>
-      <p class="section-sub">Share your thoughts about today's event — this helps us improve</p>
+      <p class="section-sub">Tell us how today's event went so we can make it better</p>
       <div id="expAlreadySubmitted" style="display:none;" class="card" style="border:1px solid rgba(76,175,80,0.3);background:rgba(76,175,80,0.05);">
         <div style="display:flex;align-items:center;gap:0.75rem;">
           <i class="fa-solid fa-circle-check" style="color:#4CAF50;font-size:1.5rem;"></i>
@@ -181,7 +178,7 @@
           <label>Written Feedback (Optional)</label>
           <textarea id="expComment" placeholder="Share anything else about your experience today..." style="min-height:100px;"></textarea>
         </div>
-        <button class="btn-primary" onclick="submitGuestExperience()" style="width:100%;margin-top:1.25rem;padding:1rem;">Submit My Experience &rarr;</button>
+        <button class="btn-primary" onclick="submitGuestExperience()" style="width:100%;margin-top:1.25rem;padding:1rem;">Submit My Experience</button>
         <div id="expMsg" style="display:none;margin-top:1rem;padding:0.85rem;border-radius:var(--radius-sm);font-weight:600;"></div>
       </div>
     </div>
@@ -201,7 +198,8 @@
 </div>
 
 <script type="module">
-import { auth, db } from '../js/firebase-config.js';
+import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
+import { escapeHtml, attrUrl, jsAttr } from '../js/escape.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, query, where, orderBy,
@@ -233,9 +231,18 @@ onAuthStateChanged(auth, async user => {
     window.location.href = 'login.html';
     return;
   }
-  // Load event and token data
-  await loadEventData();
-  await loadGuestTokenData();
+  // The real guest pass is the claim redeemGuestOtp put on this account;
+  // localStorage only carries display data.
+  const claims = (await user.getIdTokenResult()).claims;
+  if (!claims.guest || claims.tokenId !== tokenId || claims.eventId !== eventId) {
+    localStorage.removeItem('guestSession');
+    await signOut(auth).catch(() => {});
+    window.location.href = 'login.html';
+    return;
+  }
+  // Event and guest-token data are independent reads — fetch them
+  // concurrently instead of one after another.
+  await Promise.all([loadEventData(), loadGuestTokenData()]);
   loadFeedbackSpeakers();
   loadGuestVoting();
   loadGuestAchievements();
@@ -287,7 +294,7 @@ async function loadEventData() {
     }
     eventData = { id: snap.id, ...snap.data() };
 
-    let dateStr = '—';
+    let dateStr = '-';
     if (eventData.date) {
       try {
         const d = eventData.date.toDate ? eventData.date.toDate() : new Date(eventData.date);
@@ -303,8 +310,8 @@ async function loadEventData() {
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">
           ${eventData.rolesDisplay.map(rd => `
             <div style="padding:0.7rem 1rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:0.65rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${rd.role}</span>
-              <span style="font-weight:700;font-size:0.88rem;">${rd.name}</span>
+              <span style="font-size:0.65rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">${escapeHtml(rd.role)}</span>
+              <span style="font-weight:700;font-size:0.88rem;">${escapeHtml(rd.name)}</span>
             </div>`).join('')}
         </div>
       </div>`;
@@ -314,27 +321,27 @@ async function loadEventData() {
       <div class="card" style="border-left:4px solid var(--orange);">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
           <div>
-            <h2 style="margin:0;font-size:1.6rem;">${eventData.title || 'Event'}</h2>
+            <h2 style="margin:0;font-size:1.6rem;">${escapeHtml(eventData.title || 'Event')}</h2>
             <div style="font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem;">${dateStr}</div>
           </div>
           <span style="background:rgba(255,87,34,0.1);color:var(--orange);padding:4px 12px;border-radius:100px;font-size:0.72rem;font-weight:800;">You're a guest!</span>
         </div>
-        ${eventData.description ? `<p style="color:var(--text-mid);font-size:0.9rem;line-height:1.6;margin-bottom:1rem;">${eventData.description}</p>` : ''}
+        ${eventData.description ? `<p style="color:var(--text-mid);font-size:0.9rem;line-height:1.6;margin-bottom:1rem;">${escapeHtml(eventData.description)}</p>` : ''}
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-          ${eventData.galleryLink ? `<a href="${eventData.galleryLink}" target="_blank" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-images"></i> Gallery</a>` : ''}
-          ${eventData.docLink ? `<a href="${eventData.docLink}" target="_blank" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-file-lines"></i> Documentation</a>` : ''}
+          ${attrUrl(eventData.galleryLink) ? `<a href="${attrUrl(eventData.galleryLink)}" target="_blank" rel="noopener" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-images"></i> Gallery</a>` : ''}
+          ${attrUrl(eventData.docLink) ? `<a href="${attrUrl(eventData.docLink)}" target="_blank" rel="noopener" class="btn-outline" style="font-size:0.82rem;padding:0.45rem 1rem;"><i class="fa-solid fa-file-lines"></i> Documentation</a>` : ''}
         </div>
         ${(eventData.eventVideos||[]).length ? `
           <div style="margin-top:1.25rem;">
             <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-light);margin-bottom:0.6rem;">Event Videos</div>
             <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-              ${eventData.eventVideos.map((v,i) => `<a href="${v.url}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.85rem;">${v.title||'Video '+(i+1)} →</a>`).join('')}
+              ${eventData.eventVideos.map((v,i) => `<a href="${attrUrl(v.url)}" target="_blank" rel="noopener" style="color:var(--orange);font-weight:700;font-size:0.85rem;">${escapeHtml(v.title||'Video '+(i+1))}</a>`).join('')}
             </div>
           </div>` : ''}
         ${rolesHtml}
       </div>`;
   } catch(e) {
-    container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load event: ${e.message}</p></div>`;
+    container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load event. Please try again.</p></div>`;
   }
 }
 
@@ -361,7 +368,7 @@ function loadFeedbackSpeakers() {
     }
   }
   sel.innerHTML = '<option value="">-- Select a speaker --</option>' +
-    speakers.map(s => `<option value="${s.uid}">${s.name}</option>`).join('');
+    speakers.map(s => `<option value="${escapeHtml(s.uid)}">${escapeHtml(s.name)}</option>`).join('');
 }
 
 window.loadGuestFeedbackForm = function() {
@@ -435,7 +442,7 @@ window.submitGuestFeedback = async function() {
     msg.textContent = 'Submit failed: ' + e.message;
     msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
   } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback →'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
     _guestFeedbackSubmissionInProgress = false;
   }
 };
@@ -478,7 +485,7 @@ async function loadGuestVoting() {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
         <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
         <h3 style="color:#2e7d32;">Vote Submitted!</h3>
-        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${sessionData.meetTitle}</strong> has been recorded.</p>
+        <p style="color:var(--text-mid);">Your anonymous vote for <strong>${escapeHtml(sessionData.meetTitle)}</strong> has been recorded.</p>
       </div>`; return;
     }
 
@@ -491,25 +498,25 @@ async function loadGuestVoting() {
 
     container.innerHTML = `
       <div class="card" style="margin-bottom:1.5rem;border:1px solid rgba(255,87,34,0.2);background:var(--orange-light);">
-        <h3 style="margin:0;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);margin-right:0.5rem;"></i>${sessionData.meetTitle} — Voting Open</h3>
+        <h3 style="margin:0;"><i class="fa-solid fa-check-to-slot" style="color:var(--orange);margin-right:0.5rem;"></i>${escapeHtml(sessionData.meetTitle)}: Voting Open</h3>
         <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--text-mid);">Your vote is anonymous.</p>
       </div>
       <form id="guestVoteForm">
         ${categories.map(cat => `
           <div class="vote-category">
-            <h4>${cat.label}</h4>
+            <h4>${escapeHtml(cat.label)}</h4>
             <div class="vote-options">
               ${cat.candidates.map(c => `
                 <label class="vote-option" onclick="this.classList.add('selected');this.closest('.vote-options').querySelectorAll('.vote-option').forEach(el=>el.classList.remove('selected'));this.classList.add('selected');">
-                  <input type="radio" name="${cat.key}" value="${c.uid||c.name}" style="pointer-events:none;" />
-                  <span>${c.name}</span>
+                  <input type="radio" name="${cat.key}" value="${escapeHtml(c.uid||c.name)}" style="pointer-events:none;" />
+                  <span>${escapeHtml(c.name)}</span>
                 </label>`).join('')}
             </div>
           </div>`).join('')}
-        <button type="button" class="btn-primary" onclick="submitGuestVote('${sessionId}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote &rarr;</button>
+        <button type="button" class="btn-primary" onclick="submitGuestVote('${jsAttr(sessionId)}')" style="width:100%;margin-top:1rem;padding:1rem;">Submit My Vote</button>
         <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:0.75rem;">Your identity will not be stored with your vote.</p>
       </form>`;
-  } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting: ${e.message}</p></div>`; }
+  } catch(e) { container.innerHTML = `<div class="card"><p style="color:var(--text-mid);">Could not load voting. Please try again.</p></div>`; }
 }
 
 // Module-level lock — put once near the top of the script, alongside the other module-level vars
@@ -539,27 +546,16 @@ window.submitGuestVote = async function(sessionId) {
     const choices = {};
     radios.forEach(r => { choices[r.name] = r.value; });
 
-    // Deterministic ID per guest+session — resubmits overwrite instead of duplicating.
-    const voteDocId = await hashVoterSession('guest_' + tokenId, sessionId);
-
-    await setDoc(doc(db, 'votes', voteDocId), { sessionId, choices, updatedAt: serverTimestamp() });
-    await setDoc(doc(db, 'voteRecords', 'guest_' + tokenId + '_' + sessionId), {
-      sessionId, tokenId, guestName, createdAt: serverTimestamp()
-    });
+    // castVote checks the guest pass and records exactly one vote.
+    await httpsCallable(functions, 'castVote')({ sessionId, choices });
     loadGuestVoting();
   } catch(e) {
     alert('Failed to submit vote: ' + e.message);
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote →'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Vote'; }
   } finally {
     _guestVoteSubmissionInProgress = false;
   }
 };
-
-async function hashVoterSession(id, sessionId) {
-  const data = new TextEncoder().encode(id + '_' + sessionId);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2,'0')).join('');
-}
 
 // ── GUEST EXPERIENCE FEEDBACK ──────────────────────────────
 const expRatings = {};
@@ -619,7 +615,7 @@ window.submitGuestExperience = async function() {
   } catch(e) {
     msg.textContent = 'Submit failed: ' + e.message;
     msg.style.cssText = 'display:block;background:rgba(244,67,54,0.08);color:#c62828;border:1px solid rgba(244,67,54,0.2);padding:0.85rem;border-radius:var(--radius-sm);';
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Experience →'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit My Experience'; }
   } finally {
     _guestExperienceSubmissionInProgress = false;
   }
@@ -641,7 +637,7 @@ async function loadGuestAchievements() {
   }
   if (!winBadges.length) {
     container.innerHTML = `<div class="card">
-      <p style="color:var(--text-mid);">No awards yet. Keep participating — winners are announced after voting closes!</p>
+      <p style="color:var(--text-mid);">No awards yet. Winners are announced after voting closes.</p>
     </div>`; return;
   }
   container.innerHTML = `<div class="card">
@@ -653,8 +649,8 @@ async function loadGuestAchievements() {
         <div class="badge-item won">
           <div class="badge-ribbon">Winner</div>
           <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
-          <div class="badge-name">${wb.category}</div>
-          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${wb.meet}</div>
+          <div class="badge-name">${escapeHtml(wb.category)}</div>
+          <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${escapeHtml(wb.meet)}</div>
         </div>`).join('')}
     </div>
   </div>`;

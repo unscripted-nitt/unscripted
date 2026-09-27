@@ -17,6 +17,12 @@
  *                             its required approvals, actually performs
  *                             the action (imports the backup / flips the
  *                             isPrimaryAdmin flag) using the Admin SDK.
+ *   5. redeemGuestOtp      — checks a guest's OTP server-side (rate
+ *                             limited) and stamps guest claims on their
+ *                             anonymous account (login.html)
+ *   6. castVote            — records one vote per member/guest per
+ *                             voting session (dashboard.html,
+ *                             guest-dashboard.html)
  *
  * Everything else (deleting an event, clearing the leaderboard, etc.)
  * is a plain client-side write that Firestore Security Rules gate on
@@ -31,6 +37,8 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
+const crypto = require("crypto");
 const { v1: firestoreAdminV1 } = require("@google-cloud/firestore");
 const { Storage } = require("@google-cloud/storage");
 
@@ -68,7 +76,7 @@ exports.revokeAllSessions = onCall(async (request) => {
   const uid = request.auth.uid;
   await admin.auth().revokeRefreshTokens(uid);
   await db.doc(`users/${uid}`).set(
-    { sessionsRevokedAt: admin.firestore.FieldValue.serverTimestamp() },
+    { sessionsRevokedAt: FieldValue.serverTimestamp() },
     { merge: true }
   );
   return { ok: true };
@@ -80,7 +88,7 @@ exports.revokeAllSessions = onCall(async (request) => {
 exports.autoTransitionEvents = onSchedule(
   { schedule: "every 60 minutes", timeZone: "Asia/Kolkata" },
   async () => {
-    const now = admin.firestore.Timestamp.now();
+    const now = Timestamp.now();
     const snap = await db.collection("events").where("type", "==", "upcoming").get();
     if (snap.empty) return;
 
@@ -176,33 +184,206 @@ exports.onPendingActionWritten = onDocumentUpdated("pendingActions/{actionId}", 
         inputUriPrefix,
       });
 
-      await ref.set({ status: "executed", executedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      await ref.set({ status: "executed", executedAt: FieldValue.serverTimestamp() }, { merge: true });
       await db.collection("auditLog").add({
         type: "restore",
         restoreWhen: after.restoreWhen,
         restoredFrom: folder,
         approvedBy: after.approvals,
-        at: admin.firestore.FieldValue.serverTimestamp(),
+        at: FieldValue.serverTimestamp(),
       });
     } else if (after.kind === "primaryAdminChange") {
+      // firestore.rules look this approval up as pendingActions/pa_<uid>,
+      // so only ever act on the uid the doc id names.
+      if (event.params.actionId !== `pa_${after.targetUid}`) {
+        throw new Error("Request id does not match its target. Nothing was changed.");
+      }
       await db.doc(`users/${after.targetUid}`).set(
         { isPrimaryAdmin: after.newValue === true },
         { merge: true }
       );
-      await ref.set({ status: "executed", executedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      await ref.set({ status: "executed", executedAt: FieldValue.serverTimestamp() }, { merge: true });
       await db.collection("auditLog").add({
         type: "primaryAdminChange",
         targetUid: after.targetUid,
         newValue: after.newValue,
         approvedBy: after.approvals,
-        at: admin.firestore.FieldValue.serverTimestamp(),
+        at: FieldValue.serverTimestamp(),
       });
     }
   } catch (err) {
     console.error("onPendingActionWritten failed:", err);
     await ref.set(
-      { status: "failed", error: String(err.message || err), failedAt: admin.firestore.FieldValue.serverTimestamp() },
+      { status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() },
       { merge: true }
     );
   }
+});
+
+// ------------------------------------------------------------------
+// Rate limiting for the callables below: at most `max` calls per
+// `windowMs` for a given key, tracked in rateLimits/{key}.
+// ------------------------------------------------------------------
+async function consumeRateLimit(key, max, windowMs) {
+  const ref = db.doc(`rateLimits/${key}`);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const now = Date.now();
+    const data = snap.exists ? snap.data() : null;
+    if (!data || now - data.windowStart >= windowMs) {
+      tx.set(ref, { windowStart: now, count: 1 });
+      return;
+    }
+    if (data.count >= max) {
+      throw new HttpsError("resource-exhausted", "Too many attempts. Please wait a few minutes and try again.");
+    }
+    tx.update(ref, { count: data.count + 1 });
+  });
+}
+
+function rateKey(prefix, value) {
+  return prefix + "_" + crypto.createHash("sha256").update(String(value)).digest("hex").slice(0, 40);
+}
+
+function toDate(v) {
+  if (!v) return null;
+  const d = v.toDate ? v.toDate() : new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// ------------------------------------------------------------------
+// 5. Guest OTP login. The browser signs in anonymously, then calls this
+//    with the OTP. Tokens are never readable by clients; on success the
+//    anonymous account gets custom claims that firestore.rules check.
+// ------------------------------------------------------------------
+exports.redeemGuestOtp = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "You must be signed in.");
+  }
+  if (request.auth.token.firebase?.sign_in_provider !== "anonymous") {
+    throw new HttpsError("failed-precondition", "Guest login is only for guest accounts.");
+  }
+  const otp = String(request.data?.otp || "").trim();
+  if (!/^\d{6}$/.test(otp)) {
+    throw new HttpsError("invalid-argument", "Please enter a valid 6-digit OTP.");
+  }
+
+  const WINDOW = 15 * 60 * 1000;
+  await consumeRateLimit(rateKey("otp_uid", request.auth.uid), 5, WINDOW);
+  const ip = request.rawRequest?.ip;
+  if (ip) await consumeRateLimit(rateKey("otp_ip", ip), 20, WINDOW);
+
+  const snap = await db.collection("guestTokens").where("otp", "==", otp).limit(5).get();
+  const now = Date.now();
+  const tokenDoc = snap.docs.find((d) => {
+    const exp = toDate(d.data().expiresAt);
+    return exp && exp.getTime() > now;
+  });
+  if (!tokenDoc) {
+    throw new HttpsError("not-found", "Invalid or expired OTP. Please check with the admin.");
+  }
+
+  const t = tokenDoc.data();
+  const expiresAt = toDate(t.expiresAt);
+  await admin.auth().setCustomUserClaims(request.auth.uid, {
+    guest: true,
+    tokenId: tokenDoc.id,
+    eventId: t.eventId,
+    guestExp: expiresAt.getTime(),
+  });
+
+  return {
+    tokenId: tokenDoc.id,
+    guestName: t.guestName || "Guest",
+    eventId: t.eventId,
+    eventTitle: t.eventTitle || "",
+    expiresAt: expiresAt.toISOString(),
+  };
+});
+
+// ------------------------------------------------------------------
+// 6. Cast a vote. Clients cannot write votes/voteRecords directly;
+//    this checks the voter is a member (or a guest of that meet), the
+//    session is open, and every choice is a real candidate, then writes
+//    the anonymous ballot and the "has voted" record together.
+// ------------------------------------------------------------------
+const VOTE_CATEGORIES = {
+  bestSpeaker: "speakers",
+  bestEvaluator: "evaluators",
+  bestTableTopic: "tableTopicSpeakers",
+  bestRolePlayer: "rolePlayers",
+};
+
+exports.castVote = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "You must be signed in.");
+  }
+  const sessionId = String(request.data?.sessionId || "");
+  const choices = request.data?.choices;
+  if (!sessionId || sessionId.includes("/") || !choices || typeof choices !== "object" || Array.isArray(choices)) {
+    throw new HttpsError("invalid-argument", "Missing voting session or choices.");
+  }
+
+  const token = request.auth.token;
+  const isGuest = token.guest === true;
+  let voterKey, recordId, recordData;
+
+  const sessionSnap = await db.doc(`votingSessions/${sessionId}`).get();
+  if (!sessionSnap.exists || sessionSnap.data().active !== true) {
+    throw new HttpsError("failed-precondition", "This voting session is not open.");
+  }
+  const session = sessionSnap.data();
+
+  if (isGuest) {
+    if (!token.guestExp || Date.now() > token.guestExp) {
+      throw new HttpsError("permission-denied", "Your guest pass has expired.");
+    }
+    if (session.eventId !== token.eventId) {
+      throw new HttpsError("permission-denied", "You can only vote for the meet you attended.");
+    }
+    const tokenSnap = await db.doc(`guestTokens/${token.tokenId}`).get();
+    if (!tokenSnap.exists) throw new HttpsError("permission-denied", "Your guest pass is no longer valid.");
+    voterKey = "guest_" + token.tokenId;
+    recordId = `guest_${token.tokenId}_${sessionId}`;
+    recordData = { sessionId, tokenId: token.tokenId, guestName: tokenSnap.data().guestName || "Guest" };
+  } else {
+    if (token.firebase?.sign_in_provider === "anonymous") {
+      throw new HttpsError("permission-denied", "Only members and invited guests can vote.");
+    }
+    const userSnap = await db.doc(`users/${request.auth.uid}`).get();
+    if (!userSnap.exists) throw new HttpsError("permission-denied", "Only members can vote.");
+    voterKey = request.auth.uid;
+    recordId = `${request.auth.uid}_${sessionId}`;
+    recordData = { sessionId, voterUid: request.auth.uid };
+  }
+
+  // Every category that has candidates must be answered, with a real candidate.
+  const clean = {};
+  for (const [key, field] of Object.entries(VOTE_CATEGORIES)) {
+    const candidates = (session[field] || []).map((c) => c.uid || c.name);
+    if (!candidates.length) continue;
+    const pick = choices[key];
+    if (typeof pick !== "string" || !candidates.includes(pick)) {
+      throw new HttpsError("invalid-argument", "Please vote in every category.");
+    }
+    clean[key] = pick;
+  }
+  if (Object.keys(choices).some((k) => !(k in clean))) {
+    throw new HttpsError("invalid-argument", "Unknown voting category.");
+  }
+
+  // Same id scheme the clients used before, so existing ballots line up.
+  const voteId = crypto.createHash("sha256").update(voterKey + "_" + sessionId).digest("hex");
+  const recordRef = db.doc(`voteRecords/${recordId}`);
+  const voteRef = db.doc(`votes/${voteId}`);
+
+  await db.runTransaction(async (tx) => {
+    const existing = await tx.get(recordRef);
+    if (existing.exists) throw new HttpsError("already-exists", "You have already voted in this session.");
+    const now = FieldValue.serverTimestamp();
+    tx.set(voteRef, { sessionId, choices: clean, updatedAt: now });
+    tx.set(recordRef, { ...recordData, createdAt: now });
+  });
+
+  return { ok: true };
 });

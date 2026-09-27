@@ -4,8 +4,8 @@
   "description": "Official public speaking club of NIT Trichy",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFAF7",
-  "theme_color": "#FF5722",
+  "background_color": "#0E0C0A",
+  "theme_color": "#FF570E",
   "orientation": "portrait-primary",
   "icons": [
     {

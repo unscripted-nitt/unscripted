@@ -87,17 +87,17 @@ const PATHWAYS = {
 };
 
 async function seed() {
-  console.log("🌱 Seeding Firestore pathways collection...\n");
+  console.log("Seeding Firestore pathways collection...\n");
   for (const [id, data] of Object.entries(PATHWAYS)) {
     await setDoc(doc(db, "pathways", id), data);
-    console.log(`✅ Created: pathways/${id} — "${data.name}" (${data.speeches.length} speeches)`);
+    console.log(`Created: pathways/${id} — "${data.name}" (${data.speeches.length} speeches)`);
   }
-  console.log("\n🎉 All pathways seeded successfully!");
+  console.log("\nAll pathways seeded successfully!");
   process.exit(0);
 }
 
 seed().catch((err) => {
-  console.error("❌ Seeding failed:", err.message);
+  console.error("Seeding failed:", err.message);
   process.exit(1);
 });
 

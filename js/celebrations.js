@@ -8,6 +8,8 @@
 // particle effects and removed from the DOM once the animation ends.
 // ============================================================
 
+import { escapeHtml } from './escape.js';
+
 function getCanvas() {
   let canvas = document.getElementById('celebrationCanvas');
   if (!canvas) {
@@ -112,10 +114,15 @@ export function launchBrokenHearts() {
         ctx.save();
         ctx.translate(this.x_, y);
         ctx.rotate((rot * Math.PI) / 180);
-        ctx.font = `${size}px serif`;
         ctx.globalAlpha = y > window.innerHeight - 100 ? Math.max(0, 1 - (y - (window.innerHeight - 100)) / 100) : 0.9;
-        ctx.textAlign = 'center';
-        ctx.fillText('💔', 0, 0);
+        // plain heart shape drawn on the canvas instead of an emoji glyph
+        const h = size / 2;
+        ctx.fillStyle = '#9e9e9e';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.35);
+        ctx.bezierCurveTo(-h * 1.1, -h * 0.4, -h * 0.5, -h * 1.1, 0, -h * 0.45);
+        ctx.bezierCurveTo(h * 0.5, -h * 1.1, h * 1.1, -h * 0.4, 0, h * 0.35);
+        ctx.fill();
         ctx.restore();
       }
     };
@@ -125,16 +132,16 @@ export function launchBrokenHearts() {
 // ── TOAST ──────────────────────────────────────────────────
 // type: 'badge' | 'rankup' | 'rankdown'
 export function showCelebToast({ type = 'badge', title, body, autoHideMs = 7000 }) {
-  const icons = { badge: '🏅', rankup: '📈', rankdown: '📉' };
+  const icons = { badge: 'fa-medal', rankup: 'fa-arrow-trend-up', rankdown: 'fa-arrow-trend-down' };
   const cls   = { badge: 'badge-toast', rankup: 'rankup-toast', rankdown: 'rankdown-toast' };
 
   const el = document.createElement('div');
   el.className = `celeb-toast ${cls[type] || ''}`;
   el.innerHTML = `
-    <div class="celeb-toast-icon">${icons[type] || '🎉'}</div>
+    <div class="celeb-toast-icon"><i class="fa-solid ${icons[type] || 'fa-medal'}" style="color:var(--orange);"></i></div>
     <div style="flex:1;">
-      <div class="celeb-toast-title">${title}</div>
-      <div class="celeb-toast-body">${body}</div>
+      <div class="celeb-toast-title">${escapeHtml(title)}</div>
+      <div class="celeb-toast-body">${escapeHtml(body)}</div>
     </div>
     <button class="celeb-toast-close" aria-label="Dismiss">&times;</button>
   `;

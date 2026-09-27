@@ -7,7 +7,7 @@ and 2-admin approval on every destructive button.
 ## 1. One-time setup
 
 1. **Upgrade the Firebase project to the Blaze (pay-as-you-go) plan.**
-   Console → ⚙️ Project settings → Usage and billing → Modify plan. This is
+   Console → Project settings → Usage and billing → Modify plan. This is
    required for Cloud Functions and Cloud Scheduler to exist at all — see the
    cost breakdown from the earlier message; for this site's traffic it should
    stay at $0/month.

@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// Firebase Storage rules. Only admins upload (member photos, gallery,
+// role guides); files are served through download URLs.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'core'];
+    }
+
+    function isImage(maxMb) {
+      return request.resource.contentType.matches('image/(png|jpeg|gif|webp|heic|heif)')
+        && request.resource.size < maxMb * 1024 * 1024;
+    }
+
+    match /avatars/{uid} {
+      allow read: if true;
+      allow write: if isAdmin() && (request.resource == null || isImage(5));
+    }
+
+    match /gallery/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && (request.resource == null || isImage(15));
+    }
+
+    // Guides for meeting roles: PDFs, slides, docs or images.
+    match /roleGuides/{fileName} {
+      allow read: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow write: if isAdmin() && (request.resource == null
+        || (request.resource.size < 25 * 1024 * 1024
+            && (request.resource.contentType.matches('image/.*')
+                || request.resource.contentType.matches('application/(pdf|msword|vnd\\.openxmlformats-officedocument\\..*|vnd\\.ms-powerpoint)'))));
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

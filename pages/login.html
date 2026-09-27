@@ -6,7 +6,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Unscripted NITT</title>
+  <title>Login | Unscripted NITT</title>
   <meta name="description" content="Member login for Unscripted NIT Trichy. Sign in with your NITT webmail." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,6 +16,13 @@
   <link rel="stylesheet" href="../css/mobile.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <style>
+    .visually-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
     /* ── Roster ── */
     #loginRoster {
       margin-top: 2rem;
@@ -142,9 +149,8 @@
   </style>
 </head>
 <body>
-<div id="app-preloader" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
+<div id="app-preloader" data-preloader="short" aria-hidden="true"><div class="preloader-text">UNSCRIPTED</div></div>
 <script type="module" src="../js/preloader.js"></script>
-
 
 <!-- Theme toggle (unified — same button/system as every other page) -->
 <button id="themeToggleBtn" class="theme-toggle-btn theme-toggle-btn--floating" type="button" aria-label="Toggle theme">
@@ -156,7 +162,7 @@
   <!-- LEFT PANEL -->
   <div class="login-panel-left">
     <div class="left-content">
-      <img src="../icons/logo.png" alt="Unscripted NITT" class="left-logo" />
+      <img src="../icons/logo-sm.png" alt="Unscripted NITT" class="left-logo" />
       <h1 class="left-title">Excellence,<br><em>In All,</em><br>Through Fun.</h1>
       <p class="left-sub">The official public speaking and leadership club of NIT Trichy.</p>
       <div class="left-stats">
@@ -184,7 +190,7 @@
 
       <!-- Mobile logo -->
       <div style="text-align:center;margin-bottom:2rem;display:none;" class="mobile-logo-wrap">
-        <img src="../icons/logo.png" alt="Unscripted NITT" style="height:56px;margin:0 auto;" />
+        <img src="../icons/logo-sm.png" alt="Unscripted NITT" style="height:56px;margin:0 auto;" />
       </div>
 
       <!-- Tabs -->
@@ -196,17 +202,19 @@
       <h2 id="loginTitle" style="font-size:1.75rem;margin-bottom:0.3rem;">Welcome Back</h2>
       <p id="loginSub" style="font-size:0.88rem;margin-bottom:2rem;">Sign in with your NIT Trichy webmail to access your member dashboard and progress.</p>
 
-      <div class="form-group">
-        <label for="email">NITT Webmail</label>
-        <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
-      </div>
+      <form id="memberLoginForm">
+        <div class="form-group">
+          <label for="email">NITT Webmail</label>
+          <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+        </div>
 
-      <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard &rarr;</button>
-      <div class="error-msg" id="errorMsg"></div>
+        <button type="submit" class="btn-primary login-btn" id="loginBtn">Log In to Dashboard</button>
+        <div class="error-msg" id="errorMsg" role="alert"></div>
+      </form>
 
       <!-- ── GUEST LOGIN ──────────────────────────── -->
 <div style="text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
@@ -220,24 +228,25 @@
   </button>
 </div>
 
-<div id="guestLoginSection" style="display:none;margin-top:1.5rem;padding:1.5rem;
+<form id="guestLoginSection" style="display:none;margin-top:1.5rem;padding:1.5rem;
      border:1.5px solid rgba(255,87,34,0.3);border-radius:var(--radius);background:var(--orange-light);">
   <h4 style="margin:0 0 0.3rem;color:var(--orange);">Guest Access</h4>
   <p style="font-size:0.8rem;color:var(--text-mid);margin:0 0 1.1rem;">Enter the 6-digit code given by the admin.</p>
   <div class="form-group">
-    <input type="text" id="guestOtp" maxlength="6" inputmode="numeric"
+    <label for="guestOtp" class="visually-hidden">6-digit guest OTP</label>
+    <input type="text" id="guestOtp" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
       placeholder="• • • • • •"
       style="letter-spacing:0.4em;font-size:1.5rem;font-weight:900;text-align:center;font-family:monospace;" />
   </div>
-  <button type="button" class="btn-primary" id="guestLoginBtn" onclick="loginAsGuest()"
+  <button type="submit" class="btn-primary" id="guestLoginBtn"
     style="width:100%;padding:0.9rem;border-radius:100px;margin-top:0.25rem;">
-    Enter as Guest →
+    Enter as Guest
   </button>
-  <div id="guestLoginError"
+  <div id="guestLoginError" role="alert"
     style="display:none;margin-top:0.75rem;padding:0.75rem;background:rgba(244,67,54,0.08);
            color:#c62828;border:1px solid rgba(244,67,54,0.2);border-radius:var(--radius-sm);
            font-size:0.85rem;font-weight:600;"></div>
-</div>
+</form>
 
       <div style="text-align:center;margin-top:1.5rem;">
         <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
@@ -262,13 +271,12 @@
 </style>
 
 <script type="module">
-// ── add to auth import: signInAnonymously, signOut
-// ── add to firestore import: getDocs, query, collection, where
-
 window.toggleGuestLogin = function() {
   const s = document.getElementById('guestLoginSection');
   s.style.display = s.style.display === 'none' ? 'block' : 'none';
 };
+
+let guestFlowActive = false;
 
 window.loginAsGuest = async function() {
   const otp = (document.getElementById('guestOtp').value || '').trim();
@@ -286,36 +294,32 @@ window.loginAsGuest = async function() {
 
   let signedIn = false;
   try {
-    // Need anon auth to read Firestore
+    // Guests get an anonymous account; redeemGuestOtp upgrades it
+    guestFlowActive = true;
     await signInAnonymously(auth);
     signedIn = true;
 
-    const snap = await getDocs(query(collection(db, 'guestTokens'), where('otp', '==', otp)));
-
-    if (snap.empty) {
+    // The OTP is checked server-side (rate limited); on success the
+    // anonymous account gets guest claims, so refresh the ID token.
+    let tokenData;
+    try {
+      const res = await httpsCallable(functions, 'redeemGuestOtp')({ otp });
+      tokenData = res.data;
+    } catch (callErr) {
       await signOut(auth);
-      err.textContent = 'Invalid OTP. Please check with the admin.';
+      guestFlowActive = false;
+      err.textContent = callErr.code === 'functions/resource-exhausted'
+        ? 'Too many attempts. Please wait a few minutes and try again.'
+        : 'Invalid or expired OTP. Please check with the admin.';
       err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Enter as Guest →';
+      btn.disabled = false; btn.textContent = 'Enter as Guest';
       return;
     }
-
-    const tokenDoc = snap.docs[0];
-    const tokenData = { id: tokenDoc.id, ...tokenDoc.data() };
-    const expiresAt = tokenData.expiresAt?.toDate
-      ? tokenData.expiresAt.toDate()
-      : new Date(tokenData.expiresAt);
-
-    if (new Date() > expiresAt) {
-      await signOut(auth);
-      err.textContent = 'This OTP has expired. Ask the admin for a new one.';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Enter as Guest →';
-      return;
-    }
+    await auth.currentUser.getIdToken(true);
+    const expiresAt = new Date(tokenData.expiresAt);
 
     localStorage.setItem('guestSession', JSON.stringify({
-      tokenId:    tokenData.id,
+      tokenId:    tokenData.tokenId,
       guestName:  tokenData.guestName,
       eventId:    tokenData.eventId,
       eventTitle: tokenData.eventTitle,
@@ -325,12 +329,13 @@ window.loginAsGuest = async function() {
     window.location.href = 'guest-dashboard.html';
   } catch(e) {
     if (signedIn) await signOut(auth).catch(() => {});
-    err.textContent = 'Login failed: ' + e.message;
+    guestFlowActive = false;
+    err.textContent = 'Login failed: please try again.';
     err.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Enter as Guest →';
+    btn.disabled = false; btn.textContent = 'Enter as Guest';
   }
 };
-import { auth, db } from '../js/firebase-config.js';
+import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
 import { normalizeEvent } from '../js/event-status.js';
 
 import {
@@ -352,6 +357,7 @@ import {
 // ── AUTH REDIRECT ──────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
+  if (guestFlowActive || user.isAnonymous) return;
   try {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     if (!userDoc.exists()) return;
@@ -362,12 +368,6 @@ onAuthStateChanged(auth, async (user) => {
     else window.location.href = 'dashboard.html';
   } catch(e) { /* ignore */ }
 });
-
-// Check URL params for admin mode
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('type') === 'admin') {
-  switchLogin('admin');
-}
 
 // ── TAB SWITCH ─────────────────────────────────────────────
 let currentMode = 'member';
@@ -384,14 +384,20 @@ window.switchLogin = function(mode) {
     tabA.classList.add('active');   tabM.classList.remove('active');
     title.textContent = 'Admin Portal';
     sub.textContent   = 'Authorized access only. Use your verified administrator credentials.';
-    btn.innerHTML     = 'Enter Admin Portal &rarr;';
+    btn.innerHTML     = 'Enter Admin Portal';
   } else {
     tabM.classList.add('active');   tabA.classList.remove('active');
     title.textContent = 'Welcome Back';
     sub.textContent   = 'Sign in with your NIT Trichy webmail to access your member dashboard and progress.';
-    btn.innerHTML     = 'Log In to Dashboard &rarr;';
+    btn.innerHTML     = 'Log In to Dashboard';
   }
 };
+
+// Check URL params for admin mode (after switchLogin is defined)
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('type') === 'admin') {
+  switchLogin('admin');
+}
 
 // ── LOGIN ──────────────────────────────────────────────────
 window.doLogin = async function() {
@@ -439,7 +445,6 @@ window.doLogin = async function() {
     //   await auth.signOut(); return;
     // }
 
-    if (navigator.vibrate) navigator.vibrate(2000);
     window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html';
 
   } catch(e) {
@@ -453,13 +458,20 @@ window.doLogin = async function() {
     err.textContent = msgs[e.code] || 'Login failed. Check your credentials.';
     err.style.display = 'block';
   } finally {
-    btn.innerHTML = currentMode === 'admin' ? 'Enter Admin Portal &rarr;' : 'Log In to Dashboard &rarr;';
+    btn.innerHTML = currentMode === 'admin' ? 'Enter Admin Portal' : 'Log In to Dashboard';
     btn.disabled  = false;
   }
 };
 
-// Enter key support
-document.addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+// Form submit handlers (Enter submits the correct form)
+document.getElementById('memberLoginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  window.doLogin();
+});
+document.getElementById('guestLoginSection').addEventListener('submit', e => {
+  e.preventDefault();
+  window.loginAsGuest();
+});
 
 // ── ROSTER ────────────────────────────────────────────────
 async function loadLoginRoster() {
@@ -477,11 +489,20 @@ async function loadLoginRoster() {
 
     if (upcoming?.rolesDisplay?.length) {
       document.getElementById('loginRoster').style.display = 'block';
-      document.getElementById('rosterList').innerHTML = upcoming.rolesDisplay.map(rd => `
-        <div class="roster-item">
-          <div class="roster-role">${rd.role}</div>
-          <div class="roster-name">${rd.name}</div>
-        </div>`).join('');
+      const list = document.getElementById('rosterList');
+      list.innerHTML = '';
+      for (const rd of upcoming.rolesDisplay) {
+        const item = document.createElement('div');
+        item.className = 'roster-item';
+        const role = document.createElement('div');
+        role.className = 'roster-role';
+        role.textContent = rd.role;
+        const name = document.createElement('div');
+        name.className = 'roster-name';
+        name.textContent = rd.name;
+        item.append(role, name);
+        list.appendChild(item);
+      }
     }
   } catch(e) { console.warn('Roster load failed', e); }
 }

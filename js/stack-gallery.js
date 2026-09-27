@@ -39,6 +39,7 @@ export class StackGallery {
     img.alt = 'Unscripted moment';
     img.className = 'card-image';
     img.loading = 'lazy';
+    img.decoding = 'async';
     inner.appendChild(img);
     wrap.appendChild(inner);
 

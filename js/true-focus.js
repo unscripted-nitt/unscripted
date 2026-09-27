@@ -26,6 +26,11 @@ export class TrueFocus {
     this.wordEls = [];
     this.intervalId = null;
 
+    // Honour the OS "reduce motion" setting: show every word sharp and
+    // skip the cycling blur/frame animation entirely.
+    this.reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (this.reduceMotion) this.opts.manualMode = true;
+
     this.onResize = () => this.updateFrame();
 
     this.render();
@@ -40,9 +45,17 @@ export class TrueFocus {
     this.container.classList.add('focus-container');
     this.container.innerHTML = '';
 
+    // Screen readers get the sentence once, as plain text; the per-word
+    // spans and the corner frame are purely visual.
+    const srText = document.createElement('span');
+    srText.className = 'sr-only';
+    srText.textContent = this.words.join(' ');
+    this.container.appendChild(srText);
+
     this.wordEls = this.words.map((word, index) => {
       const span = document.createElement('span');
       span.className = `focus-word${manualMode ? ' manual' : ''}`;
+      span.setAttribute('aria-hidden', 'true');
       span.textContent = word;
       span.style.setProperty('--border-color', borderColor);
       span.style.setProperty('--glow-color', glowColor);
@@ -58,6 +71,7 @@ export class TrueFocus {
 
     this.frameEl = document.createElement('div');
     this.frameEl.className = 'focus-frame';
+    this.frameEl.setAttribute('aria-hidden', 'true');
     this.frameEl.style.setProperty('--border-color', borderColor);
     this.frameEl.style.setProperty('--glow-color', glowColor);
     this.frameEl.style.transition =
@@ -78,6 +92,10 @@ export class TrueFocus {
 
   applyBlur() {
     const { blurAmount } = this.opts;
+    if (this.reduceMotion) {
+      this.wordEls.forEach(el => { el.style.filter = 'none'; });
+      return;
+    }
     this.wordEls.forEach((el, i) => {
       const isActive = i === this.currentIndex;
       el.style.filter = isActive ? 'blur(0px)' : `blur(${blurAmount}px)`;
@@ -85,6 +103,10 @@ export class TrueFocus {
   }
 
   updateFrame() {
+    if (this.reduceMotion) {
+      if (this.frameEl) this.frameEl.style.opacity = '0';
+      return;
+    }
     if (this.currentIndex === null || this.currentIndex === -1 || !this.frameEl) {
       if (this.frameEl) this.frameEl.style.opacity = '0';
       return;
