@@ -1528,6 +1528,11 @@ async function loadAllData() {
     populateMemberPhotoSelect();
     loadRoleGuides();
     loadDocs();
+    // Builds the Leaderboard Matrix table and rolesDataList; also refreshes
+    // Total Roles Filled / Avg Points / Top Contributors via updateInsights()
+    // at its own end. Without this, both stay empty until an admin happens
+    // to save a role assignment or clear the leaderboard in that session.
+    loadMeetRoles();
   } catch(e) { console.warn('loadAllData error',e); }
 }
 
