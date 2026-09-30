@@ -132,13 +132,13 @@ export function launchBrokenHearts() {
 // ── TOAST ──────────────────────────────────────────────────
 // type: 'badge' | 'rankup' | 'rankdown'
 export function showCelebToast({ type = 'badge', title, body, autoHideMs = 7000 }) {
-  const icons = { badge: 'fa-medal', rankup: 'fa-arrow-trend-up', rankdown: 'fa-arrow-trend-down' };
+  const icons = { badge: '🏅', rankup: '📈', rankdown: '📉' };
   const cls   = { badge: 'badge-toast', rankup: 'rankup-toast', rankdown: 'rankdown-toast' };
 
   const el = document.createElement('div');
   el.className = `celeb-toast ${cls[type] || ''}`;
   el.innerHTML = `
-    <div class="celeb-toast-icon"><i class="fa-solid ${icons[type] || 'fa-medal'}" style="color:var(--orange);"></i></div>
+    <div class="celeb-toast-icon"><span style="font-size:1.5rem;line-height:1;">${icons[type] || '🏅'}</span></div>
     <div style="flex:1;">
       <div class="celeb-toast-title">${escapeHtml(title)}</div>
       <div class="celeb-toast-body">${escapeHtml(body)}</div>
