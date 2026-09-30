@@ -824,6 +824,6 @@
 
 /* Toast icons are Font Awesome glyphs tinted per toast type */
 .celeb-toast .celeb-toast-fa { font-size: 1.5rem; line-height: 1; }
-.celeb-toast.badge-toast    .celeb-toast-fa { color: #ffc400; animation: badgeTilt 2.4s ease-in-out infinite; }
+.celeb-toast.badge-toast    .celeb-toast-fa { color: #ffc400; }
 .celeb-toast.rankup-toast   .celeb-toast-fa { color: #4CAF50; }
 .celeb-toast.rankdown-toast .celeb-toast-fa { color: #f44336; }
