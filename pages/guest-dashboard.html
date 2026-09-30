@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/vendor/fontawesome/all.min.css" />
   <style>
     .guest-badge { background:var(--orange);color:#fff;font-size:0.6rem;font-weight:800;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;margin-left:0.4rem; }
     .exp-star-row { display:flex;gap:0.5rem;margin-top:0.5rem; }
@@ -453,7 +453,7 @@ async function loadGuestVoting() {
     const snap = await getDocs(query(collection(db, 'votingSessions'), where('active', '==', true)));
     if (snap.empty) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
-        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <i class="fa-solid fa-check-to-slot" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
         <h3 style="font-family:var(--font-body);">No Active Voting Session</h3>
         <p style="color:var(--text-mid);">Voting opens after the meeting ends.</p>
       </div>`; return;
@@ -466,7 +466,7 @@ async function loadGuestVoting() {
     });
     if (!sessionDoc) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
-        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <i class="fa-solid fa-check-to-slot" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
         <p style="color:var(--text-mid);">No active voting session for your event.</p>
       </div>`; return;
     }
