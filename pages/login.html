@@ -489,7 +489,7 @@ async function loadLoginRoster() {
       list.innerHTML = '';
       for (const rd of upcoming.rolesDisplay) {
         const item = document.createElement('div');
-        item.className = 'roster-item';
+        item.className = 'roster-item'; 
         const role = document.createElement('div');
         role.className = 'roster-role';
         role.textContent = rd.role;
