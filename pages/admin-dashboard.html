@@ -109,31 +109,31 @@
   <aside class="sidebar" id="sidebar">
     <nav>
       <div class="sidebar-label">Insights</div>
-      <a class="dash-nav-item active" onclick="showSection('insights')"><span class="dash-nav-icon">📈</span> Club Statistics</a>
-      <a class="dash-nav-item" onclick="showSection('matrix')"><span class="dash-nav-icon">🏆</span> Leaderboard Matrix</a>
+      <a class="dash-nav-item active" onclick="showSection('insights')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-line"></i></span> Club Statistics</a>
+      <a class="dash-nav-item" onclick="showSection('matrix')"><span class="dash-nav-icon"><i class="fa-solid fa-trophy"></i></span> Leaderboard Matrix</a>
 
       <div class="sidebar-label">Club Ops</div>
-      <a class="dash-nav-item" onclick="showSection('users')"><span class="dash-nav-icon">👥</span> Member Control</a>
-      <a class="dash-nav-item" onclick="showSection('excel')"><span class="dash-nav-icon">📗</span> Excel Upload</a>
-      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon">📅</span> Bulk Attendance</a>
-      <a class="dash-nav-item" onclick="showSection('documentation')"><span class="dash-nav-icon">📂</span> Documentation</a>
-      <a class="dash-nav-item" onclick="showSection('roles')"><span class="dash-nav-icon">📋</span> Role Assignments</a>
-      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon">🗳️</span> Voting Manager</a>
-      <a class="dash-nav-item" onclick="showSection('pathways')"><span class="dash-nav-icon">🛣️</span> Pathway / Guide Links</a>
+      <a class="dash-nav-item" onclick="showSection('users')"><span class="dash-nav-icon"><i class="fa-solid fa-users"></i></span> Member Control</a>
+      <a class="dash-nav-item" onclick="showSection('excel')"><span class="dash-nav-icon"><i class="fa-solid fa-file-excel"></i></span> Excel Upload</a>
+      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Bulk Attendance</a>
+      <a class="dash-nav-item" onclick="showSection('documentation')"><span class="dash-nav-icon"><i class="fa-solid fa-folder-open"></i></span> Documentation</a>
+      <a class="dash-nav-item" onclick="showSection('roles')"><span class="dash-nav-icon"><i class="fa-solid fa-clipboard-list"></i></span> Role Assignments</a>
+      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Voting Manager</a>
+      <a class="dash-nav-item" onclick="showSection('pathways')"><span class="dash-nav-icon"><i class="fa-solid fa-route"></i></span> Pathway / Guide Links</a>
       <a class="dash-nav-item" onclick="showSection('guests')">
-  <span class="dash-nav-icon">🎟️</span>
+  <span class="dash-nav-icon"><i class="fa-solid fa-ticket"></i></span>
   Guest Management
 </a>
-      <a class="dash-nav-item" onclick="showSection('adminsafety')"><span class="dash-nav-icon">🛡️</span> Admin &amp; Safety</a>
+      <a class="dash-nav-item" onclick="showSection('adminsafety')"><span class="dash-nav-icon"><i class="fa-solid fa-shield-halved"></i></span> Admin &amp; Safety</a>
 
       <div class="sidebar-label">Public Site</div>
-      <a class="dash-nav-item" onclick="showSection('events')"><span class="dash-nav-icon">📣</span> Event Manager</a>
-      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon">🖼️</span> Gallery Manager</a>
-      <a class="dash-nav-item" onclick="showSection('videos')"><span class="dash-nav-icon">🎥</span> Video Manager</a>
-      <a class="dash-nav-item" onclick="showSection('notifications')"><span class="dash-nav-icon">🔔</span> Send Notification</a>
+      <a class="dash-nav-item" onclick="showSection('events')"><span class="dash-nav-icon"><i class="fa-solid fa-bullhorn"></i></span> Event Manager</a>
+      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon"><i class="fa-solid fa-images"></i></span> Gallery Manager</a>
+      <a class="dash-nav-item" onclick="showSection('videos')"><span class="dash-nav-icon"><i class="fa-solid fa-video"></i></span> Video Manager</a>
+      <a class="dash-nav-item" onclick="showSection('notifications')"><span class="dash-nav-icon"><i class="fa-solid fa-bell"></i></span> Send Notification</a>
 
       <div class="sidebar-label">Personal</div>
-      <a class="dash-nav-item" href="dashboard.html"><span class="dash-nav-icon">👤</span> My Dashboard</a>
+      <a class="dash-nav-item" href="dashboard.html"><span class="dash-nav-icon"><i class="fa-solid fa-user"></i></span> My Dashboard</a>
     </nav>
   </aside>
 
@@ -142,7 +142,7 @@
 
     <!-- ═══════════════ INSIGHTS ═══════════════ -->
     <div class="dash-section active" id="section-insights">
-      <h1 class="section-title">📊 Club Insights</h1>
+      <h1 class="section-title">Club Insights</h1>
       <p class="section-sub">Live overview of club activity</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -160,25 +160,25 @@
       </div>
       <div class="admin-grid-2">
         <div class="card">
-          <h3>🏆 Top Contributors</h3>
+          <h3>Top Contributors</h3>
           <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">By total leaderboard points. Updates with the Activity Matrix.</p>
           <div id="insightTopContributors"><p style="color:var(--text-mid);">Loading...</p></div>
         </div>
         <div class="card">
-          <h3>🧭 Pathway Distribution</h3>
+          <h3>Pathway Distribution</h3>
           <p style="font-size:0.78rem;color:var(--text-mid);margin-top:-0.4rem;margin-bottom:1rem;">Active members grouped by their current pathway.</p>
           <div id="insightPathwayDist"><p style="color:var(--text-mid);">Loading...</p></div>
         </div>
       </div>
       <div class="card">
-        <h3>🎭 Upcoming Meet Roles</h3>
+        <h3>Upcoming Meet Roles</h3>
         <div id="upcomingRolesContainer"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
     </div>
 
     <!-- ═══════════════ LEADERBOARD MATRIX ═══════════════ -->
     <div class="dash-section" id="section-matrix">
-      <h1 class="section-title">🏆 Leaderboard Matrix</h1>
+      <h1 class="section-title">Leaderboard Matrix</h1>
       <p class="section-sub">Aggregated role points and involvement across all meetings</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -186,7 +186,7 @@
 </div>
       <div class="card" style="padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem;">
-          <h3 style="margin:0;">🔥 Activity Matrix</h3>
+          <h3 style="margin:0;">Activity Matrix</h3>
           <button class="btn-primary btn-sm" onclick="exportMatrixCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
         </div>
         <div class="scroll-container" style="padding:0 1.5rem 1.5rem;">
@@ -210,7 +210,7 @@
     <!-- ═══════════════ MEMBER CONTROL ═══════════════ -->
     <div class="dash-section" id="section-users">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
-        <h1 class="section-title" style="margin:0;">👥 Member Control</h1>
+        <h1 class="section-title" style="margin:0;">Member Control</h1>
         <input type="text" id="userSearch" placeholder="Search by name, email..." style="max-width:300px;" oninput="filterUsers()" />
         <p style="font-size:0.82rem;color:var(--text-mid);width:100%;margin:0;">Edit member profiles, assign mentors, set pathway progress, and toggle active/inactive status. <strong>Inactive members</strong> are hidden from all dropdowns, leaderboards, and attendance lists, but their past data is kept.</p>
       </div>
@@ -246,11 +246,12 @@
               <option value="tt_asc">Table topics (fewest)</option>
               <option value="pathway_asc">Project / pathway (A-Z)</option>
               <option value="pathway_desc">Project / pathway (Z-A)</option>
-              <option value="mentor_asc">Mentor (A-Z)</option>
               <option value="status_active">Status (active first)</option>
               <option value="status_inactive">Status (inactive first)</option>
               <option value="login_desc">Last login (most recent)</option>
               <option value="login_asc">Last login (oldest)</option>
+              <option value="speech_desc">Last speech (most recent)</option>
+              <option value="speech_asc">Last speech (oldest)</option>
               <option value="joined_desc">Joined (newest)</option>
               <option value="joined_asc">Joined (oldest)</option>
               <option value="inactive_desc">Inactive since (most recent)</option>
@@ -267,12 +268,10 @@
           <div><label for="ufRole">System role</label>
             <select id="ufRole" onchange="applyUserView()">
               <option value="">All</option><option value="admin">Administrator</option>
-              <option value="core">Core team</option><option value="user">Club member</option>
+              <option value="user">Club member</option>
             </select></div>
           <div><label for="ufPathway">Project / pathway</label>
             <select id="ufPathway" onchange="applyUserView()"><option value="">All</option></select></div>
-          <div><label for="ufMentor">Mentor</label>
-            <select id="ufMentor" onchange="applyUserView()"><option value="">All</option></select></div>
           <div><label for="ufAttendance">Attendance</label>
             <select id="ufAttendance" onchange="applyUserView()">
               <option value="">All</option><option value="ge90">90% and above</option>
@@ -297,10 +296,6 @@
             </select></div>
           <div><label for="ufJoined">Joined</label>
             <select id="ufJoined" onchange="applyUserView()"><option value="">Any year</option></select></div>
-          <div><label for="ufEmail">Personal email</label>
-            <select id="ufEmail" onchange="applyUserView()">
-              <option value="">All</option><option value="yes">Provided</option><option value="no">Missing</option>
-            </select></div>
         </div>
       </div>
 
@@ -315,6 +310,7 @@
             <th>Table Topics</th>
             <th>Active</th>
             <th>Last Login</th>
+            <th>Last Speech</th>
             <th style="text-align:right;padding-right:1.5rem;">Actions</th>
           </tr></thead>
           <tbody id="userTableBody"></tbody>
@@ -324,11 +320,11 @@
 
     <!-- ═══════════════ EXCEL UPLOAD (req 8) ═══════════════ -->
     <div class="dash-section" id="section-excel">
-      <h1 class="section-title">📗 Excel Member Upload</h1>
+      <h1 class="section-title">Excel Member Upload</h1>
       <p class="section-sub">Uploading an excel sheet simply helps you display our member data on the main page, outside the login. This section will NOT help you to add member to the "Member Control" list as it requires creating new authentications in the Google Firebase, with a new User ID generation by adding webamil ID. However, once User ID and password are generated in Firebase, you can add the pictures of the members from here: While adding pictures, please use the EXACT name, as it is case sensitive and space sensitive. Upload a spreadsheet to bulk-import member data to the Members page (visible without logging in)</p>
 
       <div class="card" style="max-width:700px;">
-        <h3>📋 Required Columns</h3>
+        <h3>Required Columns</h3>
         <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem;">
           <span style="background:var(--orange-light);color:var(--orange);padding:0.3rem 0.75rem;border-radius:100px;font-size:0.78rem;font-weight:700;">name</span>
           <span style="background:var(--orange-light);color:var(--orange);padding:0.3rem 0.75rem;border-radius:100px;font-size:0.78rem;font-weight:700;">batch</span>
@@ -361,7 +357,7 @@
       </div>
 
       <div class="card" style="max-width:700px;">
-        <h3>📸 Manual Photo Upload</h3>
+        <h3>Manual Photo Upload</h3>
         <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1.5rem;">Upload profile photos for individual members. Photo will appear everywhere on the website.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
           <div class="form-group">
@@ -384,7 +380,7 @@
 
     <!-- ═══════════════ ATTENDANCE ═══════════════ -->
     <div class="dash-section" id="section-attendance">
-      <h1 class="section-title">📅 Club Attendance</h1>
+      <h1 class="section-title">Club Attendance</h1>
       <p class="section-sub">Select a meeting event and mark member attendance</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:960px;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -417,7 +413,7 @@
 <!-- ═══════════════ DOCUMENTATION ═══════════════ -->
     <div class="dash-section" id="section-documentation">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
-        <h1 class="section-title" style="margin:0;">📂 Documentation</h1>
+        <h1 class="section-title" style="margin:0;">Documentation</h1>
         <button class="btn-primary" onclick="toggleDocForm()" id="toggleDocBtn">
           <i class="fa-solid fa-plus"></i> Add Document
         </button>
@@ -500,7 +496,7 @@
     
     <!-- ═══════════════ ROLE ASSIGNMENTS ═══════════════ -->
     <div class="dash-section" id="section-roles">
-      <h1 class="section-title">📋 Meeting Role Assignments</h1>
+      <h1 class="section-title">Meeting Role Assignments</h1>
       <p class="section-sub">Assign roles to members. Selections add badges to their profile.</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:960px;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -522,7 +518,7 @@
 
     <!-- ═══════════════ VOTING MANAGER (req 15) ═══════════════ -->
     <div class="dash-section" id="section-voting">
-      <h1 class="section-title">🗳️ Voting Manager</h1>
+      <h1 class="section-title">Voting Manager</h1>
       <p class="section-sub">Create anonymous post-meeting voting sessions and view results</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -531,7 +527,7 @@
 
       <!-- Create session -->
       <div class="card" style="max-width:760px;margin-bottom:2rem;">
-        <h3>🗳️ Create Voting Session</h3>
+        <h3>Create Voting Session</h3>
         <div style="display:flex;flex-direction:column;gap:1.25rem;">
           <div class="form-group">
             <label class="form-label">Linked Meeting / Event</label>
@@ -570,7 +566,7 @@
       <!-- Active sessions -->
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-          <h3 style="margin:0;">📋 Voting Sessions</h3>
+          <h3 style="margin:0;">Voting Sessions</h3>
           <button class="btn-outline btn-sm" onclick="loadVotingSessions()"><i class="fa-solid fa-rotate"></i> Refresh</button>
         </div>
         <div id="votingSessionsList"><p style="color:var(--text-mid);">Loading sessions...</p></div>
@@ -579,7 +575,7 @@
 
     <!-- ═══════════════ PATHWAY / GUIDE LINKS (req 9) ═══════════════ -->
     <div class="dash-section" id="section-pathways">
-      <h1 class="section-title">🛣️ Pathway &amp; Guide Links</h1>
+      <h1 class="section-title">Pathway &amp; Guide Links</h1>
       <p class="section-sub">Edit curriculum content and guide links for each project. Guide links are per-project.</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -587,7 +583,7 @@
 </div>
 
       <div class="card" style="margin-bottom:1.5rem;">
-        <h3 style="margin-top:0;">📖 Role Guide Documents</h3>
+        <h3 style="margin-top:0;">Role Guide Documents</h3>
         <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1rem;">Add a guide/description link for each role. These appear in the Points Guide on members' dashboards.</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem;" id="roleGuidesContainer">
           <p style="color:var(--text-mid);">Loading...</p>
@@ -610,7 +606,7 @@
     <!-- ═══════════════ EVENTS ═══════════════ -->
     <div class="dash-section" id="section-events">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
-        <h1 class="section-title" style="margin:0;">📣 Event Manager</h1>
+        <h1 class="section-title" style="margin:0;">Event Manager</h1>
         <p style="font-size:0.82rem;color:var(--text-mid);flex:1;margin:0;">Create and manage meets. Set an event <strong>Live</strong> to show it as active to members. Events appear in role assignments, attendance, and voting dropdowns. Deleting an event also reverts speech progress for any speakers assigned in it.</p>
         <button class="btn-primary" onclick="toggleEventForm()" id="toggleEventBtn"><i class="fa-solid fa-plus"></i> Add Event</button>
         <button class="btn-outline" onclick="cleanOrphanedBadges()" id="cleanBadgesBtn" title="Removes badges left over from events that were deleted before this cleanup existed">
@@ -691,14 +687,14 @@
 
     <!-- ═══════════════ GALLERY MANAGER ═══════════════ -->
     <div class="dash-section" id="section-gallery">
-      <h1 class="section-title">🖼️ Gallery Manager</h1>
+      <h1 class="section-title">Gallery Manager</h1>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
   <span><strong>Public</strong> photos appear on the homepage for all visitors without login. <strong>Members only</strong> photos are visible only to logged-in members in their dashboard gallery. You can delete any photo using the trash icon on the photo card.</span>
 </div>
       <div class="admin-grid-2" style="margin-bottom:2rem;">
         <div class="card" style="margin-bottom:0;">
-          <h3>📸 Upload Photo</h3>
+          <h3>Upload Photo</h3>
           <div style="display:flex;flex-direction:column;gap:1rem;">
             <div class="form-group">
               <label class="form-label">Select Image</label>
@@ -727,7 +723,7 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:0;">
-          <h3>🔒 Gallery Privacy</h3>
+          <h3>Gallery Privacy</h3>
           <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1rem;"><strong>Public</strong> photos appear on the homepage for all visitors without requiring login.</p>
           <p style="font-size:0.88rem;color:var(--text-mid);"><strong>Members Only</strong> photos are only visible to logged-in members.</p>
           <div style="margin-top:1.5rem;padding:1.25rem;background:var(--orange-light);border-radius:var(--radius-sm);border:1px solid rgba(255,87,34,0.15);">
@@ -738,7 +734,7 @@
       </div>
 
       <div class="card">
-        <h3 style="margin-top:0;margin-bottom:1.5rem;">🖼️ Manage Photos</h3>
+        <h3 style="margin-top:0;margin-bottom:1.5rem;">Manage Photos</h3>
         <div class="gallery-admin-grid" id="galList">
           <p style="color:var(--text-mid);grid-column:1/-1;text-align:center;padding:3rem;">Loading gallery...</p>
         </div>
@@ -747,11 +743,11 @@
 
     <!-- ═══════════════ VIDEO MANAGER ═══════════════ -->
     <div class="dash-section" id="section-videos">
-      <h1 class="section-title">🎥 Video Manager</h1>
+      <h1 class="section-title">Video Manager</h1>
       <p class="section-sub">Add and manage YouTube speech videos for the public speeches page</p>
 
       <div class="card" style="max-width:640px;margin-bottom:2rem;">
-        <h3>🎬 Add New Video</h3>
+        <h3>Add New Video</h3>
         <div style="display:flex;flex-direction:column;gap:1.1rem;">
           <div class="form-group">
             <label class="form-label">YouTube URL</label>
@@ -786,7 +782,7 @@
       </div>
 
       <div class="card">
-        <h3>🎥 Current Videos</h3>
+        <h3>Current Videos</h3>
         <div id="videoList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;">
           <p style="color:var(--text-mid);grid-column:1/-1;text-align:center;padding:2rem;">Loading videos...</p>
         </div>
@@ -795,7 +791,7 @@
 
     <!-- ═══════════════ NOTIFICATIONS (req 4) ═══════════════ -->
     <div class="dash-section" id="section-notifications">
-      <h1 class="section-title">🔔 Send Notification</h1>
+      <h1 class="section-title">Send Notification</h1>
       <p class="section-sub">Broadcast to all members, or send a personal message to a specific member</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -857,7 +853,7 @@
       <!-- Sent notifications list -->
       <div class="card" style="margin-top:2rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-          <h3 style="margin:0;">📨 Sent Notifications</h3>
+          <h3 style="margin:0;">Sent Notifications</h3>
           <button class="btn-outline btn-sm" onclick="loadSentNotifications()"><i class="fa-solid fa-rotate"></i> Refresh</button>
         </div>
         <div id="sentNotifsList"><p style="color:var(--text-mid);">Loading...</p></div>
@@ -867,14 +863,14 @@
 
     <!-- ═══════════════ GUEST MANAGEMENT ═══════════════ -->
 <div class="dash-section" id="section-guests">
-  <h1 class="section-title">🎟️ Guest Management</h1>
+  <h1 class="section-title">Guest Management</h1>
   <p class="section-sub">Generate one-time access codes for meet guests and view their experience feedback.</p>
 
   <div class="admin-grid-2" style="margin-bottom:2rem;">
 
     <!-- Token Generator -->
     <div class="card" style="margin-bottom:0;">
-      <h3 style="margin-top:0;">🔑 Generate Guest Token</h3>
+      <h3 style="margin-top:0;">Generate Guest Token</h3>
       <div style="display:flex;flex-direction:column;gap:1rem;">
         <div class="form-group">
           <label class="form-label">Select Event</label>
@@ -911,7 +907,7 @@
     <!-- Active Tokens List -->
     <div class="card" style="margin-bottom:0;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 style="margin:0;">🎟️ Active Guest Tokens</h3>
+        <h3 style="margin:0;">Active Guest Tokens</h3>
         <button class="btn-outline btn-sm" onclick="loadGuestTokensList()">
           <i class="fa-solid fa-rotate"></i> Refresh
         </button>
@@ -925,7 +921,7 @@
   <!-- Guest Experience Feedback -->
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-      <h3 style="margin:0;">💖 Guest Experience Feedback</h3>
+      <h3 style="margin:0;">Guest Experience Feedback</h3>
       <button class="btn-outline btn-sm" onclick="loadGuestExperienceFeedback()">
         <i class="fa-solid fa-rotate"></i> Refresh
       </button>
@@ -936,12 +932,12 @@
 
 <!-- ═══════════════ ADMIN & SAFETY ═══════════════ -->
 <div class="dash-section" id="section-adminsafety">
-  <h1 class="section-title">🛡️ Admin &amp; Safety</h1>
+  <h1 class="section-title">Admin &amp; Safety</h1>
   <p class="section-sub">Every action here that can lose data or change who has power needs a second admin's sign-off.</p>
 
   <!-- Pending Approvals -->
   <div class="card" style="margin-bottom:2rem;">
-    <h3 style="margin-top:0;">📝 Pending Approvals</h3>
+    <h3 style="margin-top:0;">Pending Approvals</h3>
     <p style="font-size:0.82rem;color:var(--text-light);">
       <i class="fa-solid fa-circle-info"></i>
       Delete buttons, the leaderboard reset, restores, and primary-admin changes all land here until a
@@ -952,7 +948,7 @@
 
   <!-- Primary Admin Management (visible to everyone, actionable only by primary admins) -->
   <div class="card" style="margin-bottom:2rem;">
-    <h3 style="margin-top:0;">👑 Primary Admins</h3>
+    <h3 style="margin-top:0;">Primary Admins</h3>
     <p style="font-size:0.82rem;color:var(--text-light);">
       <i class="fa-solid fa-circle-info"></i>
       <strong>Only a primary admin can grant or remove primary-admin status</strong>, and doing so needs
@@ -972,7 +968,7 @@
 
   <!-- Danger Zone -->
   <div class="card" style="border:2px solid #f44336;">
-    <h3 style="margin-top:0;color:#c62828;">⚠️ DANGER ZONE</h3>
+    <h3 style="margin-top:0;color:#c62828;"><i class="fa-solid fa-triangle-exclamation"></i> DANGER ZONE</h3>
     <p style="font-size:0.85rem;color:#c62828;font-weight:600;">
       Only press these if you are certain some data was lost or corrupted and needs to be rolled back.
       Restoring replaces events, gallery, videos, feedback, votes, guest tokens/feedback, and notifications
@@ -1806,6 +1802,21 @@ function renderUserTable() {
       }
     });
 
+    // Last speech = date of the most recent (already held) event in which this
+    // member filled a prepared-speaker slot (roles.speaker1, speaker2, ...).
+    let lastSpeechMs = null;
+    const nowMs = serverNow();
+    allEventsCache.forEach(e => {
+      const hasSpeech = Object.entries(e.roles || {}).some(([rk, uid]) => rk.startsWith('speaker') && uid === u.id);
+      if (!hasSpeech || !e.date) return;
+      const ms = toMs(e.date);
+      if (ms == null || ms > nowMs) return;   // upcoming speeches haven't happened yet
+      if (lastSpeechMs === null || ms > lastSpeechMs) lastSpeechMs = ms;
+    });
+    const lastSpeechHtml = lastSpeechMs === null
+      ? '<span style="color:var(--text-light);font-size:0.8rem;">Never</span>'
+      : `<span style="font-size:0.8rem;font-weight:700;">${fmtDate(new Date(lastSpeechMs))}</span>`;
+
     const html = `<tr>
       <td style="padding-left:1.5rem;">
         <div style="font-weight:700;">${escapeHtml(u.name)}</div>
@@ -1844,6 +1855,7 @@ function renderUserTable() {
           : ''}
       </td>
       <td>${lastLoginHtml}</td>
+      <td>${lastSpeechHtml}</td>
       <td style="padding-right:1.5rem;">
         <div class="action-row">
           <button class="btn-primary btn-sm" onclick="openEditModal('${jsAttr(u.id)}')">Edit</button>
@@ -1854,7 +1866,7 @@ function renderUserTable() {
     return {
       u, html, isActive, pct, presentCount, totalMeets, totalRoles, ttCount, mentorName,
       pathway: u.pathway || 'L1P1',
-      loginMs: toMs(u.lastLogin), joinedMs: toMs(u.joinedSince), inactiveMs: toMs(u.inactiveSince),
+      loginMs: toMs(u.lastLogin), lastSpeechMs, joinedMs: toMs(u.joinedSince), inactiveMs: toMs(u.inactiveSince),
       searchText: [u.name, u.email, u.personalEmail, u.pathway || 'L1P1', mentorName, u.role,
                    isActive ? 'active' : 'inactive'].filter(Boolean).join(' ').toLowerCase()
     };
@@ -1877,11 +1889,6 @@ function populateUserFilterOptions() {
 
   fill('ufPathway', 'All', [...new Set(userRowsCache.map(r => r.pathway))].sort(numCmp).map(p => [p, p]));
 
-  const mentorIds = [...new Set(userRowsCache.map(r => r.u.mentor).filter(Boolean))];
-  const mentorOpts = mentorIds.map(id => [id, allUsers.find(x => x.id === id)?.name || id])
-                              .sort((a, b) => numCmp(a[1], b[1]));
-  fill('ufMentor', 'All', [['__has', 'Has a mentor'], ['__none', 'No mentor'], ...mentorOpts]);
-
   const years = [...new Set(userRowsCache.filter(r => r.joinedMs).map(r => new Date(r.joinedMs).getFullYear()))]
                   .sort((a, b) => b - a);
   fill('ufJoined', 'Any year', [...years.map(y => [y, String(y)]), ['__unset', 'Not set']]);
@@ -1894,8 +1901,8 @@ window.applyUserView = () => {
   const q = val('userSearch').trim().toLowerCase();
   const f = {
     status: val('ufStatus'), reason: val('ufReason'), role: val('ufRole'), pathway: val('ufPathway'),
-    mentor: val('ufMentor'), att: val('ufAttendance'), roles: val('ufRoles'), tt: val('ufTT'),
-    login: val('ufLogin'), joined: val('ufJoined'), email: val('ufEmail')
+    att: val('ufAttendance'), roles: val('ufRoles'), tt: val('ufTT'),
+    login: val('ufLogin'), joined: val('ufJoined')
   };
   const bucket = (n, k) => k === 'none' ? n === 0 : k === '1_3' ? n >= 1 && n <= 3
                         : k === '4_9' ? n >= 4 && n <= 9 : k === '10plus' ? n >= 10 : true;
@@ -1915,11 +1922,6 @@ window.applyUserView = () => {
       if (role !== f.role) return false;
     }
     if (f.pathway && r.pathway !== f.pathway) return false;
-    if (f.mentor) {
-      if (f.mentor === '__has'  && !u.mentor) return false;
-      if (f.mentor === '__none' &&  u.mentor) return false;
-      if (!f.mentor.startsWith('__') && u.mentor !== f.mentor) return false;
-    }
     if (f.att) {
       if (f.att === 'nomeets' ? r.totalMeets !== 0
         : r.totalMeets === 0 ? true
@@ -1943,8 +1945,6 @@ window.applyUserView = () => {
       if (f.joined === '__unset' ? r.joinedMs !== null
           : r.joinedMs === null || String(new Date(r.joinedMs).getFullYear()) !== f.joined) return false;
     }
-    if (f.email === 'yes' && !u.personalEmail) return false;
-    if (f.email === 'no'  &&  u.personalEmail) return false;
     return true;
   });
 
@@ -1965,10 +1965,10 @@ window.applyUserView = () => {
     roles_desc: num('totalRoles', -1),               roles_asc:  num('totalRoles', 1),
     tt_desc:    num('ttCount', -1),                  tt_asc:     num('ttCount', 1),
     pathway_asc:  (x, y) => str(x.pathway, y.pathway),  pathway_desc: (x, y) => str(y.pathway, x.pathway),
-    mentor_asc: (x, y) => (x.mentorName === '-') - (y.mentorName === '-') || str(x.mentorName, y.mentorName),
     status_active:   (x, y) => (x.isActive ? 0 : 1) - (y.isActive ? 0 : 1),
     status_inactive: (x, y) => (x.isActive ? 1 : 0) - (y.isActive ? 1 : 0),
     login_desc: num('loginMs', -1),                  login_asc:  num('loginMs', 1),
+    speech_desc: num('lastSpeechMs', -1),            speech_asc: num('lastSpeechMs', 1),
     joined_desc: num('joinedMs', -1),                joined_asc: num('joinedMs', 1),
     inactive_desc: num('inactiveMs', -1)
   };
@@ -1979,14 +1979,14 @@ window.applyUserView = () => {
   }
 
   tbody.innerHTML = rows.map(r => r.html).join('') ||
-    '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-mid);">No members match the current search / filters.</td></tr>';
+    '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--text-mid);">No members match the current search / filters.</td></tr>';
   const cnt = document.getElementById('userCount');
   if (cnt) cnt.textContent = `Showing ${rows.length} of ${userRowsCache.length}`;
 };
 window.filterUsers = window.applyUserView;   // search box still calls filterUsers()
 
 window.resetUserFilters = () => {
-  ['userSearch','ufStatus','ufReason','ufRole','ufPathway','ufMentor','ufAttendance','ufRoles','ufTT','ufLogin','ufJoined','ufEmail']
+  ['userSearch','ufStatus','ufReason','ufRole','ufPathway','ufAttendance','ufRoles','ufTT','ufLogin','ufJoined']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const s = document.getElementById('userSort'); if (s) s.value = 'default';
   applyUserView();
