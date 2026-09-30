@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="../css/live-chat.css" />
   <link rel="stylesheet" href="../css/celebrations.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/vendor/fontawesome/all.min.css" />
 </head>
 <body>
 
@@ -2489,7 +2489,7 @@ async function loadVoting() {
     const snap = await getDocs(query(collection(db,'votingSessions'), where('active','==',true)));
     if (snap.empty) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
-        <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
+        <i class="fa-solid fa-check-to-slot" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
         <h3 style="font-family:var(--font-body);">No Active Voting Session</h3>
         <p style="color:var(--text-mid);">When the admin opens a voting session after a meeting, it will appear here.</p>
       </div>`; return;
