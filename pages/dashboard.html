@@ -60,34 +60,34 @@
   <aside class="sidebar" id="sidebar">
     <nav>
       <div class="sidebar-label">My Journey</div>
-      <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-line"></i></span> My Progress</a>
-      <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon"><i class="fa-solid fa-chart-bar"></i></span> Analysis</a>
-      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon"><i class="fa-solid fa-medal"></i></span> Achievements</a>
-      <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon"><i class="fa-solid fa-trophy"></i></span> Leaderboard</a>
-      <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon"><i class="fa-solid fa-star"></i></span> Points Guide</a>
+      <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon">📈</span> My Progress</a>
+      <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon">📊</span> Analysis</a>
+      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon">🏅</span> Achievements</a>
+      <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon">🏆</span> Leaderboard</a>
+      <a class="dash-nav-item" onclick="showSection('points')"><span class="dash-nav-icon">⭐</span> Points Guide</a>
 
       <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('chat')">
-        <span class="dash-nav-icon"><i class="fa-solid fa-comments"></i></span> Live Chat
+        <span class="dash-nav-icon">💬</span> Live Chat
         <span id="chatNavBadge" style="display:none;margin-left:auto;" class="notif-badge"></span>
       </a>
-      <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon"><i class="fa-solid fa-handshake"></i></span> Mentor / Mentee</a>
-      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Attendance</a>
-      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon"><i class="fa-regular fa-images"></i></span> Gallery</a>
+      <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon">🤝</span> Mentor / Mentee</a>
+      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon">📅</span> Attendance</a>
+      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon">🖼️</span> Gallery</a>
       <a class="dash-nav-item" onclick="showSection('notifications')">
-        <span class="dash-nav-icon"><i class="fa-regular fa-bell"></i></span> Notifications
+        <span class="dash-nav-icon">🔔</span> Notifications
         <span id="sidebarNotifBadge" style="display:none;margin-left:auto;" class="notif-badge"></span>
       </a>
-      <a class="dash-nav-item" onclick="showSection('feedback')"><span class="dash-nav-icon"><i class="fa-solid fa-star-half-stroke"></i></span> Give Feedback</a>
-      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon"><i class="fa-solid fa-check-to-slot"></i></span> Give Vote</a>
-      <a class="dash-nav-item" onclick="showSection('events-dash')"><span class="dash-nav-icon"><i class="fa-solid fa-calendar-days"></i></span> Events</a>
+      <a class="dash-nav-item" onclick="showSection('feedback')"><span class="dash-nav-icon">📝</span> Give Feedback</a>
+      <a class="dash-nav-item" onclick="showSection('voting')"><span class="dash-nav-icon">🗳️</span> Give Vote</a>
+      <a class="dash-nav-item" onclick="showSection('events-dash')"><span class="dash-nav-icon">🗓️</span> Events</a>
 
       <div class="sidebar-label">Account</div>
-      <a class="dash-nav-item" onclick="openSettingsModal()"><span class="dash-nav-icon"><i class="fa-solid fa-gear"></i></span> Security &amp; Settings</a>
+      <a class="dash-nav-item" onclick="openSettingsModal()"><span class="dash-nav-icon">⚙️</span> Security &amp; Settings</a>
 
       <div id="adminPortalLink" style="display:none;">
         <div class="sidebar-label" style="margin-top:1rem;">Management</div>
-        <a class="dash-nav-item" href="admin-dashboard.html" style="color:var(--orange);"><span class="dash-nav-icon"><i class="fa-solid fa-shield-halved"></i></span> Admin Portal</a>
+        <a class="dash-nav-item" href="admin-dashboard.html" style="color:var(--orange);"><span class="dash-nav-icon">🛡️</span> Admin Portal</a>
       </div>
     </nav>
   </aside>
@@ -134,10 +134,10 @@
         </div>
       </div>
 
-      <h2 class="section-title">My Progress</h2>
+      <h2 class="section-title">📈 My Progress</h2>
       <p class="section-sub">Your progress through the speech pathways</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
-  <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
+  <span style="flex-shrink:0;">ℹ️</span>
   <span>This page tracks your speech curriculum progress. Each time you give a prepared speech at a meet, your project automatically advances. Click any project card to see its guide and details.</span>
 </div>
 
@@ -167,31 +167,31 @@
     <!-- SECTION: ANALYSIS                                    -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-analysis">
-      <h2 class="section-title">Speech Analysis</h2>
+      <h2 class="section-title">📊 Speech Analysis</h2>
       <p class="section-sub">Visual breakdown of your speaking skills and feedback scores</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
   <span>Charts here are built from feedback other members have submitted for your speeches. The radar shows your average scores across 8 skill dimensions. Data populates once you have received at least one feedback response.</span>
 </div>
       <div class="card">
-        <h3>Skill Radar</h3>
+        <h3>🎯 Skill Radar</h3>
         <p style="color:var(--text-mid);font-size:0.88rem;margin-bottom:1rem;">Based on feedback across speech dimensions</p>
         <canvas id="radarChart" width="400" height="400" style="max-width:400px;margin:0 auto;display:block;"></canvas>
       </div>
       <div class="card">
-        <h3>Role Activity Timeline</h3>
+        <h3>🎭 Role Activity Timeline</h3>
         <p style="color:var(--text-mid);font-size:0.85rem;margin-bottom:1.25rem;">Every role played at each meet, sorted top-to-bottom by point value. Multiple dots on the same vertical line = multiple roles that day.</p>
         <div style="position:relative;height:400px;width:100%;">
           <canvas id="progressChart"></canvas>
         </div>
       </div>
       <div class="card">
-        <h3>Skill Breakdown</h3>
+        <h3>🧩 Skill Breakdown</h3>
         <div id="skillBars"></div>
       </div>
       <!-- Feedback received (req 13) -->
       <div class="card" id="myFeedbackCard">
-        <h3>My Speech Feedback</h3>
+        <h3>💬 My Speech Feedback</h3>
         <p class="section-sub" style="margin-bottom:1.5rem;">Accumulated feedback from all members across meetings</p>
         <div id="myFeedbackList"><p style="color:var(--text-mid);">No feedback received yet.</p></div>
       </div>
@@ -201,7 +201,7 @@
     <!-- SECTION: ACHIEVEMENTS                                -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-achievements">
-      <h2 class="section-title">Achievements</h2>
+      <h2 class="section-title">🏅 Achievements</h2>
       <p class="section-sub">Badges and awards you have earned</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -218,7 +218,7 @@
 
       <!-- Journey milestones -->
       <div class="card" style="margin-bottom:1.5rem;">
-        <h3 style="margin-top:0;">Journey Milestones</h3>
+        <h3 style="margin-top:0;">🧭 Journey Milestones</h3>
         <div class="badges-grid" id="badgesGrid"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
 
@@ -231,34 +231,34 @@
 
       <!-- Speech milestones -->
       <div class="card" style="margin-bottom:1.5rem;">
-        <h3 style="margin-top:0;">Speech Milestones</h3>
+        <h3 style="margin-top:0;">🎤 Speech Milestones</h3>
         <p class="section-sub" style="margin-bottom:1rem;">A badge for every prepared speech you deliver</p>
         <div class="badges-grid" id="speechBadgesGrid"></div>
       </div>
 
       <!-- Table Topics mastery -->
       <div class="card" style="margin-bottom:1.5rem;">
-        <h3 style="margin-top:0;">Table Topics Mastery</h3>
+        <h3 style="margin-top:0;">⚡ Table Topics Mastery</h3>
         <p class="section-sub" style="margin-bottom:1rem;">Awarded for impromptu speaking reps</p>
         <div class="badges-grid" id="ttBadgesGrid"></div>
       </div>
 
       <!-- Role & streak milestones -->
       <div class="card" style="margin-bottom:1.5rem;">
-        <h3 style="margin-top:0;">Role &amp; Attendance Milestones</h3>
+        <h3 style="margin-top:0;">🎭 Role &amp; Attendance Milestones</h3>
         <p class="section-sub" style="margin-bottom:1rem;">Take on different roles and attend regularly to earn these</p>
         <div class="badges-grid" id="roleBadgesGrid"></div>
       </div>
 
       <!-- My upcoming roles (visible only to this member - req 14) -->
       <div class="card" id="myUpcomingRolesWrapper" style="display:none;margin-bottom:1.5rem;background:var(--orange-light);border:1px solid rgba(255,87,34,0.2);">
-        <h3 style="margin-top:0;color:var(--orange);">My Upcoming Roles</h3>
+        <h3 style="margin-top:0;color:var(--orange);">📅 My Upcoming Roles</h3>
         <div class="badges-grid" id="myUpcomingRolesGrid"></div>
       </div>
 
       <!-- Past roles — only for this member (req 14) -->
       <div class="card">
-        <h3 style="margin-top:0;">My Role History</h3>
+        <h3 style="margin-top:0;">📜 My Role History</h3>
         <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:1rem;">Only visible to you.</p>
         <div class="badges-grid" id="rolesGrid"><p style="color:var(--text-mid);">Play a role in upcoming meets to earn badges!</p></div>
       </div>
@@ -266,7 +266,7 @@
 
 <!-- SECTION: POINTS GUIDE (Req 6) -->
 <div class="dash-section" id="section-points">
-  <h2 class="section-title">Points Guide</h2>
+  <h2 class="section-title">⭐ Points Guide</h2>
   <p class="section-sub">Points earned per role in every meeting</p>
   <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;max-width:600px;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -301,7 +301,7 @@
     <!-- SECTION: LEADERBOARD                                 -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-leaderboard">
-      <h2 class="section-title">Club Leaderboard</h2>
+      <h2 class="section-title">🏆 Club Leaderboard</h2>
       <p class="section-sub">Historical role involvement and aggregated activity points</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -321,18 +321,18 @@
     <!-- SECTION: MENTORSHIP                                  -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-mentorship">
-      <h2 class="section-title">Mentor &amp; Mentee</h2>
+      <h2 class="section-title">🤝 Mentor &amp; Mentee</h2>
       <p class="section-sub">Your personal support network</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
   <span>Your mentor is assigned by the admin and is your go-to person for guidance on speeches and club activities. If you are a mentor yourself, your mentees will appear below.</span>
 </div>
       <div class="card">
-        <h3>Your Mentor</h3>
+        <h3>🧑‍🏫 Your Mentor</h3>
         <div id="mentorInfo"><p style="color:var(--text-mid);">Loading...</p></div>
       </div>
       <div class="card" id="menteesCard" style="display:none;">
-        <h3>Your Mentees</h3>
+        <h3>🌱 Your Mentees</h3>
         <div class="mentee-list" id="menteesList"></div>
       </div>
     </div>
@@ -341,7 +341,7 @@
     <!-- SECTION: ATTENDANCE                                  -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-attendance">
-      <h2 class="section-title">Attendance</h2>
+      <h2 class="section-title">📅 Attendance</h2>
       <p class="section-sub">Your meet attendance record</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -361,7 +361,7 @@
     <!-- SECTION: GALLERY                                     -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-gallery">
-      <h2 class="section-title">Club Gallery</h2>
+      <h2 class="section-title">🖼️ Club Gallery</h2>
       <p class="section-sub">Photos from past meets, including member-only ones</p>
       <div class="card">
         <div id="dashGallery"><div class="gallery-placeholder">Loading moments...</div></div>
@@ -372,11 +372,11 @@
     <!-- SECTION: LIVE CHAT                                   -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-chat">
-      <h2 class="section-title">Live Chat</h2>
+      <h2 class="section-title">💬 Live Chat</h2>
       <p class="section-sub">Chat with the whole club in real time</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
         <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
-        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time). Click a folded row to open it. Tap the reply icon on any message to tag it in your reply, react with an emoji, copy the text, or (for your own messages) edit/delete it. Type @ to tag any member, even inactive ones.</span>
+        <span>Messages refresh automatically once a second while this tab is open. Older chats fold up by day, then by month, then by year (Indian time). Click a folded row to open it. Tap ↩️ on any message to tag it in your reply, react with 😊, copy 📋, or (for your own messages) edit ✏️ / delete 🗑️ it. Type @ to tag any member, even inactive ones.</span>
       </div>
       <div class="card" style="padding:0;overflow:hidden;">
         <div id="chatMessagesContainer" class="chat-messages"></div>
@@ -387,7 +387,7 @@
           <button type="button" class="chat-emoji-btn" id="chatEmojiBtn" onclick="toggleChatEmojiPicker()" title="Insert emoji">😊</button>
           <textarea id="chatInput" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for new line, @ to tag someone)"></textarea>
           <button class="btn-primary" id="chatSendBtn" onclick="sendChatMessage()" style="padding:0.75rem 1.4rem;flex-shrink:0;">
-            <i class="fa-solid fa-paper-plane"></i>
+            📤
           </button>
         </div>
       </div>
@@ -397,7 +397,7 @@
     <!-- SECTION: NOTIFICATIONS (req 4)                       -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-notifications">
-      <h2 class="section-title">Notifications</h2>
+      <h2 class="section-title">🔔 Notifications</h2>
       <p class="section-sub">Club announcements and personal messages</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -423,7 +423,7 @@
     <!-- SECTION: GIVE FEEDBACK (req 13)                      -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-feedback">
-      <h2 class="section-title">Give Feedback</h2>
+      <h2 class="section-title">📝 Give Feedback</h2>
       <p class="section-sub">Rate and provide written feedback for a speaker from a recent meeting</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -431,7 +431,7 @@
 </div>
 
       <div class="card">
-        <h3>Select Speaker</h3>
+        <h3>🎙️ Select Speaker</h3>
         <div class="admin-grid-2" style="gap:1rem;margin-bottom:1.5rem;">
           <div class="form-group">
             <label>Meeting / Event</label>
@@ -448,7 +448,7 @@
         </div>
 
         <div id="fbForm" style="display:none;">
-          <h3 style="margin-bottom:1.5rem;">Rate the Speech</h3>
+          <h3 style="margin-bottom:1.5rem;">⭐ Rate the Speech</h3>
           <div class="feedback-categories" id="fbCategories"></div>
 
           <div class="form-group" style="margin-top:1rem;">
@@ -476,7 +476,7 @@
     <!-- SECTION: GIVE VOTE (req 15)                          -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-voting">
-      <h2 class="section-title">Give Vote</h2>
+      <h2 class="section-title">🗳️ Give Vote</h2>
       <p class="section-sub">Vote anonymously for the best performers of the meeting</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
   <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -495,7 +495,7 @@
     <!-- SECTION: EVENTS                                      -->
     <!-- ──────────────────────────────────────────────────── -->
     <div class="dash-section" id="section-events-dash">
-      <h2 class="section-title">Club Events</h2>
+      <h2 class="section-title">🗓️ Club Events</h2>
       <p class="section-sub">All past and upcoming meets</p>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text-mid);display:flex;align-items:flex-start;gap:0.6rem;">
         <i class="fa-solid fa-circle-info" style="color:var(--orange);margin-top:2px;flex-shrink:0;"></i>
@@ -515,12 +515,12 @@
         <i class="fa-solid fa-bell" style="color:var(--orange);font-size:1.2rem;"></i>
       </div>
       <div>
-        <h3 style="margin:0;font-size:1.2rem;" id="pnModalTitle">Personal Message</h3>
+        <h3 style="margin:0;font-size:1.2rem;" id="pnModalTitle">💌 Personal Message</h3>
         <p style="margin:0;font-size:0.8rem;color:var(--text-light);" id="pnModalTime"></p>
       </div>
     </div>
     <p id="pnModalBody" style="font-size:1rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;"></p>
-    <button class="btn-primary" style="width:100%;" onclick="dismissPersonalNotif()">Got it, continue to dashboard</button>
+    <button class="btn-primary" style="width:100%;" onclick="dismissPersonalNotif()">👍 Got it, continue to dashboard</button>
   </div>
 </div>
 
@@ -532,12 +532,12 @@
         <i class="fa-solid fa-bullhorn" style="color:var(--orange);font-size:1.2rem;"></i>
       </div>
       <div>
-        <h3 style="margin:0;font-size:1.2rem;" id="cnModalTitle">Club Announcement</h3>
+        <h3 style="margin:0;font-size:1.2rem;" id="cnModalTitle">📣 Club Announcement</h3>
         <p style="margin:0;font-size:0.8rem;color:var(--text-light);" id="cnModalTime"></p>
       </div>
     </div>
     <p id="cnModalBody" style="font-size:1rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;"></p>
-    <button class="btn-primary" style="width:100%;" onclick="dismissCommonNotif()">Got it, continue to dashboard</button>
+    <button class="btn-primary" style="width:100%;" onclick="dismissCommonNotif()">👍 Got it, continue to dashboard</button>
   </div>
 </div>
   
@@ -548,19 +548,18 @@
     <h2 id="modalTitle" style="font-size:1.5rem;margin-bottom:0.5rem;"></h2>
     <p id="modalLvl" style="color:var(--orange);font-weight:700;font-size:0.9rem;text-transform:uppercase;margin-bottom:1.5rem;"></p>
     <div id="modalPurposeWrap" style="margin-bottom:1.5rem;display:none;">
-      <h4 style="margin-bottom:0.5rem;">Purpose Statement</h4>
+      <h4 style="margin-bottom:0.5rem;">🎯 Purpose Statement</h4>
       <p id="modalPurpose" style="font-size:0.95rem;border-left:3px solid var(--orange);padding-left:1rem;font-style:italic;color:var(--text-mid);"></p>
     </div>
     <div id="modalObjectivesWrap" style="margin-bottom:1.5rem;display:none;">
-      <h4 style="margin-bottom:0.5rem;">Objectives</h4>
+      <h4 style="margin-bottom:0.5rem;">✅ Objectives</h4>
       <p id="modalObjectives" style="font-size:0.95rem;color:var(--text-mid);"></p>
     </div>
     <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
-      <h4 style="margin-bottom:1rem;">Resources &amp; Guide</h4>
+      <h4 style="margin-bottom:1rem;">📚 Resources &amp; Guide</h4>
       <!-- Guide button — large (req 9) -->
       <a id="modalGuideBtn" href="#" target="_blank" rel="noopener" class="guide-btn" style="display:none;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        Open Speech Guide / Manual
+        📖 Open Speech Guide / Manual
       </a>
       <div id="modalFiles" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:0.75rem;"></div>
     </div>
@@ -571,7 +570,7 @@
 <div id="settingsModal" style="display:none;" class="modal-overlay">
   <div class="modal-card" style="max-width:500px;">
     <button onclick="closeSettingsModal()" class="modal-close">&times;</button>
-    <h2 class="section-title" style="margin-top:0;">Security &amp; Settings</h2>
+    <h2 class="section-title" style="margin-top:0;">⚙️ Security &amp; Settings</h2>
     <p class="section-sub">Manage your account credentials</p>
     <div class="form-group">
       <label>New Password</label>
@@ -581,11 +580,11 @@
       <label>Confirm New Password</label>
       <input type="password" id="confirmPass" placeholder="Re-enter password" />
     </div>
-    <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">Update Password</button>
+    <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">🔑 Update Password</button>
     <div id="settingsFeedback" style="display:none;padding:0.85rem;border-radius:var(--radius-sm);margin-top:1rem;font-size:0.9rem;"></div>
 
     <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
-      <h4 style="margin:0 0 0.4rem;">Security</h4>
+      <h4 style="margin:0 0 0.4rem;">🔒 Security</h4>
       <p style="font-size:0.82rem;color:var(--text-light);margin:0 0 0.75rem;">
         <i class="fa-solid fa-circle-info"></i>
         If you signed in on a device you no longer control (shared computer, lost phone, etc.), use this to sign out of every device at once. You'll need to log in again everywhere, including here.
@@ -1002,7 +1001,7 @@ if (hasChosenL3)
 
   const stepClass = isDone ? 'done' : (isActive ? 'active-step' : '');
   const numClass  = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
-  const icon      = isDone ? '<i class="fa-solid fa-check"></i>' : (i + 1);
+  const icon      = isDone ? '✅' : (i + 1);
 
   // Cache the project data so onclick never has to inline JSON
   const cacheKey = `${levelKey}_${i}`;
@@ -1015,7 +1014,7 @@ if (hasChosenL3)
       <h4>${chatEscapeHtml(projName)}<span style="font-size:0.72rem;font-weight:600;color:var(--text-light);">${multiHint}</span></h4>
       <p>${chatEscapeHtml(projDesc ? projDesc.substring(0, 80) + (projDesc.length > 80 ? '...' : '') : range.label)}</p>
     </div>
-    ${guideLink ? '<i class="fa-solid fa-book-open" style="color:var(--orange);margin-left:auto;font-size:0.9rem;flex-shrink:0;"></i>' : ''}
+    ${guideLink ? '<span title="Guide available" style="margin-left:auto;font-size:1.05rem;flex-shrink:0;">📖</span>' : ''}
   </div>`;
 });
     }
@@ -1033,7 +1032,7 @@ if (hasChosenL3)
         <div style="margin-top:2rem;padding:1.5rem;border:2px dashed rgba(255,87,34,0.4);
           border-radius:var(--radius);background:var(--orange-light);">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
-            <i class="fa-solid fa-road" style="color:var(--orange);"></i>
+            <span style="font-size:1.2rem;">🛣️</span>
             <h4 style="margin:0;font-size:1rem;color:var(--orange);">Choose Your Level 3 Elective</h4>
           </div>
           <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.25rem;">
@@ -1204,7 +1203,7 @@ function renderMyUpcomingRoles(upcoming) {
     wrapper.style.display = 'block';
     grid.innerHTML = myRoles.map(r => `
       <div class="badge-item earned">
-        <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:var(--orange);"></i></div>
+        <div class="badge-icon"><span style="font-size:1.8rem;line-height:1;">🎭</span></div>
         <div class="badge-name">${chatEscapeHtml(r.role)}</div>
         <div class="badge-desc" style="color:var(--orange);font-weight:700;">${chatEscapeHtml(r.meet)}</div>
       </div>`).join('');
@@ -1367,6 +1366,9 @@ function ordinal(n) {
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
 
+const BADGE_EMOJI = {"fa-award": "🎖️", "fa-bolt": "⚡", "fa-calendar-check": "📅", "fa-clipboard-check": "📋", "fa-comments": "💬", "fa-crown": "👑", "fa-ear-listen": "👂", "fa-fire": "🔥", "fa-fire-flame-curved": "🔥", "fa-hand": "✋", "fa-hands-helping": "🤝", "fa-layer-group": "📚", "fa-magnifying-glass": "🔍", "fa-medal": "🏅", "fa-microphone": "🎤", "fa-microphone-lines": "🎙️", "fa-note-sticky": "📝", "fa-road": "🛣️", "fa-scale-balanced": "⚖️", "fa-spell-check": "🔤", "fa-star": "⭐", "fa-stopwatch": "⏱️", "fa-user-tie": "🤵", "fa-masks-theater": "🎭"};
+function badgeEmoji(icon) { return BADGE_EMOJI[icon] || '🏅'; }
+
 function renderBadgeGrid(el, list) {
   el.innerHTML = list.map(b => {
     // 'earned' is the base/common tier's CSS class; 'epic'/'legendary' override it
@@ -1374,11 +1376,11 @@ function renderBadgeGrid(el, list) {
     const tierClass = b.earned && b.tier ? ` ${b.tier}` : (b.earned ? ' earned' : ' locked');
     const iconColor = b.earned ? 'var(--badge-c1)' : 'var(--text-light)';
     return `<div class="badge-item${tierClass}">
-      ${!b.earned ? '<div class="badge-lock"><i class="fa-solid fa-lock"></i></div>' : ''}
-      <div class="badge-icon"><i class="fa-solid ${chatEscapeHtml(b.icon)}" style="font-size:1.6rem;color:${iconColor};"></i></div>
+      ${!b.earned ? '<div class="badge-lock">🔒</div>' : ''}
+      <div class="badge-icon"><span class="badge-emoji" style="font-size:1.7rem;line-height:1;${b.earned ? '' : 'filter:grayscale(1);opacity:0.45;'}">${badgeEmoji(b.icon)}</span></div>
       <div class="badge-name">${chatEscapeHtml(b.name)}</div>
       <div class="badge-desc">${chatEscapeHtml(b.desc)}</div>
-      ${b.earned && b.tier ? `<span class="badge-tier-tag">${b.tier}</span>` : ''}
+      ${b.earned && b.tier ? `<span class="badge-tier-tag">${b.tier === 'legendary' ? '🌟' : '💎'} ${b.tier}</span>` : ''}
     </div>`;
   }).join('');
 }
@@ -1407,7 +1409,7 @@ async function loadAchievements() {
       rolesGrid.innerHTML = [...pastRoles].reverse().map(r => {
         const parts = r.split(' M-');
         return `<div class="badge-item completed">
-          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
+          <div class="badge-icon"><span style="font-size:1.7rem;line-height:1;">🎭</span></div>
           <div class="badge-name">${chatEscapeHtml(parts[0])}</div>
           <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(parts[1]||'')}</div>
         </div>`;
@@ -1420,8 +1422,8 @@ async function loadAchievements() {
       winCard.style.display = 'block';
       winGrid.innerHTML = winBadges.map(wb => `
         <div class="badge-item won">
-          <div class="badge-ribbon">Winner</div>
-          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
+          <div class="badge-ribbon">🏆 Winner</div>
+          <div class="badge-icon"><span style="font-size:1.7rem;line-height:1;">👑</span></div>
           <div class="badge-name">${chatEscapeHtml(wb.category)}</div>
           <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(wb.meet)}</div>
         </div>`).join('');
@@ -2341,7 +2343,7 @@ async function loadVoting() {
     if (snap.empty) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
         <i class="fa-solid fa-ballot-check" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;display:block;"></i>
-        <h3 style="font-family:var(--font-body);">No Active Voting Session</h3>
+        <h3 style="font-family:var(--font-body);">🗳️ No Active Voting Session</h3>
         <p style="color:var(--text-mid);">When the admin opens a voting session after a meeting, it will appear here.</p>
       </div>`; return;
     }
@@ -2360,7 +2362,7 @@ async function loadVoting() {
     if (alreadyVoted) {
       container.innerHTML = `<div class="card" style="text-align:center;padding:3rem;">
         <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;display:block;"></i>
-        <h3 style="font-family:var(--font-body);color:#2e7d32;">You Have Already Voted</h3>
+        <h3 style="font-family:var(--font-body);color:#2e7d32;">✅ You Have Already Voted</h3>
         <p style="color:var(--text-mid);">Your anonymous vote for <strong>${chatEscapeHtml(sessionData.meetTitle||'this meeting')}</strong> has been recorded.</p>
       </div>`; return;
     }
@@ -2711,7 +2713,7 @@ if (typeof speech==='object' && speech.purpose) {
   filesWrap.innerHTML = '';
   if (typeof speech==='object'&&speech.files?.length) {
     speech.files.forEach(f => {
-      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault()"><i class="fa-solid fa-file-pdf"></i> ${chatEscapeHtml(f)}</a>`;
+      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault()">📄 ${chatEscapeHtml(f)}</a>`;
     });
   }
   modal.style.display = 'flex';
@@ -2739,7 +2741,7 @@ window.updateUserPassword = async () => {
   } catch(e) {
     if (e.code==='auth/requires-recent-login') showSettingsFeedback('Please log out and back in before changing your password.','error');
     else showSettingsFeedback(e.message,'error');
-  } finally { btn.disabled=false; btn.textContent='Update Password \u2192'; }
+  } finally { btn.disabled=false; btn.textContent='🔑 Update Password'; }
 };
 
 function showSettingsFeedback(msg,type) {
@@ -2889,6 +2891,15 @@ const CHAT_EMOJI_LIST = [
 
 function isChatAdmin() { return !!(userData && ['admin','core'].includes(userData.role)); }
 
+// Names are normalised (trimmed, runs of whitespace collapsed) so a stray
+// double/trailing space in a user document can never break tagging.
+function chatUserName(u) { return String((u && u.name) || '').replace(/\s+/g, ' ').trim(); }
+// Regex source for a name that tolerates any whitespace between its words
+// (input text may contain double spaces) and already-HTML-escaped output.
+function chatNamePattern(name, escapeHtml) {
+  return String(name).split(/\s+/).filter(Boolean)
+    .map(w => chatEscapeRegex(escapeHtml ? chatEscapeHtml(w) : w)).join('\\s+');
+}
 function chatEscapeRegex(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 function chatToDate(ts) {
@@ -3409,17 +3420,26 @@ function renderChatDayGroup(day) {
 // Highlights "@Name" substrings that correspond to this message's tagged
 // mentions (req 9). Operates on already-HTML-escaped text so both sides of
 // the match are escaped consistently.
+let _chatMentionReCache = { key: '', re: null };
+function chatGetMentionRegex(extraNames) {
+  // Every known member name (so older messages that were typed rather than
+  // picked from the dropdown still highlight) plus this message's own tags.
+  const names = new Set(extraNames.map(n => String(n).replace(/\s+/g,' ').trim()).filter(Boolean));
+  allUsersCache.forEach(u => { const n = chatUserName(u); if (n) names.add(n); });
+  const list = [...names].sort((a,b) => b.length - a.length);
+  const key = list.join('|');
+  if (_chatMentionReCache.key === key) return _chatMentionReCache.re;
+  const re = list.length
+    ? new RegExp('@(' + list.map(n => chatNamePattern(n, true)).join('|') + ')(?![\\p{L}\\p{N}_])', 'giu')
+    : null;
+  _chatMentionReCache = { key, re };
+  return re;
+}
 function chatRenderText(msg) {
   let escaped = chatEscapeHtml(msg.text||'');
-  if (msg.mentions && msg.mentions.length) {
-    const names = [...new Set(msg.mentions.map(m => m.name))]
-      .sort((a,b) => b.length - a.length)
-      .map(n => chatEscapeRegex(chatEscapeHtml(n)));
-    if (names.length) {
-      const re = new RegExp('@(' + names.join('|') + ')\\b', 'g');
-      escaped = escaped.replace(re, '<span class="chat-mention">@$1</span>');
-    }
-  }
+  if (escaped.indexOf('@') === -1) return escaped;
+  const re = chatGetMentionRegex((msg.mentions || []).map(m => m.name));
+  if (re) { re.lastIndex = 0; escaped = escaped.replace(re, '<span class="chat-mention">@$1</span>'); }
   return escaped;
 }
 
@@ -3494,20 +3514,20 @@ function renderChatBubble(msg) {
           <span class="chat-msg-name">${chatEscapeHtml(msg.senderName||'Member')}</span>
           <span class="chat-msg-time" title="${chatEscapeHtml(dayLabel)}">${chatEscapeHtml(timeLabel)}</span>
         </div>
-        <div class="chat-msg-text chat-msg-text-deleted"><i class="fa-solid fa-ban"></i> ${label}</div>
+        <div class="chat-msg-text chat-msg-text-deleted">🚫 ${label}</div>
       </div>
     </div>`;
   }
 
   const replyHtml = msg.replyTo
     ? `<div class="chat-reply-tag" onclick="scrollToChatMessage('${jsAttr(msg.replyTo.id)}')">
-        <i class="fa-solid fa-reply"></i> <strong>${chatEscapeHtml(msg.replyTo.name)}</strong>: ${chatEscapeHtml(msg.replyTo.text)}
+        ↩️ <strong>${chatEscapeHtml(msg.replyTo.name)}</strong>: ${chatEscapeHtml(msg.replyTo.text)}
       </div>`
     : '';
 
   // req 5: "edited" tag with the IST edit timestamp in the tooltip.
   const editedHtml = msg.editedAt
-    ? `<span class="chat-msg-edited" title="Edited ${chatEscapeHtml(chatIstDateTime(chatToDate(msg.editedAt)))} IST">edited</span>`
+    ? `<span class="chat-msg-edited" title="Edited ${chatEscapeHtml(chatIstDateTime(chatToDate(msg.editedAt)))} IST">✏️ edited</span>`
     : '';
 
   const isEditing = chatEditingId === msg.id;
@@ -3515,8 +3535,8 @@ function renderChatBubble(msg) {
     ? `<div class="chat-edit-box">
         <textarea id="editBox-${msg.id}" rows="2">${chatEscapeHtml(msg.text||'')}</textarea>
         <div class="chat-edit-actions">
-          <button type="button" onclick="saveEditChatMessage('${msg.id}')" class="btn-primary" style="padding:0.35rem 0.9rem;font-size:0.78rem;">Save</button>
-          <button type="button" onclick="cancelEditChatMessage()" style="padding:0.35rem 0.9rem;font-size:0.78rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text);">Cancel</button>
+          <button type="button" onclick="saveEditChatMessage('${msg.id}')" class="btn-primary" style="padding:0.35rem 0.9rem;font-size:0.78rem;">💾 Save</button>
+          <button type="button" onclick="cancelEditChatMessage()" style="padding:0.35rem 0.9rem;font-size:0.78rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text);">✖️ Cancel</button>
         </div>
       </div>`
     : `<div class="chat-msg-text">${chatRenderText(msg)}</div>`;
@@ -3530,11 +3550,11 @@ function renderChatBubble(msg) {
     : '';
 
   const actionsHtml = isEditing ? '' : `<div class="chat-msg-actions">
-      <button type="button" onclick="replyToChatMessage('${msg.id}','${safeName}','${safeSnippet}')" title="Reply"><i class="fa-solid fa-reply"></i></button>
+      <button type="button" onclick="replyToChatMessage('${msg.id}','${safeName}','${safeSnippet}')" title="Reply">↩️</button>
       <button type="button" class="chat-msg-react-btn" onclick="openChatReactionPicker('${msg.id}')" title="React">😊</button>
-      <button type="button" id="copyBtn-${msg.id}" onclick="copyChatMessage('${msg.id}')" title="Copy"><i class="fa-regular fa-copy"></i></button>
-      ${canEdit ? `<button type="button" onclick="startEditChatMessage('${msg.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
-      ${canDelete ? `<button type="button" class="danger" onclick="deleteChatMessage('${msg.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+      <button type="button" id="copyBtn-${msg.id}" onclick="copyChatMessage('${msg.id}')" title="Copy">📋</button>
+      ${canEdit ? `<button type="button" onclick="startEditChatMessage('${msg.id}')" title="Edit">✏️</button>` : ''}
+      ${canDelete ? `<button type="button" class="danger" onclick="deleteChatMessage('${msg.id}')" title="Delete">🗑️</button>` : ''}
     </div>`;
 
   return `<div class="chat-msg ${isMe?'chat-msg-mine':''}" id="msg-${msg.id}">
@@ -3582,10 +3602,10 @@ function renderChatReplyPreview() {
   if (!chatReplyingTo) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.style.display = 'flex';
   box.innerHTML = `<div style="flex:1;overflow:hidden;">
-      <div class="chat-reply-preview-name">Replying to ${chatEscapeHtml(chatReplyingTo.name)}</div>
+      <div class="chat-reply-preview-name">↩️ Replying to ${chatEscapeHtml(chatReplyingTo.name)}</div>
       <div class="chat-reply-preview-text">${chatEscapeHtml(chatReplyingTo.text)}</div>
     </div>
-    <button onclick="cancelChatReply()" title="Cancel reply"><i class="fa-solid fa-xmark"></i></button>`;
+    <button onclick="cancelChatReply()" title="Cancel reply">✖️</button>`;
 }
 
 // ── req 5: edit own message ─────────────────────────────────
@@ -3786,18 +3806,30 @@ function chatUpdateMentionDropdown() {
   const charBefore = atIdx > 0 ? uptoCursor[atIdx-1] : ' ';
   if (!/\s/.test(charBefore) && atIdx !== 0) { closeChatMentionDropdown(); return; }
   const queryStr = uptoCursor.slice(atIdx+1);
-  if (/\s/.test(queryStr)) { closeChatMentionDropdown(); return; } // a space ends the mention query
-  chatMentionState = { start: atIdx, end: cursor, query: queryStr.toLowerCase() };
+  if (/[\n\r]/.test(queryStr) || queryStr.length > 40) { closeChatMentionDropdown(); return; }
+  const normQuery = queryStr.replace(/\s+/g, ' ').trim().toLowerCase();
+  // A finished name followed by a space ("@Ojas Kane ") ends the tag.
+  if (/\s$/.test(queryStr) && allUsersCache.some(u => chatUserName(u).toLowerCase() === normQuery)) { closeChatMentionDropdown(); return; }
+  chatMentionState = { start: atIdx, end: cursor, query: normQuery };
+  // Multi-word search: every typed word must appear somewhere in the name,
+  // so "@vaib raj" finds "Vaibhav Singh Rajput". Names starting with the
+  // query are listed first.
+  const words = normQuery.split(' ').filter(Boolean);
   const matches = allUsersCache
-    .filter(u => u.id !== currentUid && (u.name||'').toLowerCase().includes(chatMentionState.query))
-    .slice(0, 8);
+    .filter(u => u.id !== currentUid && chatUserName(u) && words.every(w => chatUserName(u).toLowerCase().includes(w)))
+    .sort((a, b) => {
+      const an = chatUserName(a).toLowerCase().startsWith(normQuery) ? 0 : 1;
+      const bn = chatUserName(b).toLowerCase().startsWith(normQuery) ? 0 : 1;
+      return an - bn || chatUserName(a).localeCompare(chatUserName(b));
+    })
+    .slice(0, 40);
   if (!matches.length) { closeChatMentionDropdown(); return; }
   box.innerHTML = matches.map(u => {
-    const initials = (u.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const initials = (chatUserName(u)||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const inactiveTag = u.isActive === false ? '<span class="chat-mention-inactive">inactive</span>' : '';
     return `<button type="button" class="chat-mention-item" onclick="pickChatMention('${jsAttr(u.id)}')">
       <span class="chat-mention-avatar">${chatSafeUrl(u.photoUrl) ? `<img src="${chatEscapeHtml(chatSafeUrl(u.photoUrl))}"/>` : chatEscapeHtml(initials)}</span>
-      <span class="chat-mention-name">${chatEscapeHtml(u.name||'Member')}</span>
+      <span class="chat-mention-name">${chatEscapeHtml(chatUserName(u)||'Member')}</span>
       ${inactiveTag}
     </button>`;
   }).join('');
@@ -3812,7 +3844,7 @@ window.pickChatMention = function(uid) {
   const user = allUsersCache.find(u => u.id === uid);
   const input = document.getElementById('chatInput');
   if (!user || !input || !chatMentionState) return;
-  const name = user.name || 'Member';
+  const name = chatUserName(user) || 'Member';
   const before = input.value.slice(0, chatMentionState.start);
   const after = input.value.slice(chatMentionState.end);
   const insertion = '@' + name + ' ';
@@ -3827,12 +3859,25 @@ window.pickChatMention = function(uid) {
 // Resolves which of the explicitly-picked mentions are still actually
 // present in the final message text (in case the user deleted the @tag).
 function chatResolveMentions(text) {
+  // Picks from the dropdown AND names typed out by hand both count: we scan
+  // the final text for "@<member name>" for every member (longest names
+  // first, blanking each match so "@Ojas" can't also match inside "@Ojas Kane").
   const found = [];
   const seen = new Set();
-  chatPendingMentions.forEach(m => {
-    if (seen.has(m.uid)) return;
-    const re = new RegExp('@' + chatEscapeRegex(m.name) + '(\\s|$)');
-    if (re.test(text)) { found.push(m); seen.add(m.uid); }
+  let work = text;
+  const candidates = allUsersCache
+    .filter(u => u.id !== currentUid && chatUserName(u))
+    .map(u => ({ uid: u.id, name: chatUserName(u) }))
+    .sort((a, b) => b.name.length - a.name.length);
+  candidates.forEach(c => {
+    if (seen.has(c.uid)) return;
+    const re = new RegExp('@' + chatNamePattern(c.name, false) + '(?![\\p{L}\\p{N}_])', 'iu');
+    const m = re.exec(work);
+    if (m) {
+      found.push({ uid: c.uid, name: c.name });
+      seen.add(c.uid);
+      work = work.slice(0, m.index) + ' '.repeat(m[0].length) + work.slice(m.index + m[0].length);
+    }
   });
   return found;
 }
