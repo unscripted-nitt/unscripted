@@ -1939,33 +1939,3 @@ tr:hover td { background: var(--surface2); }
 
 /* ── Colourless emoji (chat action buttons etc.) ──────────── */
 .emo-mono { filter: grayscale(1); opacity: 0.85; display: inline-block; }
-
-/* ── Badge icons: Font Awesome glyphs tinted by tier, gently animated ── */
-.badge-fa {
-  font-size: 1.5rem;
-  line-height: 1;
-  color: var(--badge-c1, var(--orange));
-  position: relative;
-  z-index: 1;
-}
-.badge-item.earned .badge-fa,
-.badge-item.completed .badge-fa,
-.badge-item.won .badge-fa { animation: badgeFloat 3.4s ease-in-out infinite; }
-.badge-item.epic .badge-fa { animation: badgeGlowPulse 2.6s ease-in-out infinite; }
-.badge-item.legendary .badge-fa { animation: badgeGlowPulse 2.2s ease-in-out infinite, badgeTilt 4.4s ease-in-out infinite; }
-.badge-item.won .badge-fa { animation: badgeTilt 3.6s ease-in-out infinite; }
-@keyframes badgeFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-3px); }
-}
-@keyframes badgeTilt {
-  0%, 100% { transform: rotate(-7deg); }
-  50%      { transform: rotate(7deg); }
-}
-@keyframes badgeGlowPulse {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(255,196,0,0)); }
-  50%      { filter: drop-shadow(0 0 7px var(--badge-glow, rgba(255,196,0,0.6))); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .badge-fa { animation: none !important; }
-}
