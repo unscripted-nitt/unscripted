@@ -192,7 +192,8 @@
   border-radius: 50%;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
+  line-height: 1;
   padding: 0;
 }
 .chat-msg-actions button:hover { color: var(--orange); border-color: rgba(255,87,34,0.3); background: var(--orange-light); }
