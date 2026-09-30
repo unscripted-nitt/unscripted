@@ -5,7 +5,7 @@
   <script type="module" src="../js/theme-toggle.js"></script>
 
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guest Dashboard | Unscripted NITT</title>  
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
@@ -648,7 +648,7 @@ async function loadGuestAchievements() {
       ${winBadges.map(wb => `
         <div class="badge-item won">
           <div class="badge-ribbon">Winner</div>
-          <div class="badge-icon"><i class="fa-solid fa-crown badge-fa"></i></div>
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${escapeHtml(wb.category)}</div>
           <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${escapeHtml(wb.meet)}</div>
         </div>`).join('')}
