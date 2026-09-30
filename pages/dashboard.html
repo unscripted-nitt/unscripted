@@ -5,7 +5,7 @@
   <script type="module" src="../js/theme-toggle.js"></script>
 
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/theme-toggle.css" />
@@ -786,7 +786,13 @@ window.logOutAllDevices = async () => {
     alert('You have been logged out from all devices. Please log in again.');
     window.location.href = 'login.html';
   } catch (e) {
-    alert('Could not log out all devices: ' + e.message);
+    // A bare "internal" means the request never reached a working
+    // revokeAllSessions function (not deployed, wrong region, blocked by
+    // CORS / permissions) — say so instead of showing just "internal".
+    const unreachable = (e.code === 'functions/internal' || e.code === 'functions/not-found' || e.code === 'functions/unavailable') && (!e.message || e.message === 'internal' || e.message === 'INTERNAL');
+    alert(unreachable
+      ? 'Could not log out all devices: the logout service is not reachable right now. Please tell an admin (the revokeAllSessions Cloud Function may need to be deployed).'
+      : 'Could not log out all devices: ' + e.message);
     btn.disabled = false; btn.innerHTML = original;
   }
 };
@@ -1346,7 +1352,7 @@ function renderMyUpcomingRoles(upcoming) {
     wrapper.style.display = 'block';
     grid.innerHTML = myRoles.map(r => `
       <div class="badge-item earned">
-        <div class="badge-icon"><i class="fa-solid fa-masks-theater badge-fa"></i></div>
+        <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.8rem;color:var(--orange);"></i></div>
         <div class="badge-name">${chatEscapeHtml(r.role)}</div>
         <div class="badge-desc" style="color:var(--orange);font-weight:700;">${chatEscapeHtml(r.meet)}</div>
       </div>`).join('');
@@ -1518,7 +1524,7 @@ function renderBadgeGrid(el, list) {
     const iconColor = b.earned ? 'var(--badge-c1)' : 'var(--text-light)';
     return `<div class="badge-item${tierClass}">
       ${!b.earned ? '<div class="badge-lock"><i class="fa-solid fa-lock"></i></div>' : ''}
-      <div class="badge-icon"><i class="fa-solid ${chatEscapeHtml(b.icon || 'fa-medal')} badge-fa" style="${b.earned ? '' : 'color:var(--text-light);opacity:0.5;animation:none;'}"></i></div>
+      <div class="badge-icon"><i class="fa-solid ${b.icon}" style="font-size:1.6rem;color:${iconColor};"></i></div>
       <div class="badge-name">${chatEscapeHtml(b.name)}</div>
       <div class="badge-desc">${chatEscapeHtml(b.desc)}</div>
       ${b.earned && b.tier ? `<span class="badge-tier-tag">${b.tier}</span>` : ''}
@@ -1550,7 +1556,7 @@ async function loadAchievements() {
       rolesGrid.innerHTML = [...pastRoles].reverse().map(r => {
         const parts = r.split(' M-');
         return `<div class="badge-item completed">
-          <div class="badge-icon"><i class="fa-solid fa-masks-theater badge-fa"></i></div>
+          <div class="badge-icon"><i class="fa-solid fa-masks-theater" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${chatEscapeHtml(parts[0])}</div>
           <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(parts[1]||'')}</div>
         </div>`;
@@ -1564,7 +1570,7 @@ async function loadAchievements() {
       winGrid.innerHTML = winBadges.map(wb => `
         <div class="badge-item won">
           <div class="badge-ribbon">Winner</div>
-          <div class="badge-icon"><i class="fa-solid fa-crown badge-fa"></i></div>
+          <div class="badge-icon"><i class="fa-solid fa-crown" style="font-size:1.6rem;color:var(--badge-c1);"></i></div>
           <div class="badge-name">${chatEscapeHtml(wb.category)}</div>
           <div class="badge-desc" style="color:var(--badge-c2);font-weight:700;">${chatEscapeHtml(wb.meet)}</div>
         </div>`).join('');
