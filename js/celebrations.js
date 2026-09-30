@@ -3,6 +3,7 @@
 // Lightweight, dependency-free celebration effects:
 //   - launchConfetti()   full-screen confetti burst
 //   - launchBrokenHearts() falling broken-heart burst
+//   - launchMindBlown()    falling 🤯 rain (same timing/physics as broken hearts)
 //   - showCelebToast()   slide-in toast card (badge / rank change)
 // No external libraries — a single canvas is reused for both
 // particle effects and removed from the DOM once the animation ends.
@@ -129,16 +130,55 @@ export function launchBrokenHearts() {
   }, 40, 10000);
 }
 
+// ── MIND BLOWN RAIN ───────────────────────────────────────
+// Deliberately the same recipe as launchBrokenHearts(): 40 particles, the
+// same staggered entry, size range, fall speed, sideways drift, fade-out near
+// the bottom and 10s run time. The only difference is that the glyph is the
+// real 🤯 emoji (drawn with fillText) instead of a canvas-drawn heart shape.
+export function launchMindBlown() {
+  const w = window.innerWidth;
+
+  runParticles(() => {
+    const size = 22 + Math.random() * 16;
+    const x = Math.random() * w;
+    const delay = Math.random() * 2500;
+    const fallSpeed = 1.8 + Math.random() * 2;
+    const drift = (Math.random() - 0.5) * 1.2;
+    let y = -40 - Math.random() * 220;
+    let rot = (Math.random() - 0.5) * 30;
+
+    return {
+      update(elapsed) {
+        if (elapsed < delay) return;
+        y += fallSpeed;
+        this.x_ += drift;
+      },
+      x_: x,
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x_, y);
+        ctx.rotate((rot * Math.PI) / 180);
+        ctx.globalAlpha = y > window.innerHeight - 100 ? Math.max(0, 1 - (y - (window.innerHeight - 100)) / 100) : 0.9;
+        ctx.font = `${Math.round(size * 1.3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('\u{1F92F}', 0, 0);
+        ctx.restore();
+      }
+    };
+  }, 40, 10000);
+}
+
 // ── TOAST ──────────────────────────────────────────────────
 // type: 'badge' | 'rankup' | 'rankdown'
 export function showCelebToast({ type = 'badge', title, body, autoHideMs = 7000 }) {
-  const icons = { badge: '🏅', rankup: '📈', rankdown: '📉' };
+  const icons = { badge: 'fa-medal', rankup: 'fa-arrow-trend-up', rankdown: 'fa-arrow-trend-down' };
   const cls   = { badge: 'badge-toast', rankup: 'rankup-toast', rankdown: 'rankdown-toast' };
 
   const el = document.createElement('div');
   el.className = `celeb-toast ${cls[type] || ''}`;
   el.innerHTML = `
-    <div class="celeb-toast-icon"><span style="font-size:1.5rem;line-height:1;">${icons[type] || '🏅'}</span></div>
+    <div class="celeb-toast-icon"><i class="fa-solid ${icons[type] || 'fa-medal'} celeb-toast-fa"></i></div>
     <div style="flex:1;">
       <div class="celeb-toast-title">${escapeHtml(title)}</div>
       <div class="celeb-toast-body">${escapeHtml(body)}</div>
