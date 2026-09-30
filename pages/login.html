@@ -212,7 +212,7 @@
           <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
         </div>
 
-        <button type="submit" class="btn-primary login-btn" id="loginBtn">🔐 Log In to Dashboard</button>
+        <button type="submit" class="btn-primary login-btn" id="loginBtn">Log In to Dashboard</button>
         <div class="error-msg" id="errorMsg" role="alert"></div>
       </form>
 
@@ -312,7 +312,7 @@ window.loginAsGuest = async function() {
         ? 'Too many attempts. Please wait a few minutes and try again.'
         : 'Invalid or expired OTP. Please check with the admin.';
       err.style.display = 'block';
-      btn.disabled = false; btn.textContent = '🎟️ Enter as Guest';
+      btn.disabled = false; btn.textContent = 'Enter as Guest';
       return;
     }
     await auth.currentUser.getIdToken(true);
@@ -332,7 +332,7 @@ window.loginAsGuest = async function() {
     guestFlowActive = false;
     err.textContent = 'Login failed: please try again.';
     err.style.display = 'block';
-    btn.disabled = false; btn.textContent = '🎟️ Enter as Guest';
+    btn.disabled = false; btn.textContent = 'Enter as Guest';
   }
 };
 import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
